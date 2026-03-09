@@ -7,9 +7,10 @@ import {
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ViteMiddleware } from './vite.middleware.js';
+import { HealthModule } from './modules/health/health.module'
 
 @Module({
-  imports: [],
+  imports: [HealthModule],
   controllers: [AppController],
   providers: [AppService],
 })
