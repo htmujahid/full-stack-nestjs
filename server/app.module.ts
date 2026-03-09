@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ViteMiddleware } from './vite.middleware';
+import { ViteMiddleware } from './common/middlewares/vite.middleware';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './modules/health/health.module';
 import { CoreModule } from './modules/core/core.module';

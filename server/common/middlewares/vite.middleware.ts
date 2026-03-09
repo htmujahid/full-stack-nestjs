@@ -8,6 +8,13 @@ import type { ViteDevServer } from 'vite';
 const isProduction = process.env.NODE_ENV === 'production';
 
 const clientDist = path.resolve(process.cwd(), 'dist/client');
+const publicDir = path.resolve(process.cwd(), 'public');
+
+const ssrMapping: Record<string, string> = {
+  '/': 'index.html',
+  '/about': 'about.html',
+  '/contact': 'contact.html',
+};
 
 @Injectable()
 export class ViteMiddleware implements NestMiddleware {
@@ -18,6 +25,17 @@ export class ViteMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     if (req.originalUrl.startsWith('/api')) {
       return next();
+    }
+
+    const urlPath = req.path.replace(/\/$/, '') || '/';
+    const mappedFile = ssrMapping[urlPath];
+    if (mappedFile) {
+      const filePath = isProduction
+        ? path.resolve(clientDist, mappedFile)
+        : path.resolve(publicDir, mappedFile);
+      if (fs.existsSync(filePath)) {
+        return res.sendFile(filePath);
+      }
     }
 
     if (isProduction) {
