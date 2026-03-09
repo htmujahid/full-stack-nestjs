@@ -24,9 +24,10 @@ export class ViteMiddleware implements NestMiddleware {
       if (!this.staticHandler) {
         this.staticHandler = express.static(clientDist);
       }
-      return this.staticHandler(req, res, () => {
+      this.staticHandler(req, res, () => {
         res.sendFile(path.resolve(clientDist, 'index.html'));
       });
+      return;
     }
 
     if (!this.initialized) {
