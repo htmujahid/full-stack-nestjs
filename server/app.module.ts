@@ -10,9 +10,15 @@ import { ViteMiddleware } from './common/middlewares/vite.middleware';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './modules/health/health.module';
 import { CoreModule } from './modules/core/core.module';
+import { IdentityModule } from './modules/identity/identity.module';
 
 @Module({
-  imports: [DatabaseModule, HealthModule, CoreModule],
+  imports: [
+    DatabaseModule,
+    HealthModule,
+    CoreModule,
+    IdentityModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

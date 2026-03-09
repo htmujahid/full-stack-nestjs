@@ -1,0 +1,40 @@
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
+import type { Session } from '../auth/session.entity';
+import type { Account } from '../auth/account.entity';
+
+@Entity('user')
+export class User {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  name: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column({ default: false })
+  emailVerified: boolean;
+
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  image: string | null;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @OneToMany('Session', 'user')
+  sessions?: Session[];
+
+  @OneToMany('Account', 'user')
+  accounts?: Account[];
+}
