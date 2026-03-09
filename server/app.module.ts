@@ -6,11 +6,13 @@ import {
 } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ViteMiddleware } from './vite.middleware.js';
-import { HealthModule } from './modules/health/health.module'
+import { ViteMiddleware } from './vite.middleware';
+import { DatabaseModule } from './database/database.module';
+import { HealthModule } from './modules/health/health.module';
+import { CoreModule } from './modules/core/core.module';
 
 @Module({
-  imports: [HealthModule],
+  imports: [DatabaseModule, HealthModule, CoreModule],
   controllers: [AppController],
   providers: [AppService],
 })
