@@ -33,8 +33,6 @@ export class AuthService {
       });
 
       if (existing) {
-        // Hash password to mitigate timing attacks
-        await bcrypt.hash(dto.password, SALT_ROUNDS);
         throw new ConflictException('User already exists. Use another email.');
       }
 
