@@ -1,8 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
-
-const MIN_PASSWORD = 8;
-const MAX_PASSWORD = 128;
+import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { PASSWORD_MAX, PASSWORD_MIN } from '../auth.constants';
 
 export class SignUpDto {
   @ApiProperty()
@@ -13,13 +11,13 @@ export class SignUpDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ minLength: MIN_PASSWORD })
+  @ApiProperty({ minLength: PASSWORD_MIN })
   @IsString()
-  @MinLength(MIN_PASSWORD, {
-    message: `Password must be at least ${MIN_PASSWORD} characters`,
+  @MinLength(PASSWORD_MIN, {
+    message: `Password must be at least ${PASSWORD_MIN} characters`,
   })
-  @MaxLength(MAX_PASSWORD, {
-    message: `Password must be at most ${MAX_PASSWORD} characters`,
+  @MaxLength(PASSWORD_MAX, {
+    message: `Password must be at most ${PASSWORD_MAX} characters`,
   })
   password: string;
 
@@ -32,12 +30,4 @@ export class SignUpDto {
   @IsOptional()
   @IsString()
   callbackURL?: string;
-
-  @ApiPropertyOptional({ description: 'If false, session expires sooner. Default true.' })
-  @IsOptional()
-  @IsBoolean()
-  rememberMe?: boolean;
 }
-
-export const PASSWORD_MIN = MIN_PASSWORD;
-export const PASSWORD_MAX = MAX_PASSWORD;

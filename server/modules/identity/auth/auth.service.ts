@@ -1,32 +1,29 @@
 import { ConflictException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
-import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 import { Account } from './account.entity';
-import { Session } from './session.entity';
 import { User } from '../user/user.entity';
+import { CREDENTIAL_PROVIDER, SALT_ROUNDS } from './auth.constants';
 import type { SignUpDto } from './dto/sign-up.dto';
-
-const CREDENTIAL_PROVIDER = 'credential';
-const SALT_ROUNDS = 10;
-const SESSION_TTL_DAYS_SHORT = 7;
-const SESSION_TTL_DAYS_LONG = 30;
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly dataSource: DataSource,
+    private readonly jwtService: JwtService,
+    private readonly mailerService: MailerService,
+  ) {}
 
-  async signUp(dto: SignUpDto): Promise<{
-    token: string | null;
-    user: Omit<User, 'accounts'>;
-  }> {
+  async signUp(dto: SignUpDto): Promise<{ user: Omit<User, 'accounts'> }> {
     const normalizedEmail = dto.email.toLowerCase().trim();
-    const rememberMe = dto.rememberMe !== false;
 
     return this.dataSource.transaction(async (tx) => {
       const userRepo = tx.getRepository(User);
       const accountRepo = tx.getRepository(Account);
-      const sessionRepo = tx.getRepository(Session);
 
       const existing = await userRepo.findOne({
         where: { email: normalizedEmail },
@@ -54,23 +51,44 @@ export class AuthService {
       });
       await accountRepo.save(account);
 
-      const expiresAt = new Date();
-      expiresAt.setDate(
-        expiresAt.getDate() + (rememberMe ? SESSION_TTL_DAYS_LONG : SESSION_TTL_DAYS_SHORT),
+      const verificationExpiresIn = this.configService.getOrThrow<number>('auth.verificationExpiresIn');
+      const token = await this.jwtService.signAsync(
+        { email: normalizedEmail },
+        { expiresIn: verificationExpiresIn },
       );
+      const callbackURL = dto.callbackURL ? encodeURIComponent(dto.callbackURL) : encodeURIComponent('/');
+      const baseURL = this.configService.getOrThrow<string>('app.url');
+      const url = `${baseURL}/api/auth/verify-email?token=${token}&callbackURL=${callbackURL}`;
 
-      const session = sessionRepo.create({
-        userId: savedUser.id,
-        token: randomUUID(),
-        expiresAt,
+      await this.mailerService.sendMail({
+        to: normalizedEmail,
+        subject: 'Verify your email',
+        text: `Verify your email by clicking: ${url}`,
+        html: `<p>Verify your email by clicking: <a href="${url}">${url}</a></p>`,
       });
-      const savedSession = await sessionRepo.save(session);
 
       const { accounts: _, ...userWithoutAccounts } = savedUser;
-      return {
-        token: savedSession.token,
-        user: userWithoutAccounts,
-      };
+      return { user: userWithoutAccounts };
     });
+  }
+
+  async verifyEmail(token: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const payload = await this.jwtService.verifyAsync<{ email?: string }>(token);
+      const email = payload.email;
+      if (!email || typeof email !== 'string') {
+        return { ok: false, error: 'invalid_token' };
+      }
+
+      const userRepo = this.dataSource.getRepository(User);
+      const user = await userRepo.findOne({ where: { email: email.toLowerCase() } });
+      if (!user) return { ok: false, error: 'user_not_found' };
+      if (user.emailVerified) return { ok: true };
+
+      await userRepo.update(user.id, { emailVerified: true });
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'invalid_token' };
+    }
   }
 }
