@@ -28,6 +28,8 @@ import {
 import { SignUpDto } from '../dto/sign-up.dto';
 import { SignInDto } from '../dto/sign-in.dto';
 import { SendVerificationEmailDto } from '../dto/send-verification-email.dto';
+import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { Public } from '../decorators/public.decorator';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import type { User } from '../../user/user.entity';
@@ -112,6 +114,28 @@ export class EmailController {
       accessToken: result.tokens.accessToken,
       refreshToken: result.tokens.refreshToken,
     };
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS } })
+  @ApiOperation({ summary: 'Send password reset email' })
+  @ApiOkResponse({ description: 'Always returns ok; does not leak whether account exists' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    await this.emailService.forgotPassword(dto.email, dto.callbackURL);
+    return { ok: true };
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS } })
+  @ApiOperation({ summary: 'Reset password using token from email' })
+  @ApiOkResponse({ description: 'Password reset successfully' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    await this.emailService.resetPassword(dto.token, dto.newPassword);
+    return { ok: true };
   }
 
   private setTokenCookies(res: Response, tokens: TokenPair, rememberMe: boolean): void {
