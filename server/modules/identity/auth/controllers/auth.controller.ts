@@ -27,7 +27,9 @@ interface RefreshUser {
 @Controller('api/auth')
 @UseGuards(ThrottlerGuard)
 export class AuthController extends BaseAuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {
+    super();
+  }
 
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
