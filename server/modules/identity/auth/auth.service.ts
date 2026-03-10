@@ -141,7 +141,10 @@ export class AuthService {
     return { user, session };
   }
 
-  async verifyEmail(token: string): Promise<{ ok: boolean; error?: string }> {
+  async verifyEmail(
+    token: string,
+    ctx: { ip: string | null; userAgent: string | null },
+  ): Promise<{ ok: true; session: Session } | { ok: false; error: string }> {
     try {
       const payload = await this.jwtService.verifyAsync<{ email?: string }>(token);
       const email = payload.email;
@@ -150,12 +153,28 @@ export class AuthService {
       }
 
       const userRepo = this.dataSource.getRepository(User);
+      const sessionRepo = this.dataSource.getRepository(Session);
+
       const user = await userRepo.findOne({ where: { email: email.toLowerCase() } });
       if (!user) return { ok: false, error: 'user_not_found' };
-      if (user.emailVerified) return { ok: true };
 
-      await userRepo.update(user.id, { emailVerified: true });
-      return { ok: true };
+      if (!user.emailVerified) {
+        await userRepo.update(user.id, { emailVerified: true });
+      }
+
+      const expiresAt = new Date(Date.now() + SESSION_EXPIRES_IN_MS);
+      const sessionToken = randomBytes(32).toString('hex');
+
+      const session = sessionRepo.create({
+        userId: user.id,
+        token: sessionToken,
+        expiresAt,
+        ipAddress: ctx.ip,
+        userAgent: ctx.userAgent,
+      });
+      await sessionRepo.save(session);
+
+      return { ok: true, session };
     } catch {
       return { ok: false, error: 'invalid_token' };
     }

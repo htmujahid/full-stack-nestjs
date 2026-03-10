@@ -7,7 +7,6 @@ import {
   HttpStatus,
   Post,
   Query,
-  Redirect,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -66,27 +65,37 @@ export class AuthController {
       maxAge,
     });
 
-    if (dto.callbackURL) {
-      res.redirect(dto.callbackURL);
-      return;
-    }
-
     return {
       token: result.session.token,
+      url: dto.callbackURL ?? null,
       user: result.user,
     };
   }
 
   @Get('verify-email')
   @ApiOperation({ summary: 'Verify email via token from link' })
-  @Redirect()
   async verifyEmail(
     @Query('token') token: string,
-    @Query('callbackURL') callbackURL?: string,
+    @Query('callbackURL') callbackURL: string | undefined,
+    @Headers('x-forwarded-for') forwardedFor: string | undefined,
+    @Headers('user-agent') userAgent: string | undefined,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.verifyEmail(token);
-    const base = callbackURL ?? '/';
-    const url = result.ok ? base : base.includes('?') ? `${base}&error=${result.error}` : `${base}?error=${result.error}`;
-    return { url };
+    const ip = forwardedFor?.split(',')[0]?.trim() ?? null;
+    const result = await this.authService.verifyEmail(token, { ip, userAgent: userAgent ?? null });
+
+    if (!result.ok) {
+      return { ok: false, error: result.error, url: callbackURL ?? null };
+    }
+
+    res.cookie(SESSION_COOKIE_NAME, result.session.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: SESSION_EXPIRES_IN_MS,
+    });
+
+    return { ok: true, url: callbackURL ?? null };
   }
 }
