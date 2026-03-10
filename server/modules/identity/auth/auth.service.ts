@@ -1,13 +1,26 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 import { DataSource } from 'typeorm';
 import { Account } from './account.entity';
+import { Session } from './session.entity';
 import { User } from '../user/user.entity';
-import { CREDENTIAL_PROVIDER, SALT_ROUNDS } from './auth.constants';
+import {
+  CREDENTIAL_PROVIDER,
+  SALT_ROUNDS,
+  SESSION_EXPIRES_IN_MS,
+  SESSION_REMEMBER_ME_EXPIRES_IN_MS,
+} from './auth.constants';
 import type { SignUpDto } from './dto/sign-up.dto';
+import type { SignInDto } from './dto/sign-in.dto';
 
 @Injectable()
 export class AuthService {
@@ -70,6 +83,62 @@ export class AuthService {
       const { accounts: _, ...userWithoutAccounts } = savedUser;
       return { user: userWithoutAccounts };
     });
+  }
+
+  async signIn(
+    dto: SignInDto,
+    ctx: { ip: string | null; userAgent: string | null },
+  ): Promise<{ user: Omit<User, 'accounts' | 'sessions'>; session: Session }> {
+    const normalizedEmail = dto.email.toLowerCase().trim();
+    const rememberMe = dto.rememberMe !== false;
+
+    const userRepo = this.dataSource.getRepository(User);
+    const accountRepo = this.dataSource.getRepository(Account);
+    const sessionRepo = this.dataSource.getRepository(Session);
+
+    const user = await userRepo.findOne({ where: { email: normalizedEmail } });
+
+    if (!user) {
+      // Hash anyway to prevent timing attacks from revealing valid emails
+      await bcrypt.hash(dto.password, SALT_ROUNDS);
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const account = await accountRepo.findOne({
+      where: { userId: user.id, providerId: CREDENTIAL_PROVIDER },
+      select: { id: true, password: true },
+    });
+
+    if (!account?.password) {
+      await bcrypt.hash(dto.password, SALT_ROUNDS);
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const validPassword = await bcrypt.compare(dto.password, account.password);
+    if (!validPassword) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    if (!user.emailVerified) {
+      throw new ForbiddenException('Email not verified');
+    }
+
+    const expiresAt = new Date(
+      Date.now() +
+        (rememberMe ? SESSION_REMEMBER_ME_EXPIRES_IN_MS : SESSION_EXPIRES_IN_MS),
+    );
+    const token = randomBytes(32).toString('hex');
+
+    const session = sessionRepo.create({
+      userId: user.id,
+      token,
+      expiresAt,
+      ipAddress: ctx.ip,
+      userAgent: ctx.userAgent,
+    });
+    await sessionRepo.save(session);
+
+    return { user, session };
   }
 
   async verifyEmail(token: string): Promise<{ ok: boolean; error?: string }> {
