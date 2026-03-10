@@ -5,6 +5,7 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Query,
   Request,
@@ -125,6 +126,27 @@ export class EmailController {
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     await this.emailService.forgotPassword(dto.email, dto.callbackURL);
     return { ok: true };
+  }
+
+  @Public()
+  @Get('reset-password/:token')
+  @ApiOperation({ summary: 'Validate reset token and redirect to frontend with token' })
+  async resetPasswordCallback(
+    @Param('token') token: string,
+    @Query('callbackURL') callbackURL: string | undefined,
+    @Res() res: Response,
+  ) {
+    const isValid = await this.emailService.validateResetPasswordToken(token);
+    const separator = callbackURL?.includes('?') ? '&' : '?';
+
+    if (!isValid || !callbackURL) {
+      const errorURL = callbackURL
+        ? `${callbackURL}${separator}error=INVALID_TOKEN`
+        : '/';
+      return res.redirect(errorURL);
+    }
+
+    return res.redirect(`${callbackURL}${separator}token=${token}`);
   }
 
   @Public()

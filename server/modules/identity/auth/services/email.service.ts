@@ -3,13 +3,17 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 import { DataSource } from 'typeorm';
 import { Account } from '../entities/account.entity';
 import { RefreshSession } from '../entities/refresh-session.entity';
+import { Verification } from '../entities/verification.entity';
 import { User } from '../../user/user.entity';
 import {
   CREDENTIAL_PROVIDER,
+  EMAIL_VERIFICATION_TYPE,
   RESET_PASSWORD_EXPIRES_MS,
+  RESET_PASSWORD_IDENTIFIER_PREFIX,
   SALT_ROUNDS,
   VERIFICATION_EXPIRES_MS,
 } from '../auth.constants';
@@ -71,34 +75,35 @@ export class EmailService {
     return { user, tokens };
   }
 
+  // Pure JWT — no DB storage, matches better-auth email verification convention
   async verifyEmail(
     token: string,
     ctx: RequestContext,
   ): Promise<{ ok: true; user: User; tokens: TokenPair } | { ok: false; error: string }> {
+    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
+
+    let payload: { email?: string; type?: string };
     try {
-      const accessSecret = this.configService.getOrThrow<string>('auth.accessSecret');
-      const payload = await this.jwtService.verifyAsync<{ email?: string }>(token, {
-        secret: accessSecret,
-      });
-      const email = payload.email;
-      if (!email || typeof email !== 'string') {
-        return { ok: false, error: 'invalid_token' };
-      }
-
-      const userRepo = this.dataSource.getRepository(User);
-      const user = await userRepo.findOne({ where: { email: email.toLowerCase() } });
-      if (!user) return { ok: false, error: 'user_not_found' };
-
-      if (!user.emailVerified) {
-        await userRepo.update(user.id, { emailVerified: true });
-        user.emailVerified = true;
-      }
-
-      const tokens = await this.authService.createAuthSession(user.id, false, ctx);
-      return { ok: true, user, tokens };
+      payload = await this.jwtService.verifyAsync(token, { secret });
     } catch {
       return { ok: false, error: 'invalid_token' };
     }
+
+    if (payload.type !== EMAIL_VERIFICATION_TYPE || !payload.email) {
+      return { ok: false, error: 'invalid_token' };
+    }
+
+    const userRepo = this.dataSource.getRepository(User);
+    const user = await userRepo.findOne({ where: { email: payload.email } });
+    if (!user) return { ok: false, error: 'user_not_found' };
+
+    if (!user.emailVerified) {
+      await userRepo.update(user.id, { emailVerified: true });
+      user.emailVerified = true;
+    }
+
+    const tokens = await this.authService.createAuthSession(user.id, false, ctx);
+    return { ok: true, user, tokens };
   }
 
   async resendVerificationEmail(email: string, callbackURL?: string): Promise<void> {
@@ -111,23 +116,37 @@ export class EmailService {
     await this.sendVerificationEmail(normalizedEmail, callbackURL);
   }
 
+  // Random opaque token stored in DB — matches better-auth password reset convention
   async forgotPassword(email: string, callbackURL?: string): Promise<void> {
     const normalizedEmail = email.toLowerCase().trim();
     const user = await this.dataSource
       .getRepository(User)
       .findOne({ where: { email: normalizedEmail } });
 
-    if (!user) return; // prevent enumeration
+    if (!user) {
+      // Mitigate timing attacks: simulate work even when user doesn't exist
+      randomUUID();
+      await this.dataSource
+        .getRepository(Verification)
+        .findOne({ where: { identifier: 'dummy-reset-token' } });
+      return;
+    }
 
-    const accessSecret = this.configService.getOrThrow<string>('auth.accessSecret');
-    const token = await this.jwtService.signAsync(
-      { email: normalizedEmail, type: 'password_reset' },
-      { secret: accessSecret, expiresIn: RESET_PASSWORD_EXPIRES_MS / 1000 },
+    const token = randomUUID();
+    const identifier = `${RESET_PASSWORD_IDENTIFIER_PREFIX}${token}`;
+    const verRepo = this.dataSource.getRepository(Verification);
+
+    await verRepo.save(
+      verRepo.create({
+        identifier,
+        value: user.id,
+        expiresAt: new Date(Date.now() + RESET_PASSWORD_EXPIRES_MS),
+      }),
     );
 
     const encodedCallback = encodeURIComponent(callbackURL ?? '/');
     const baseURL = this.configService.getOrThrow<string>('app.url');
-    const url = `${baseURL}/reset-password?token=${token}&callbackURL=${encodedCallback}`;
+    const url = `${baseURL}/api/auth/reset-password/${token}?callbackURL=${encodedCallback}`;
 
     await this.mailerService.sendMail({
       to: normalizedEmail,
@@ -137,33 +156,32 @@ export class EmailService {
     });
   }
 
+  async validateResetPasswordToken(token: string): Promise<boolean> {
+    const identifier = `${RESET_PASSWORD_IDENTIFIER_PREFIX}${token}`;
+    const record = await this.dataSource
+      .getRepository(Verification)
+      .findOne({ where: { identifier } });
+    return !!(record && record.expiresAt >= new Date());
+  }
+
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    const accessSecret = this.configService.getOrThrow<string>('auth.accessSecret');
+    const identifier = `${RESET_PASSWORD_IDENTIFIER_PREFIX}${token}`;
+    const verRepo = this.dataSource.getRepository(Verification);
+    const record = await verRepo.findOne({ where: { identifier } });
 
-    let payload: { email?: string; type?: string };
-    try {
-      payload = await this.jwtService.verifyAsync<{ email?: string; type?: string }>(token, {
-        secret: accessSecret,
-      });
-    } catch {
+    if (!record || record.expiresAt < new Date()) {
+      if (record) await verRepo.delete(record.id);
       throw new BadRequestException('Invalid or expired reset token');
     }
 
-    if (payload.type !== 'password_reset' || !payload.email || typeof payload.email !== 'string') {
-      throw new BadRequestException('Invalid or expired reset token');
-    }
-
-    const normalizedEmail = payload.email.toLowerCase();
+    const userId = record.value;
+    await verRepo.delete(record.id);
 
     await this.dataSource.transaction(async (tx) => {
-      const userRepo = tx.getRepository(User);
       const accountRepo = tx.getRepository(Account);
 
-      const user = await userRepo.findOne({ where: { email: normalizedEmail } });
-      if (!user) throw new BadRequestException('Invalid or expired reset token');
-
       const account = await accountRepo.findOne({
-        where: { userId: user.id, providerId: CREDENTIAL_PROVIDER },
+        where: { userId, providerId: CREDENTIAL_PROVIDER },
         select: { id: true, userId: true, providerId: true },
       });
       if (!account) throw new BadRequestException('No password account found');
@@ -172,17 +190,17 @@ export class EmailService {
       await accountRepo.update(account.id, { password: hashed });
 
       // Invalidate all refresh sessions to force re-login
-      await tx.getRepository(RefreshSession).delete({ userId: user.id });
+      await tx.getRepository(RefreshSession).delete({ userId });
     });
   }
 
   private async sendVerificationEmail(email: string, callbackURL?: string): Promise<void> {
-    const accessSecret = this.configService.getOrThrow<string>('auth.accessSecret');
-
+    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
     const token = await this.jwtService.signAsync(
-      { email },
-      { secret: accessSecret, expiresIn: VERIFICATION_EXPIRES_MS / 1000 },
+      { email, type: EMAIL_VERIFICATION_TYPE },
+      { secret, expiresIn: VERIFICATION_EXPIRES_MS / 1000 },
     );
+
     const encodedCallback = encodeURIComponent(callbackURL ?? '/');
     const baseURL = this.configService.getOrThrow<string>('app.url');
     const url = `${baseURL}/api/auth/verify-email?token=${token}&callbackURL=${encodedCallback}`;
