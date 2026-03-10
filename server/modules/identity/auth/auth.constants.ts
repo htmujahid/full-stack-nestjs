@@ -1,4 +1,5 @@
 export const CREDENTIAL_PROVIDER = 'credential';
+export const GOOGLE_PROVIDER = 'google';
 export const SALT_ROUNDS = 10;
 
 export const PASSWORD_MIN = 8;

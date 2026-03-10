@@ -11,5 +11,10 @@ export default registerAs('auth', () => {
     throw new Error('JWT_REFRESH_SECRET must be set and at least 16 characters');
   }
 
-  return { accessSecret, refreshSecret };
+  return {
+    accessSecret,
+    refreshSecret,
+    googleClientId: process.env.GOOGLE_CLIENT_ID,
+    googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  };
 });
