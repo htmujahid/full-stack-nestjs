@@ -64,21 +64,7 @@ export class AuthService {
       });
       await accountRepo.save(account);
 
-      const verificationExpiresIn = this.configService.getOrThrow<number>('auth.verificationExpiresIn');
-      const token = await this.jwtService.signAsync(
-        { email: normalizedEmail },
-        { expiresIn: verificationExpiresIn },
-      );
-      const callbackURL = dto.callbackURL ? encodeURIComponent(dto.callbackURL) : encodeURIComponent('/');
-      const baseURL = this.configService.getOrThrow<string>('app.url');
-      const url = `${baseURL}/api/auth/verify-email?token=${token}&callbackURL=${callbackURL}`;
-
-      await this.mailerService.sendMail({
-        to: normalizedEmail,
-        subject: 'Verify your email',
-        text: `Verify your email by clicking: ${url}`,
-        html: `<p>Verify your email by clicking: <a href="${url}">${url}</a></p>`,
-      });
+      await this.sendVerificationEmail(normalizedEmail, dto.callbackURL);
 
       const { accounts: _, ...userWithoutAccounts } = savedUser;
       return { user: userWithoutAccounts };
@@ -178,5 +164,35 @@ export class AuthService {
     } catch {
       return { ok: false, error: 'invalid_token' };
     }
+  }
+
+  async resendVerificationEmail(email: string, callbackURL?: string): Promise<void> {
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await this.dataSource
+      .getRepository(User)
+      .findOne({ where: { email: normalizedEmail } });
+
+    // Silently return if user doesn't exist or is already verified — prevents enumeration
+    if (!user || user.emailVerified) return;
+
+    await this.sendVerificationEmail(normalizedEmail, callbackURL);
+  }
+
+  private async sendVerificationEmail(email: string, callbackURL?: string): Promise<void> {
+    const verificationExpiresIn = this.configService.getOrThrow<number>('auth.verificationExpiresIn');
+    const token = await this.jwtService.signAsync(
+      { email },
+      { expiresIn: verificationExpiresIn },
+    );
+    const encodedCallback = encodeURIComponent(callbackURL ?? '/');
+    const baseURL = this.configService.getOrThrow<string>('app.url');
+    const url = `${baseURL}/api/auth/verify-email?token=${token}&callbackURL=${encodedCallback}`;
+
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Verify your email',
+      text: `Verify your email by clicking: ${url}`,
+      html: `<p>Verify your email by clicking: <a href="${url}">${url}</a></p>`,
+    });
   }
 }

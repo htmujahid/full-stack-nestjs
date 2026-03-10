@@ -23,6 +23,7 @@ import {
 } from './auth.constants';
 import { SignUpDto } from './dto/sign-up.dto';
 import { SignInDto } from './dto/sign-in.dto';
+import { SendVerificationEmailDto } from './dto/send-verification-email.dto';
 
 @ApiTags('Auth')
 @Controller('api/auth')
@@ -70,6 +71,16 @@ export class AuthController {
       url: dto.callbackURL ?? null,
       user: result.user,
     };
+  }
+
+  @Post('send-verification-email')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS } })
+  @ApiOperation({ summary: 'Send or resend verification email' })
+  @ApiOkResponse({ description: 'Always returns ok; does not leak whether account exists' })
+  async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
+    await this.authService.resendVerificationEmail(dto.email, dto.callbackURL);
+    return { ok: true };
   }
 
   @Get('verify-email')
