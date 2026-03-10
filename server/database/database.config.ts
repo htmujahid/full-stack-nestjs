@@ -1,7 +1,9 @@
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { registerAs } from '@nestjs/config';
+import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
-export function getDatabaseConfig(): TypeOrmModuleOptions {
-  return {
+export default registerAs(
+  'database',
+  (): TypeOrmModuleOptions => ({
     type: 'mysql',
     host: process.env.DB_HOST ?? '127.0.0.1',
     port: Number(process.env.DB_PORT ?? 3306),
@@ -10,5 +12,5 @@ export function getDatabaseConfig(): TypeOrmModuleOptions {
     database: process.env.DB_DATABASE ?? 'crude',
     autoLoadEntities: true,
     synchronize: process.env.NODE_ENV !== 'production',
-  };
-}
+  }),
+);
