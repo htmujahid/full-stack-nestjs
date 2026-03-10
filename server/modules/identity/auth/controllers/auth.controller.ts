@@ -11,15 +11,10 @@ import {
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import type { Request as ExpressRequest, Response } from 'express';
-import { AuthService, type TokenPair } from '../services/auth.service';
-import {
-  ACCESS_EXPIRES_MS,
-  ACCESS_TOKEN_COOKIE,
-  REFRESH_EXPIRES_MS,
-  REFRESH_REMEMBER_ME_EXPIRES_MS,
-  REFRESH_TOKEN_COOKIE,
-} from '../auth.constants';
+import { AuthService } from '../services/auth.service';
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '../auth.constants';
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
+import { BaseAuthController } from './base-auth.controller';
 
 interface RefreshUser {
   userId: string;
@@ -31,7 +26,7 @@ interface RefreshUser {
 @ApiTags('Auth')
 @Controller('api/auth')
 @UseGuards(ThrottlerGuard)
-export class AuthController {
+export class AuthController extends BaseAuthController {
   constructor(private readonly authService: AuthService) {}
 
   @UseGuards(JwtRefreshGuard)
@@ -67,25 +62,5 @@ export class AuthController {
     res.clearCookie(ACCESS_TOKEN_COOKIE);
     res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/api/auth' });
     return { ok: true };
-  }
-
-  private setTokenCookies(res: Response, tokens: TokenPair, rememberMe: boolean): void {
-    const secure = process.env.NODE_ENV === 'production';
-
-    res.cookie(ACCESS_TOKEN_COOKIE, tokens.accessToken, {
-      httpOnly: true,
-      secure,
-      sameSite: 'strict',
-      path: '/',
-      maxAge: ACCESS_EXPIRES_MS,
-    });
-
-    res.cookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken, {
-      httpOnly: true,
-      secure,
-      sameSite: 'strict',
-      path: '/api/auth',
-      maxAge: rememberMe ? REFRESH_REMEMBER_ME_EXPIRES_MS : REFRESH_EXPIRES_MS,
-    });
   }
 }

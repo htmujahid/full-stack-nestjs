@@ -5,18 +5,14 @@ import type { Request as ExpressRequest, Response } from 'express';
 import { Public } from '../decorators/public.decorator';
 import { GoogleService } from '../services/google.service';
 import type { GoogleProfile } from '../strategies/google.strategy';
-import type { TokenPair } from '../services/auth.service';
-import {
-  ACCESS_EXPIRES_MS,
-  ACCESS_TOKEN_COOKIE,
-  REFRESH_REMEMBER_ME_EXPIRES_MS,
-  REFRESH_TOKEN_COOKIE,
-} from '../auth.constants';
+import { BaseAuthController } from './base-auth.controller';
 
 @ApiTags('Auth')
 @Controller('api/auth/google')
-export class GoogleController {
-  constructor(private readonly googleService: GoogleService) {}
+export class GoogleController extends BaseAuthController {
+  constructor(private readonly googleService: GoogleService) {
+    super();
+  }
 
   @Public()
   @UseGuards(GoogleAuthGuard)
@@ -42,27 +38,7 @@ export class GoogleController {
       userAgent: userAgent ?? null,
     });
 
-    this.setTokenCookies(res, tokens);
+    this.setTokenCookies(res, tokens, true, 'lax');
     res.redirect('/');
-  }
-
-  private setTokenCookies(res: Response, tokens: TokenPair): void {
-    const secure = process.env.NODE_ENV === 'production';
-
-    res.cookie(ACCESS_TOKEN_COOKIE, tokens.accessToken, {
-      httpOnly: true,
-      secure,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: ACCESS_EXPIRES_MS,
-    });
-
-    res.cookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken, {
-      httpOnly: true,
-      secure,
-      sameSite: 'lax',
-      path: '/api/auth',
-      maxAge: REFRESH_REMEMBER_ME_EXPIRES_MS,
-    });
   }
 }
