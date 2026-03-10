@@ -12,6 +12,8 @@ import {
   SALT_ROUNDS,
 } from '../auth.constants';
 
+export type AuthMethod = 'password' | 'google' | 'refresh';
+
 export interface TokenPair {
   accessToken: string;
   refreshToken: string;
@@ -31,9 +33,14 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async createAuthSession(userId: string, rememberMe: boolean, ctx: RequestContext): Promise<TokenPair> {
+  async createAuthSession(
+    userId: string,
+    rememberMe: boolean,
+    ctx: RequestContext,
+    authMethod: AuthMethod,
+  ): Promise<TokenPair> {
     const familyId = randomUUID();
-    const tokens = await this.issueTokens(userId, familyId, rememberMe);
+    const tokens = await this.issueTokens(userId, familyId, rememberMe, authMethod);
     await this.createRefreshSession(userId, familyId, tokens, ctx);
     return tokens;
   }
@@ -63,7 +70,7 @@ export class AuthService {
 
     await sessionRepo.delete(session.id);
 
-    const tokens = await this.issueTokens(userId, familyId, false);
+    const tokens = await this.issueTokens(userId, familyId, false, 'refresh');
     await this.createRefreshSession(userId, familyId, tokens, ctx);
     return tokens;
   }
@@ -72,7 +79,12 @@ export class AuthService {
     await this.dataSource.getRepository(RefreshSession).delete({ id: sessionId, userId });
   }
 
-  private async issueTokens(userId: string, familyId: string, rememberMe: boolean): Promise<TokenPair> {
+  private async issueTokens(
+    userId: string,
+    familyId: string,
+    rememberMe: boolean,
+    authMethod: AuthMethod,
+  ): Promise<TokenPair> {
     const accessSecret = this.configService.getOrThrow<string>('auth.accessSecret');
     const refreshSecret = this.configService.getOrThrow<string>('auth.refreshSecret');
 
@@ -82,7 +94,7 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { sub: userId },
+        { sub: userId, auth_method: authMethod },
         { secret: accessSecret, expiresIn: ACCESS_EXPIRES_MS / 1000 },
       ),
       this.jwtService.signAsync(

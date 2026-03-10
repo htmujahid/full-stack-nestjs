@@ -71,7 +71,7 @@ export class EmailService {
     rememberMe: boolean,
     ctx: RequestContext,
   ): Promise<{ user: User; tokens: TokenPair }> {
-    const tokens = await this.authService.createAuthSession(user.id, rememberMe, ctx);
+    const tokens = await this.authService.createAuthSession(user.id, rememberMe, ctx, 'password');
     return { user, tokens };
   }
 
@@ -102,7 +102,7 @@ export class EmailService {
       user.emailVerified = true;
     }
 
-    const tokens = await this.authService.createAuthSession(user.id, false, ctx);
+    const tokens = await this.authService.createAuthSession(user.id, false, ctx, 'password');
     return { ok: true, user, tokens };
   }
 

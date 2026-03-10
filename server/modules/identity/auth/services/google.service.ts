@@ -66,7 +66,7 @@ export class GoogleService {
         );
       }
 
-      const tokens = await this.authService.createAuthSession(user.id, true, ctx);
+      const tokens = await this.authService.createAuthSession(user.id, true, ctx, 'google');
       return { user, tokens };
     });
   }
