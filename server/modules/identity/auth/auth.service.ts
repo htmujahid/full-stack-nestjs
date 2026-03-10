@@ -1,26 +1,33 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
+import { randomUUID } from 'crypto';
 import { DataSource } from 'typeorm';
 import { Account } from './account.entity';
-import { Session } from './session.entity';
+import { RefreshSession } from './refresh-session.entity';
 import { User } from '../user/user.entity';
 import {
+  ACCESS_EXPIRES_MS,
   CREDENTIAL_PROVIDER,
+  REFRESH_EXPIRES_MS,
+  REFRESH_REMEMBER_ME_EXPIRES_MS,
   SALT_ROUNDS,
-  SESSION_EXPIRES_IN_MS,
-  SESSION_REMEMBER_ME_EXPIRES_IN_MS,
+  VERIFICATION_EXPIRES_MS,
 } from './auth.constants';
 import type { SignUpDto } from './dto/sign-up.dto';
-import type { SignInDto } from './dto/sign-in.dto';
+
+export interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
+  refreshExpiresAt: Date;
+}
+
+export interface RequestContext {
+  ip: string | null;
+  userAgent: string | null;
+}
 
 @Injectable()
 export class AuthService {
@@ -31,17 +38,14 @@ export class AuthService {
     private readonly mailerService: MailerService,
   ) {}
 
-  async signUp(dto: SignUpDto): Promise<{ user: Omit<User, 'accounts'> }> {
+  async signUp(dto: SignUpDto): Promise<{ user: User }> {
     const normalizedEmail = dto.email.toLowerCase().trim();
 
     return this.dataSource.transaction(async (tx) => {
       const userRepo = tx.getRepository(User);
       const accountRepo = tx.getRepository(Account);
 
-      const existing = await userRepo.findOne({
-        where: { email: normalizedEmail },
-      });
-
+      const existing = await userRepo.findOne({ where: { email: normalizedEmail } });
       if (existing) {
         throw new ConflictException('User already exists. Use another email.');
       }
@@ -66,101 +70,83 @@ export class AuthService {
 
       await this.sendVerificationEmail(normalizedEmail, dto.callbackURL);
 
-      const { accounts: _, ...userWithoutAccounts } = savedUser;
-      return { user: userWithoutAccounts };
+      return { user: savedUser };
     });
   }
 
   async signIn(
-    dto: SignInDto,
-    ctx: { ip: string | null; userAgent: string | null },
-  ): Promise<{ user: Omit<User, 'accounts' | 'sessions'>; session: Session }> {
-    const normalizedEmail = dto.email.toLowerCase().trim();
-    const rememberMe = dto.rememberMe !== false;
+    user: User,
+    rememberMe: boolean,
+    ctx: RequestContext,
+  ): Promise<{ user: User; tokens: TokenPair }> {
+    const familyId = randomUUID();
+    const tokens = await this.issueTokens(user.id, familyId, rememberMe);
+    await this.createRefreshSession(user.id, familyId, tokens, ctx);
+    return { user, tokens };
+  }
 
-    const userRepo = this.dataSource.getRepository(User);
-    const accountRepo = this.dataSource.getRepository(Account);
-    const sessionRepo = this.dataSource.getRepository(Session);
+  async refreshTokens(
+    userId: string,
+    sessionId: string,
+    familyId: string,
+    rawRefreshToken: string,
+    ctx: RequestContext,
+  ): Promise<TokenPair> {
+    const sessionRepo = this.dataSource.getRepository(RefreshSession);
 
-    const user = await userRepo.findOne({ where: { email: normalizedEmail } });
-
-    if (!user) {
-      // Hash anyway to prevent timing attacks from revealing valid emails
-      await bcrypt.hash(dto.password, SALT_ROUNDS);
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
-    const account = await accountRepo.findOne({
-      where: { userId: user.id, providerId: CREDENTIAL_PROVIDER },
-      select: { id: true, password: true },
+    const session = await sessionRepo.findOne({
+      where: { id: sessionId, userId, familyId },
+      select: { id: true, hashedToken: true, expiresAt: true, familyId: true },
     });
 
-    if (!account?.password) {
-      await bcrypt.hash(dto.password, SALT_ROUNDS);
-      throw new UnauthorizedException('Invalid email or password');
+    if (!session) {
+      // Token replayed after rotation — possible theft, revoke entire family
+      await sessionRepo.delete({ userId, familyId });
+      throw new UnauthorizedException('Refresh token reuse detected');
     }
 
-    const validPassword = await bcrypt.compare(dto.password, account.password);
-    if (!validPassword) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
+    const valid = await bcrypt.compare(rawRefreshToken, session.hashedToken);
+    if (!valid) throw new UnauthorizedException();
 
-    if (!user.emailVerified) {
-      throw new ForbiddenException('Email not verified');
-    }
+    await sessionRepo.delete(session.id);
 
-    const expiresAt = new Date(
-      Date.now() +
-        (rememberMe ? SESSION_REMEMBER_ME_EXPIRES_IN_MS : SESSION_EXPIRES_IN_MS),
-    );
-    const token = randomBytes(32).toString('hex');
+    const tokens = await this.issueTokens(userId, familyId, false);
+    await this.createRefreshSession(userId, familyId, tokens, ctx);
+    return tokens;
+  }
 
-    const session = sessionRepo.create({
-      userId: user.id,
-      token,
-      expiresAt,
-      ipAddress: ctx.ip,
-      userAgent: ctx.userAgent,
-    });
-    await sessionRepo.save(session);
-
-    return { user, session };
+  async signOut(userId: string, sessionId: string): Promise<void> {
+    await this.dataSource.getRepository(RefreshSession).delete({ id: sessionId, userId });
   }
 
   async verifyEmail(
     token: string,
-    ctx: { ip: string | null; userAgent: string | null },
-  ): Promise<{ ok: true; session: Session } | { ok: false; error: string }> {
+    ctx: RequestContext,
+  ): Promise<{ ok: true; user: User; tokens: TokenPair } | { ok: false; error: string }> {
     try {
-      const payload = await this.jwtService.verifyAsync<{ email?: string }>(token);
+      const accessSecret = this.configService.getOrThrow<string>('auth.accessSecret');
+      const payload = await this.jwtService.verifyAsync<{ email?: string }>(token, {
+        secret: accessSecret,
+      });
       const email = payload.email;
       if (!email || typeof email !== 'string') {
         return { ok: false, error: 'invalid_token' };
       }
 
       const userRepo = this.dataSource.getRepository(User);
-      const sessionRepo = this.dataSource.getRepository(Session);
-
       const user = await userRepo.findOne({ where: { email: email.toLowerCase() } });
       if (!user) return { ok: false, error: 'user_not_found' };
 
       if (!user.emailVerified) {
         await userRepo.update(user.id, { emailVerified: true });
+        user.emailVerified = true;
       }
 
-      const expiresAt = new Date(Date.now() + SESSION_EXPIRES_IN_MS);
-      const sessionToken = randomBytes(32).toString('hex');
+      const familyId = randomUUID();
+      const tokens = await this.issueTokens(user.id, familyId, false);
+      await this.createRefreshSession(user.id, familyId, tokens, ctx);
 
-      const session = sessionRepo.create({
-        userId: user.id,
-        token: sessionToken,
-        expiresAt,
-        ipAddress: ctx.ip,
-        userAgent: ctx.userAgent,
-      });
-      await sessionRepo.save(session);
-
-      return { ok: true, session };
+      return { ok: true, user, tokens };
     } catch {
       return { ok: false, error: 'invalid_token' };
     }
@@ -172,17 +158,62 @@ export class AuthService {
       .getRepository(User)
       .findOne({ where: { email: normalizedEmail } });
 
-    // Silently return if user doesn't exist or is already verified — prevents enumeration
-    if (!user || user.emailVerified) return;
-
+    if (!user || user.emailVerified) return; // prevent enumeration
     await this.sendVerificationEmail(normalizedEmail, callbackURL);
   }
 
+  private async issueTokens(userId: string, familyId: string, rememberMe: boolean): Promise<TokenPair> {
+    const accessSecret = this.configService.getOrThrow<string>('auth.accessSecret');
+    const refreshSecret = this.configService.getOrThrow<string>('auth.refreshSecret');
+
+    const sessionId = randomUUID();
+    const refreshMs = rememberMe ? REFRESH_REMEMBER_ME_EXPIRES_MS : REFRESH_EXPIRES_MS;
+    const refreshExpiresAt = new Date(Date.now() + refreshMs);
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(
+        { sub: userId },
+        { secret: accessSecret, expiresIn: ACCESS_EXPIRES_MS / 1000 },
+      ),
+      this.jwtService.signAsync(
+        { sub: userId, sid: sessionId, fid: familyId },
+        { secret: refreshSecret, expiresIn: refreshMs / 1000 },
+      ),
+    ]);
+
+    return { accessToken, refreshToken, refreshExpiresAt };
+  }
+
+  private async createRefreshSession(
+    userId: string,
+    familyId: string,
+    tokens: TokenPair,
+    ctx: RequestContext,
+  ): Promise<void> {
+    // Decode the refresh token to get the sessionId (sid) we embedded
+    const decoded = this.jwtService.decode<{ sid: string }>(tokens.refreshToken);
+    const sessionId = decoded.sid;
+
+    const hashed = await bcrypt.hash(tokens.refreshToken, SALT_ROUNDS);
+    const sessionRepo = this.dataSource.getRepository(RefreshSession);
+    const session = sessionRepo.create({
+      id: sessionId,
+      userId,
+      familyId,
+      hashedToken: hashed,
+      expiresAt: tokens.refreshExpiresAt,
+      ipAddress: ctx.ip,
+      userAgent: ctx.userAgent,
+    });
+    await sessionRepo.save(session);
+  }
+
   private async sendVerificationEmail(email: string, callbackURL?: string): Promise<void> {
-    const verificationExpiresIn = this.configService.getOrThrow<number>('auth.verificationExpiresIn');
+    const accessSecret = this.configService.getOrThrow<string>('auth.accessSecret');
+
     const token = await this.jwtService.signAsync(
       { email },
-      { expiresIn: verificationExpiresIn },
+      { secret: accessSecret, expiresIn: VERIFICATION_EXPIRES_MS / 1000 },
     );
     const encodedCallback = encodeURIComponent(callbackURL ?? '/');
     const baseURL = this.configService.getOrThrow<string>('app.url');

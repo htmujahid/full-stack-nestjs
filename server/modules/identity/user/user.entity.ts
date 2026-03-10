@@ -6,7 +6,6 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import type { Session } from '../auth/session.entity';
 import type { Account } from '../auth/account.entity';
 
 @Entity('user')
@@ -31,9 +30,6 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  @OneToMany('Session', 'user')
-  sessions?: Session[];
 
   @OneToMany('Account', 'user')
   accounts?: Account[];

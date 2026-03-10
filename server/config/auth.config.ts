@@ -1,12 +1,15 @@
 import { registerAs } from '@nestjs/config';
 
 export default registerAs('auth', () => {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret || secret.length < 16) {
-    throw new Error('AUTH_SECRET must be set and at least 16 characters');
+  const accessSecret = process.env.JWT_ACCESS_SECRET;
+  if (!accessSecret || accessSecret.length < 16) {
+    throw new Error('JWT_ACCESS_SECRET must be set and at least 16 characters');
   }
-  return {
-    secret,
-    verificationExpiresIn: 3600,
-  };
+
+  const refreshSecret = process.env.JWT_REFRESH_SECRET;
+  if (!refreshSecret || refreshSecret.length < 16) {
+    throw new Error('JWT_REFRESH_SECRET must be set and at least 16 characters');
+  }
+
+  return { accessSecret, refreshSecret };
 });
