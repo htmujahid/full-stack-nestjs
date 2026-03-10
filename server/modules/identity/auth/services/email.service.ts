@@ -1,41 +1,23 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
-import { randomUUID } from 'crypto';
 import { DataSource } from 'typeorm';
-import { Account } from './account.entity';
-import { RefreshSession } from './refresh-session.entity';
-import { User } from '../user/user.entity';
-import {
-  ACCESS_EXPIRES_MS,
-  CREDENTIAL_PROVIDER,
-  REFRESH_EXPIRES_MS,
-  REFRESH_REMEMBER_ME_EXPIRES_MS,
-  SALT_ROUNDS,
-  VERIFICATION_EXPIRES_MS,
-} from './auth.constants';
-import type { SignUpDto } from './dto/sign-up.dto';
-
-export interface TokenPair {
-  accessToken: string;
-  refreshToken: string;
-  refreshExpiresAt: Date;
-}
-
-export interface RequestContext {
-  ip: string | null;
-  userAgent: string | null;
-}
+import { Account } from '../entities/account.entity';
+import { User } from '../../user/user.entity';
+import { CREDENTIAL_PROVIDER, SALT_ROUNDS, VERIFICATION_EXPIRES_MS } from '../auth.constants';
+import type { SignUpDto } from '../dto/sign-up.dto';
+import { AuthService, type RequestContext, type TokenPair } from './auth.service';
 
 @Injectable()
-export class AuthService {
+export class EmailService {
   constructor(
     private readonly configService: ConfigService,
     private readonly dataSource: DataSource,
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
+    private readonly authService: AuthService,
   ) {}
 
   async signUp(dto: SignUpDto): Promise<{ user: User }> {
@@ -79,44 +61,8 @@ export class AuthService {
     rememberMe: boolean,
     ctx: RequestContext,
   ): Promise<{ user: User; tokens: TokenPair }> {
-    const familyId = randomUUID();
-    const tokens = await this.issueTokens(user.id, familyId, rememberMe);
-    await this.createRefreshSession(user.id, familyId, tokens, ctx);
+    const tokens = await this.authService.createAuthSession(user.id, rememberMe, ctx);
     return { user, tokens };
-  }
-
-  async refreshTokens(
-    userId: string,
-    sessionId: string,
-    familyId: string,
-    rawRefreshToken: string,
-    ctx: RequestContext,
-  ): Promise<TokenPair> {
-    const sessionRepo = this.dataSource.getRepository(RefreshSession);
-
-    const session = await sessionRepo.findOne({
-      where: { id: sessionId, userId, familyId },
-      select: { id: true, hashedToken: true, expiresAt: true, familyId: true },
-    });
-
-    if (!session) {
-      // Token replayed after rotation — possible theft, revoke entire family
-      await sessionRepo.delete({ userId, familyId });
-      throw new UnauthorizedException('Refresh token reuse detected');
-    }
-
-    const valid = await bcrypt.compare(rawRefreshToken, session.hashedToken);
-    if (!valid) throw new UnauthorizedException();
-
-    await sessionRepo.delete(session.id);
-
-    const tokens = await this.issueTokens(userId, familyId, false);
-    await this.createRefreshSession(userId, familyId, tokens, ctx);
-    return tokens;
-  }
-
-  async signOut(userId: string, sessionId: string): Promise<void> {
-    await this.dataSource.getRepository(RefreshSession).delete({ id: sessionId, userId });
   }
 
   async verifyEmail(
@@ -142,10 +88,7 @@ export class AuthService {
         user.emailVerified = true;
       }
 
-      const familyId = randomUUID();
-      const tokens = await this.issueTokens(user.id, familyId, false);
-      await this.createRefreshSession(user.id, familyId, tokens, ctx);
-
+      const tokens = await this.authService.createAuthSession(user.id, false, ctx);
       return { ok: true, user, tokens };
     } catch {
       return { ok: false, error: 'invalid_token' };
@@ -160,52 +103,6 @@ export class AuthService {
 
     if (!user || user.emailVerified) return; // prevent enumeration
     await this.sendVerificationEmail(normalizedEmail, callbackURL);
-  }
-
-  private async issueTokens(userId: string, familyId: string, rememberMe: boolean): Promise<TokenPair> {
-    const accessSecret = this.configService.getOrThrow<string>('auth.accessSecret');
-    const refreshSecret = this.configService.getOrThrow<string>('auth.refreshSecret');
-
-    const sessionId = randomUUID();
-    const refreshMs = rememberMe ? REFRESH_REMEMBER_ME_EXPIRES_MS : REFRESH_EXPIRES_MS;
-    const refreshExpiresAt = new Date(Date.now() + refreshMs);
-
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(
-        { sub: userId },
-        { secret: accessSecret, expiresIn: ACCESS_EXPIRES_MS / 1000 },
-      ),
-      this.jwtService.signAsync(
-        { sub: userId, sid: sessionId, fid: familyId },
-        { secret: refreshSecret, expiresIn: refreshMs / 1000 },
-      ),
-    ]);
-
-    return { accessToken, refreshToken, refreshExpiresAt };
-  }
-
-  private async createRefreshSession(
-    userId: string,
-    familyId: string,
-    tokens: TokenPair,
-    ctx: RequestContext,
-  ): Promise<void> {
-    // Decode the refresh token to get the sessionId (sid) we embedded
-    const decoded = this.jwtService.decode<{ sid: string }>(tokens.refreshToken);
-    const sessionId = decoded.sid;
-
-    const hashed = await bcrypt.hash(tokens.refreshToken, SALT_ROUNDS);
-    const sessionRepo = this.dataSource.getRepository(RefreshSession);
-    const session = sessionRepo.create({
-      id: sessionId,
-      userId,
-      familyId,
-      hashedToken: hashed,
-      expiresAt: tokens.refreshExpiresAt,
-      ipAddress: ctx.ip,
-      userAgent: ctx.userAgent,
-    });
-    await sessionRepo.save(session);
   }
 
   private async sendVerificationEmail(email: string, callbackURL?: string): Promise<void> {

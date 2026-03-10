@@ -4,7 +4,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { Strategy } from 'passport-local';
 import * as bcrypt from 'bcrypt';
 import { DataSource } from 'typeorm';
-import { Account } from '../account.entity';
+import { Account } from '../entities/account.entity';
 import { User } from '../../user/user.entity';
 import { CREDENTIAL_PROVIDER, SALT_ROUNDS } from '../auth.constants';
 

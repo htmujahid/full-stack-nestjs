@@ -7,11 +7,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailerModule } from '../../../common/mailer/mailer.module';
 import { ACCESS_EXPIRES_MS } from './auth.constants';
 import { User } from '../user/user.entity';
-import { Account } from './account.entity';
-import { RefreshSession } from './refresh-session.entity';
-import { Verification } from './verification.entity';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { Account } from './entities/account.entity';
+import { RefreshSession } from './entities/refresh-session.entity';
+import { Verification } from './entities/verification.entity';
+import { AuthController } from './controllers/auth.controller';
+import { EmailController } from './controllers/email.controller';
+import { AuthService } from './services/auth.service';
+import { EmailService } from './services/email.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
@@ -30,9 +32,10 @@ import { JwtAccessGuard } from './guards/jwt-access.guard';
     MailerModule,
     TypeOrmModule.forFeature([User, Account, RefreshSession, Verification]),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, EmailController],
   providers: [
     AuthService,
+    EmailService,
     LocalStrategy,
     JwtAccessStrategy,
     JwtRefreshStrategy,

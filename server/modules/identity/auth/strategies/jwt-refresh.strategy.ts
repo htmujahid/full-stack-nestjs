@@ -5,7 +5,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { Request } from 'express';
 import { DataSource } from 'typeorm';
-import { RefreshSession } from '../refresh-session.entity';
+import { RefreshSession } from '../entities/refresh-session.entity';
 import { REFRESH_TOKEN_COOKIE } from '../auth.constants';
 
 export interface JwtRefreshPayload {

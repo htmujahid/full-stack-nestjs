@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import type { Account } from '../auth/account.entity';
+import type { Account } from '../auth/entities/account.entity';
 
 @Entity('user')
 export class User {
