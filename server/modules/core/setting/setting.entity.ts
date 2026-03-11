@@ -18,7 +18,7 @@ export class Setting {
   @PrimaryColumn({ length: 128 })
   key: string;
 
-  @Column({ type: 'text', default: '' })
+  @Column({ type: 'text' })
   value: string;
 
   @Column({ type: 'enum', enum: SettingType, default: SettingType.String })
