@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   Request,
@@ -28,6 +29,8 @@ import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { Public } from '../decorators/public.decorator';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
+import { JwtFreshGuard } from '../guards/jwt-fresh.guard';
+import { UpdatePasswordDto } from '../dto/update-password.dto';
 import type { User } from '../../user/user.entity';
 
 @ApiTags('Auth')
@@ -154,6 +157,19 @@ export class EmailController extends BaseAuthController {
   @ApiOkResponse({ description: 'Password reset successfully' })
   async resetPassword(@Body() dto: ResetPasswordDto) {
     await this.emailService.resetPassword(dto.token, dto.newPassword);
+    return { ok: true };
+  }
+
+  @UseGuards(JwtFreshGuard)
+  @Patch('password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update password (requires recent re-authentication)' })
+  @ApiOkResponse({ description: 'Password updated; all other sessions invalidated' })
+  async updatePassword(
+    @Request() req: ExpressRequest & { user: { userId: string } },
+    @Body() dto: UpdatePasswordDto,
+  ) {
+    await this.emailService.updatePassword(req.user.userId, dto.newPassword);
     return { ok: true };
   }
 }

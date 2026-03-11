@@ -164,6 +164,24 @@ export class EmailService {
     return !!(record && record.expiresAt >= new Date());
   }
 
+  async updatePassword(userId: string, newPassword: string): Promise<void> {
+    await this.dataSource.transaction(async (tx) => {
+      const accountRepo = tx.getRepository(Account);
+
+      const account = await accountRepo.findOne({
+        where: { userId, providerId: CREDENTIAL_PROVIDER },
+        select: { id: true, userId: true, providerId: true },
+      });
+      if (!account) throw new BadRequestException('No password account found');
+
+      const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
+      await accountRepo.update(account.id, { password: hashed });
+
+      // Invalidate all refresh sessions to force re-login on other devices
+      await tx.getRepository(RefreshSession).delete({ userId });
+    });
+  }
+
   async resetPassword(token: string, newPassword: string): Promise<void> {
     const identifier = `${RESET_PASSWORD_IDENTIFIER_PREFIX}${token}`;
     const verRepo = this.dataSource.getRepository(Verification);
