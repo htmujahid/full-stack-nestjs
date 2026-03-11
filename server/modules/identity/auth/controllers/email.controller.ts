@@ -31,6 +31,7 @@ import { Public } from '../decorators/public.decorator';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { JwtFreshGuard } from '../guards/jwt-fresh.guard';
 import { UpdatePasswordDto } from '../dto/update-password.dto';
+import { UpdateEmailDto } from '../dto/update-email.dto';
 import type { User } from '../../user/user.entity';
 
 @ApiTags('Auth')
@@ -170,6 +171,31 @@ export class EmailController extends BaseAuthController {
     @Body() dto: UpdatePasswordDto,
   ) {
     await this.emailService.updatePassword(req.user.userId, dto.newPassword);
+    return { ok: true };
+  }
+
+  @UseGuards(JwtFreshGuard)
+  @Patch('email')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS } })
+  @ApiOperation({ summary: 'Request email change (requires recent re-authentication)' })
+  @ApiOkResponse({ description: 'Verification email sent to new address' })
+  async updateEmail(
+    @Request() req: ExpressRequest & { user: { userId: string } },
+    @Body() dto: UpdateEmailDto,
+  ) {
+    await this.emailService.initiateEmailChange(req.user.userId, dto.newEmail);
+    return { ok: true };
+  }
+
+  @Public()
+  @Get('verify-email-change')
+  @ApiOperation({ summary: 'Confirm email change via token from link' })
+  async verifyEmailChange(@Query('token') token: string) {
+    const result = await this.emailService.verifyEmailChange(token);
+    if (!result.ok) {
+      return { ok: false, error: result.error };
+    }
     return { ok: true };
   }
 }

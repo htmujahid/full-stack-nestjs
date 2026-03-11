@@ -15,6 +15,8 @@ export const VERIFICATION_EXPIRES_MS = 60 * 60 * 1000; // 1 hour
 export const RESET_PASSWORD_EXPIRES_MS = 60 * 60 * 1000; // 1 hour
 
 export const EMAIL_VERIFICATION_TYPE = 'email-verification';
+export const EMAIL_CHANGE_VERIFICATION_TYPE = 'email-change';
+export const EMAIL_CHANGE_EXPIRES_MS = 60 * 60 * 1000; // 1 hour
 export const RESET_PASSWORD_IDENTIFIER_PREFIX = 'reset-password:';
 export const ACCESS_EXPIRES_MS = 15 * 60 * 1000; // 15 minutes
 export const REFRESH_EXPIRES_MS = 7 * 24 * 60 * 60 * 1000; // 7 days

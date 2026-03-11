@@ -11,6 +11,8 @@ import { Verification } from '../entities/verification.entity';
 import { User } from '../../user/user.entity';
 import {
   CREDENTIAL_PROVIDER,
+  EMAIL_CHANGE_EXPIRES_MS,
+  EMAIL_CHANGE_VERIFICATION_TYPE,
   EMAIL_VERIFICATION_TYPE,
   RESET_PASSWORD_EXPIRES_MS,
   RESET_PASSWORD_IDENTIFIER_PREFIX,
@@ -180,6 +182,61 @@ export class EmailService {
       // Invalidate all refresh sessions to force re-login on other devices
       await tx.getRepository(RefreshSession).delete({ userId });
     });
+  }
+
+  async initiateEmailChange(userId: string, newEmail: string): Promise<void> {
+    const normalizedEmail = newEmail.toLowerCase().trim();
+
+    const existing = await this.dataSource
+      .getRepository(User)
+      .findOne({ where: { email: normalizedEmail } });
+    if (existing) throw new ConflictException('Email is already in use');
+
+    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
+    const token = await this.jwtService.signAsync(
+      { sub: userId, newEmail: normalizedEmail, type: EMAIL_CHANGE_VERIFICATION_TYPE },
+      { secret, expiresIn: EMAIL_CHANGE_EXPIRES_MS / 1000 },
+    );
+
+    const baseURL = this.configService.getOrThrow<string>('app.url');
+    const url = `${baseURL}/api/auth/verify-email-change?token=${token}`;
+
+    await this.mailerService.sendMail({
+      to: normalizedEmail,
+      subject: 'Verify your new email address',
+      text: `Confirm your new email by clicking: ${url}`,
+      html: `<p>Confirm your new email by clicking: <a href="${url}">${url}</a></p><p>This link expires in 1 hour.</p>`,
+    });
+  }
+
+  async verifyEmailChange(
+    token: string,
+  ): Promise<{ ok: true } | { ok: false; error: string }> {
+    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
+
+    let payload: { sub?: string; newEmail?: string; type?: string };
+    try {
+      payload = await this.jwtService.verifyAsync(token, { secret });
+    } catch {
+      return { ok: false, error: 'invalid_token' };
+    }
+
+    if (payload.type !== EMAIL_CHANGE_VERIFICATION_TYPE || !payload.sub || !payload.newEmail) {
+      return { ok: false, error: 'invalid_token' };
+    }
+
+    const userRepo = this.dataSource.getRepository(User);
+
+    const conflict = await userRepo.findOne({ where: { email: payload.newEmail } });
+    if (conflict) return { ok: false, error: 'email_taken' };
+
+    await this.dataSource.transaction(async (tx) => {
+      await tx.getRepository(User).update(payload.sub!, { email: payload.newEmail, emailVerified: true });
+      // Invalidate all sessions — identity changed, force re-login
+      await tx.getRepository(RefreshSession).delete({ userId: payload.sub });
+    });
+
+    return { ok: true };
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
