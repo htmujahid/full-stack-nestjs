@@ -6,4 +6,7 @@ module.exports = {
     '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }],
   },
   testEnvironment: 'node',
+  transformIgnorePatterns: [
+    'node_modules/(?!(@scure|otplib|@otplib)/)',
+  ],
 };
