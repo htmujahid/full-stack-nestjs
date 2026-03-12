@@ -12,6 +12,7 @@ import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './modules/health/health.module';
 import { CoreModule } from './modules/core/core.module';
 import { IdentityModule } from './modules/identity/identity.module';
+import { DeskModule } from './modules/desk/desk.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { IdentityModule } from './modules/identity/identity.module';
     HealthModule,
     CoreModule,
     IdentityModule,
+    DeskModule,
   ],
   controllers: [AppController],
   providers: [AppService],

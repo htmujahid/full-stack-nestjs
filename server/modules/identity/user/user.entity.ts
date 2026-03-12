@@ -7,6 +7,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import type { Account } from '../account/account.entity';
+import { UserRole } from './user-role.enum';
 
 @Entity('user')
 export class User {
@@ -33,6 +34,9 @@ export class User {
 
   @Column({ default: false })
   twoFactorEnabled: boolean;
+
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.Member })
+  role: UserRole;
 
   @Column({ type: 'varchar', length: 512, nullable: true })
   image: string | null;
