@@ -43,3 +43,6 @@ export const PHONE_OTP_MAX_ATTEMPTS = 5;
 export const PHONE_OTP_IDENTIFIER_PREFIX = 'phone-otp:';
 export const PHONE_VERIFY_IDENTIFIER_PREFIX = 'phone-verify:';
 export const PHONE_CHANGE_IDENTIFIER_PREFIX = 'phone-change:';
+
+export const LINK_INTENT_COOKIE = 'link_intent';
+export const LINK_INTENT_EXPIRES_MS = 5 * 60 * 1000; // 5 minutes

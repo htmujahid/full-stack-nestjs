@@ -7,9 +7,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailerModule } from '../../../common/mailer/mailer.module';
 import { ACCESS_EXPIRES_MS } from './auth.constants';
 import { User } from '../user/user.entity';
-import { Account } from './entities/account.entity';
+import { Account } from '../account/account.entity';
 import { RefreshSession } from './entities/refresh-session.entity';
 import { Verification } from './entities/verification.entity';
+import { AccountModule } from '../account/account.module';
 import { AuthController } from './controllers/auth.controller';
 import { EmailController } from './controllers/email.controller';
 import { PasswordController } from './controllers/password.controller';
@@ -39,6 +40,7 @@ import { JwtAccessGuard } from './guards/jwt-access.guard';
     }),
     MailerModule,
     TypeOrmModule.forFeature([User, Account, RefreshSession, Verification]),
+    AccountModule,
   ],
   controllers: [AuthController, EmailController, PasswordController, PhoneController, GoogleController],
   providers: [

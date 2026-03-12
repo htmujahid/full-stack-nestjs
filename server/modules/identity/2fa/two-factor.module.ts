@@ -7,7 +7,7 @@ import { AuthModule } from '../auth/auth.module';
 import { ACCESS_EXPIRES_MS } from '../auth/auth.constants';
 import { TwoFactor } from './two-factor.entity';
 import { User } from '../user/user.entity';
-import { Account } from '../auth/entities/account.entity';
+import { Account } from '../account/account.entity';
 import { Verification } from '../auth/entities/verification.entity';
 import { TwoFactorService } from './two-factor.service';
 import { TwoFactorController } from './two-factor.controller';

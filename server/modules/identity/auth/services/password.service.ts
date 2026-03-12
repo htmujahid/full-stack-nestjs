@@ -9,7 +9,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { randomUUID } from 'crypto';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Account } from '../entities/account.entity';
+import { Account } from '../../account/account.entity';
 import { RefreshSession } from '../entities/refresh-session.entity';
 import { Verification } from '../entities/verification.entity';
 import { User } from '../../user/user.entity';

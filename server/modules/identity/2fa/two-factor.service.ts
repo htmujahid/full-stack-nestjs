@@ -19,7 +19,7 @@ import {
 import { decrypt, encrypt, hashToken } from '../auth/crypto.util';
 import { TwoFactor } from './two-factor.entity';
 import { User } from '../user/user.entity';
-import { Account } from '../auth/entities/account.entity';
+import { Account } from '../account/account.entity';
 import { Verification } from '../auth/entities/verification.entity';
 import {
   AuthService,

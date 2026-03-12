@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { User } from '../../user/user.entity';
-import { Account } from '../entities/account.entity';
+import { Account } from '../../account/account.entity';
 import { GOOGLE_PROVIDER } from '../auth.constants';
 import {
   AuthService,
