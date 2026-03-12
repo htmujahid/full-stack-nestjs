@@ -35,7 +35,8 @@ export class ThrottlerDbStorage implements ThrottlerStorage {
 
     const rec = record;
     const windowExpired = now - Number(rec.windowStart) >= ttlMs;
-    const blockExpired = rec.blockExpiresAt > 0 && now >= Number(rec.blockExpiresAt);
+    const blockExpired =
+      rec.blockExpiresAt > 0 && now >= Number(rec.blockExpiresAt);
 
     if (blockExpired) {
       rec.count = 0;
@@ -52,7 +53,10 @@ export class ThrottlerDbStorage implements ThrottlerStorage {
       );
       return {
         totalHits: rec.count,
-        timeToExpire: Math.max(0, Math.ceil((Number(rec.windowStart) + ttlMs - now) / 1000)),
+        timeToExpire: Math.max(
+          0,
+          Math.ceil((Number(rec.windowStart) + ttlMs - now) / 1000),
+        ),
         isBlocked: true,
         timeToBlockExpire,
       };
@@ -67,7 +71,10 @@ export class ThrottlerDbStorage implements ThrottlerStorage {
       await this.repo.save(rec);
       return {
         totalHits: rec.count,
-        timeToExpire: Math.max(0, Math.ceil((Number(rec.windowStart) + ttlMs - now) / 1000)),
+        timeToExpire: Math.max(
+          0,
+          Math.ceil((Number(rec.windowStart) + ttlMs - now) / 1000),
+        ),
         isBlocked: true,
         timeToBlockExpire: Math.ceil(blockDuration / 1000),
       };

@@ -25,7 +25,8 @@ export class SettingService {
   }
 
   private serialize(value: unknown): string {
-    if (typeof value === 'object') return JSON.stringify(value);
+    if (value !== null && typeof value === 'object')
+      return JSON.stringify(value);
     return String(value);
   }
 
@@ -50,9 +51,7 @@ export class SettingService {
       where: { isPublic: true },
       order: { key: 'ASC' },
     });
-    return Object.fromEntries(
-      settings.map((s) => [s.key, this.coerce(s)]),
-    );
+    return Object.fromEntries(settings.map((s) => [s.key, this.coerce(s)]));
   }
 
   async getByGroup(group: string): Promise<Record<string, unknown>> {
@@ -60,15 +59,15 @@ export class SettingService {
       where: { group },
       order: { key: 'ASC' },
     });
-    return Object.fromEntries(
-      settings.map((s) => [s.key, this.coerce(s)]),
-    );
+    return Object.fromEntries(settings.map((s) => [s.key, this.coerce(s)]));
   }
 
   async set(
     key: string,
     value: unknown,
-    meta?: Partial<Pick<Setting, 'type' | 'group' | 'isPublic' | 'description'>>,
+    meta?: Partial<
+      Pick<Setting, 'type' | 'group' | 'isPublic' | 'description'>
+    >,
   ): Promise<Setting> {
     let setting = await this.repo.findOne({ where: { key } });
     if (!setting) {

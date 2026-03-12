@@ -15,14 +15,19 @@ export interface JwtRefreshPayload {
 }
 
 @Injectable()
-export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(
     configService: ConfigService,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: Request) => (req?.cookies as Record<string, string>)?.[REFRESH_TOKEN_COOKIE] ?? null,
+        (req: Request) =>
+          (req?.cookies as Record<string, string>)?.[REFRESH_TOKEN_COOKIE] ??
+          null,
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,
@@ -39,9 +44,11 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     if (!rawToken) throw new UnauthorizedException();
 
     // Verify session exists — theft detection happens inside AuthService.refreshTokens
-    const session = await this.dataSource.getRepository(RefreshSession).findOne({
-      where: { id: payload.sid, userId: payload.sub, familyId: payload.fid },
-    });
+    const session = await this.dataSource
+      .getRepository(RefreshSession)
+      .findOne({
+        where: { id: payload.sid, userId: payload.sub, familyId: payload.fid },
+      });
 
     if (!session) {
       // Replayed token — revoke entire family

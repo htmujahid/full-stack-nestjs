@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import { DataSource } from 'typeorm';
 import { RefreshSession } from '../entities/refresh-session.entity';
@@ -9,8 +8,8 @@ import {
   ACCESS_EXPIRES_MS,
   REFRESH_EXPIRES_MS,
   REFRESH_REMEMBER_ME_EXPIRES_MS,
-  SALT_ROUNDS,
 } from '../auth.constants';
+import { hashToken, verifyToken } from '../crypto.util';
 
 export type AuthMethod = 'password' | 'google' | 'refresh';
 
@@ -40,7 +39,12 @@ export class AuthService {
     authMethod: AuthMethod,
   ): Promise<TokenPair> {
     const familyId = randomUUID();
-    const tokens = await this.issueTokens(userId, familyId, rememberMe, authMethod);
+    const tokens = await this.issueTokens(
+      userId,
+      familyId,
+      rememberMe,
+      authMethod,
+    );
     await this.createRefreshSession(userId, familyId, tokens, ctx);
     return tokens;
   }
@@ -65,7 +69,7 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token reuse detected');
     }
 
-    const valid = await bcrypt.compare(rawRefreshToken, session.hashedToken);
+    const valid = verifyToken(rawRefreshToken, session.hashedToken);
     if (!valid) throw new UnauthorizedException();
 
     await sessionRepo.delete(session.id);
@@ -76,7 +80,9 @@ export class AuthService {
   }
 
   async signOut(userId: string, sessionId: string): Promise<void> {
-    await this.dataSource.getRepository(RefreshSession).delete({ id: sessionId, userId });
+    await this.dataSource
+      .getRepository(RefreshSession)
+      .delete({ id: sessionId, userId });
   }
 
   private async issueTokens(
@@ -85,11 +91,15 @@ export class AuthService {
     rememberMe: boolean,
     authMethod: AuthMethod,
   ): Promise<TokenPair> {
-    const accessSecret = this.configService.getOrThrow<string>('auth.accessSecret');
-    const refreshSecret = this.configService.getOrThrow<string>('auth.refreshSecret');
+    const accessSecret =
+      this.configService.getOrThrow<string>('auth.accessSecret');
+    const refreshSecret =
+      this.configService.getOrThrow<string>('auth.refreshSecret');
 
     const sessionId = randomUUID();
-    const refreshMs = rememberMe ? REFRESH_REMEMBER_ME_EXPIRES_MS : REFRESH_EXPIRES_MS;
+    const refreshMs = rememberMe
+      ? REFRESH_REMEMBER_ME_EXPIRES_MS
+      : REFRESH_EXPIRES_MS;
     const refreshExpiresAt = new Date(Date.now() + refreshMs);
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -113,10 +123,12 @@ export class AuthService {
     ctx: RequestContext,
   ): Promise<void> {
     // Decode the refresh token to get the sessionId (sid) we embedded
-    const decoded = this.jwtService.decode<{ sid: string }>(tokens.refreshToken);
+    const decoded = this.jwtService.decode<{ sid: string }>(
+      tokens.refreshToken,
+    );
     const sessionId = decoded.sid;
 
-    const hashed = await bcrypt.hash(tokens.refreshToken, SALT_ROUNDS);
+    const hashed = hashToken(tokens.refreshToken);
     const sessionRepo = this.dataSource.getRepository(RefreshSession);
     const session = sessionRepo.create({
       id: sessionId,

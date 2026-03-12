@@ -22,6 +22,9 @@ export class User {
   @Column({ default: false })
   emailVerified: boolean;
 
+  @Column({ default: false })
+  twoFactorEnabled: boolean;
+
   @Column({ type: 'varchar', length: 512, nullable: true })
   image: string | null;
 

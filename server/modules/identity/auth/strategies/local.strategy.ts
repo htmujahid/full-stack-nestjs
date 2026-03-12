@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { Strategy } from 'passport-local';

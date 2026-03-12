@@ -1,4 +1,8 @@
-import { BadRequestException, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ExecutionContext,
+  Injectable,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -9,10 +13,15 @@ export class LocalAuthGuard extends AuthGuard('local') {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const body = context.switchToHttp().getRequest<{ body: unknown }>().body;
     const dto = plainToInstance(SignInDto, body);
-    const errors = await validate(dto, { whitelist: true, forbidNonWhitelisted: true });
+    const errors = await validate(dto, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    });
 
     if (errors.length > 0) {
-      const messages = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+      const messages = errors.flatMap((e) =>
+        Object.values(e.constraints ?? {}),
+      );
       throw new BadRequestException(messages);
     }
 

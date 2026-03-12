@@ -12,11 +12,16 @@ export interface JwtAccessPayload {
 }
 
 @Injectable()
-export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt-access') {
+export class JwtAccessStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-access',
+) {
   constructor(configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: Request) => (req?.cookies as Record<string, string>)?.[ACCESS_TOKEN_COOKIE] ?? null,
+        (req: Request) =>
+          (req?.cookies as Record<string, string>)?.[ACCESS_TOKEN_COOKIE] ??
+          null,
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,

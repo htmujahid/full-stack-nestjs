@@ -8,7 +8,9 @@ export default registerAs('auth', () => {
 
   const refreshSecret = process.env.JWT_REFRESH_SECRET;
   if (!refreshSecret || refreshSecret.length < 16) {
-    throw new Error('JWT_REFRESH_SECRET must be set and at least 16 characters');
+    throw new Error(
+      'JWT_REFRESH_SECRET must be set and at least 16 characters',
+    );
   }
 
   return {

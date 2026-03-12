@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Put,
-  Param,
-  Body,
-} from '@nestjs/common';
+import { Controller, Get, Put, Param, Body } from '@nestjs/common';
 import { SettingService } from './setting.service';
 import { UpdateSettingDto } from './dto/update-setting.dto';
 import { Public } from '../../identity/auth/decorators/public.decorator';

@@ -3,7 +3,11 @@ import { DataSource } from 'typeorm';
 import { User } from '../../user/user.entity';
 import { Account } from '../entities/account.entity';
 import { GOOGLE_PROVIDER } from '../auth.constants';
-import { AuthService, type RequestContext, type TokenPair } from './auth.service';
+import {
+  AuthService,
+  type RequestContext,
+  type TokenPair,
+} from './auth.service';
 import type { GoogleProfile } from '../strategies/google.strategy';
 
 @Injectable()
@@ -28,7 +32,9 @@ export class GoogleService {
       let user: User;
 
       if (existingAccount) {
-        user = await userRepo.findOneOrFail({ where: { id: existingAccount.userId } });
+        user = await userRepo.findOneOrFail({
+          where: { id: existingAccount.userId },
+        });
         await accountRepo.update(existingAccount.id, {
           accessToken: profile.accessToken,
           refreshToken: profile.refreshToken,
@@ -66,7 +72,12 @@ export class GoogleService {
         );
       }
 
-      const tokens = await this.authService.createAuthSession(user.id, true, ctx, 'google');
+      const tokens = await this.authService.createAuthSession(
+        user.id,
+        true,
+        ctx,
+        'google',
+      );
       return { user, tokens };
     });
   }
