@@ -17,6 +17,7 @@ import { TwoFactorPendingGuard } from './guards/two-factor-pending.guard';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { JwtFreshGuard } from '../auth/guards/jwt-fresh.guard';
 import { BaseAuthController } from '../auth/controllers/base-auth.controller';
+import { TwoFactorGateService } from '../auth/services/two-factor-gate.service';
 import { EnableTwoFactorDto } from './dto/enable-two-factor.dto';
 import { DisableTwoFactorDto } from './dto/disable-two-factor.dto';
 import { GetTotpUriDto } from './dto/get-totp-uri.dto';
@@ -36,8 +37,11 @@ const TFA_THROTTLE = { default: { limit: 3, ttl: 10_000 } };
 @Controller('api/two-factor')
 @UseGuards(ThrottlerGuard)
 export class TwoFactorController extends BaseAuthController {
-  constructor(private readonly twoFactorService: TwoFactorService) {
-    super();
+  constructor(
+    private readonly twoFactorService: TwoFactorService,
+    twoFactorGate: TwoFactorGateService,
+  ) {
+    super(twoFactorGate);
   }
 
   @UseGuards(JwtAccessGuard)

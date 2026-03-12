@@ -12,12 +12,16 @@ import { RefreshSession } from './entities/refresh-session.entity';
 import { Verification } from './entities/verification.entity';
 import { AuthController } from './controllers/auth.controller';
 import { EmailController } from './controllers/email.controller';
+import { PasswordController } from './controllers/password.controller';
+import { PhoneController } from './controllers/phone.controller';
 import { GoogleController } from './controllers/google.controller';
 import { AuthService } from './services/auth.service';
 import { EmailService } from './services/email.service';
+import { PasswordService } from './services/password.service';
+import { PhoneService } from './services/phone.service';
 import { GoogleService } from './services/google.service';
 import { TwoFactorGateService } from './services/two-factor-gate.service';
-import { LocalStrategy } from './strategies/local.strategy';
+import { PasswordAuthStrategy } from './strategies/password-auth.strategy';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
@@ -36,13 +40,15 @@ import { JwtAccessGuard } from './guards/jwt-access.guard';
     MailerModule,
     TypeOrmModule.forFeature([User, Account, RefreshSession, Verification]),
   ],
-  controllers: [AuthController, EmailController, GoogleController],
+  controllers: [AuthController, EmailController, PasswordController, PhoneController, GoogleController],
   providers: [
     AuthService,
     EmailService,
+    PasswordService,
+    PhoneService,
     GoogleService,
     TwoFactorGateService,
-    LocalStrategy,
+    PasswordAuthStrategy,
     JwtAccessStrategy,
     JwtRefreshStrategy,
     GoogleStrategy,

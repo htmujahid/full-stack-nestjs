@@ -9,7 +9,7 @@ import { validate } from 'class-validator';
 import { SignInDto } from '../dto/sign-in.dto';
 
 @Injectable()
-export class LocalAuthGuard extends AuthGuard('local') {
+export class PasswordAuthGuard extends AuthGuard('password-auth') {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const body = context.switchToHttp().getRequest<{ body: unknown }>().body;
     const dto = plainToInstance(SignInDto, body);

@@ -19,6 +19,15 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  @Column({ unique: true, nullable: true, type: 'varchar' })
+  username: string | null;
+
+  @Column({ unique: true, nullable: true, type: 'varchar' })
+  phone: string | null;
+
+  @Column({ default: false })
+  phoneVerified: boolean;
+
   @Column({ default: false })
   emailVerified: boolean;
 

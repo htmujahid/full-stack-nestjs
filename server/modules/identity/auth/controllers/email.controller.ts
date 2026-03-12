@@ -5,7 +5,6 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
-  Param,
   Patch,
   Post,
   Query,
@@ -20,17 +19,11 @@ import { EmailService } from '../services/email.service';
 import { TwoFactorGateService } from '../services/two-factor-gate.service';
 import { AUTH_THROTTLE_LIMIT, AUTH_THROTTLE_TTL_MS } from '../auth.constants';
 import { BaseAuthController } from './base-auth.controller';
-import { SignUpDto } from '../dto/sign-up.dto';
-import { SignInDto } from '../dto/sign-in.dto';
+import { SignInEmailDto } from '../dto/sign-in-email.dto';
 import { SendVerificationEmailDto } from '../dto/send-verification-email.dto';
-import { ForgotPasswordDto } from '../dto/forgot-password.dto';
-import { ResetPasswordDto } from '../dto/reset-password.dto';
-import { Public } from '../decorators/public.decorator';
-import { LocalAuthGuard } from '../guards/local-auth.guard';
-import { JwtFreshGuard } from '../guards/jwt-fresh.guard';
-import { UpdatePasswordDto } from '../dto/update-password.dto';
 import { UpdateEmailDto } from '../dto/update-email.dto';
-import type { User } from '../../user/user.entity';
+import { Public } from '../decorators/public.decorator';
+import { JwtFreshGuard } from '../guards/jwt-fresh.guard';
 
 @ApiTags('Auth')
 @Controller('api/auth')
@@ -44,47 +37,48 @@ export class EmailController extends BaseAuthController {
   }
 
   @Public()
-  @Post('sign-up/email')
-  @Throttle({
-    default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
-  })
-  @ApiOperation({ summary: 'Sign up with email and password' })
-  @ApiOkResponse({ description: 'User created; verification email sent' })
-  async signUp(@Body() dto: SignUpDto) {
-    const result = await this.emailService.signUp(dto);
-    return { user: result.user };
-  }
-
-  @Public()
-  @UseGuards(LocalAuthGuard)
   @Post('sign-in/email')
   @HttpCode(HttpStatus.OK)
   @Throttle({
     default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
   })
-  @ApiOperation({ summary: 'Sign in with email and password' })
-  @ApiOkResponse({ description: 'Sets access and refresh token cookies' })
-  async signIn(
-    @Request() req: ExpressRequest & { user: User },
-    @Body() dto: SignInDto,
+  @ApiOperation({ summary: 'Send a magic sign-in link to the email address' })
+  @ApiOkResponse({
+    description: 'Always returns ok; does not leak whether account exists',
+  })
+  async sendSignInLink(@Body() dto: SignInEmailDto) {
+    await this.emailService.sendSignInLink(dto.email, dto.callbackURL);
+    return { ok: true };
+  }
+
+  @Public()
+  @Get('verify-email-link')
+  @ApiOperation({ summary: 'Verify magic sign-in link and issue tokens' })
+  async verifySignInLink(
+    @Query('token') token: string,
+    @Query('callbackURL') callbackURL: string | undefined,
     @Headers('x-forwarded-for') forwardedFor: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
     @Res({ passthrough: true }) res: Response,
+    @Request() req: ExpressRequest,
   ) {
     const ip = forwardedFor?.split(',')[0]?.trim() ?? null;
-    const rememberMe = dto.rememberMe !== false;
-    const user = req.user;
-
-    const gate = await this.checkTwoFactor(user, req, res);
-    if (gate === 'pending') return { twoFactorRedirect: true };
-
-    const result = await this.emailService.signIn(user, rememberMe, {
+    const result = await this.emailService.verifySignInLink(token, {
       ip,
       userAgent: userAgent ?? null,
     });
-    this.setTokenCookies(res, result.tokens, rememberMe);
+
+    if (!result.ok) {
+      return { ok: false, error: result.error, url: callbackURL ?? null };
+    }
+
+    const gate = await this.checkTwoFactor(result.user, req, res);
+    if (gate === 'pending') return { twoFactorRedirect: true };
+
+    this.setTokenCookies(res, result.tokens, false);
     return {
-      url: dto.callbackURL ?? null,
+      ok: true,
+      url: callbackURL ?? null,
       user: result.user,
       accessToken: result.tokens.accessToken,
       refreshToken: result.tokens.refreshToken,
@@ -133,74 +127,6 @@ export class EmailController extends BaseAuthController {
       accessToken: result.tokens.accessToken,
       refreshToken: result.tokens.refreshToken,
     };
-  }
-
-  @Public()
-  @Post('forgot-password')
-  @HttpCode(HttpStatus.OK)
-  @Throttle({
-    default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
-  })
-  @ApiOperation({ summary: 'Send password reset email' })
-  @ApiOkResponse({
-    description: 'Always returns ok; does not leak whether account exists',
-  })
-  async forgotPassword(@Body() dto: ForgotPasswordDto) {
-    await this.emailService.forgotPassword(dto.email, dto.callbackURL);
-    return { ok: true };
-  }
-
-  @Public()
-  @Get('reset-password/:token')
-  @ApiOperation({
-    summary: 'Validate reset token and redirect to frontend with token',
-  })
-  async resetPasswordCallback(
-    @Param('token') token: string,
-    @Query('callbackURL') callbackURL: string | undefined,
-    @Res() res: Response,
-  ) {
-    const isValid = await this.emailService.validateResetPasswordToken(token);
-    const separator = callbackURL?.includes('?') ? '&' : '?';
-
-    if (!isValid || !callbackURL) {
-      const errorURL = callbackURL
-        ? `${callbackURL}${separator}error=INVALID_TOKEN`
-        : '/';
-      return res.redirect(errorURL);
-    }
-
-    return res.redirect(`${callbackURL}${separator}token=${token}`);
-  }
-
-  @Public()
-  @Post('reset-password')
-  @HttpCode(HttpStatus.OK)
-  @Throttle({
-    default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
-  })
-  @ApiOperation({ summary: 'Reset password using token from email' })
-  @ApiOkResponse({ description: 'Password reset successfully' })
-  async resetPassword(@Body() dto: ResetPasswordDto) {
-    await this.emailService.resetPassword(dto.token, dto.newPassword);
-    return { ok: true };
-  }
-
-  @UseGuards(JwtFreshGuard)
-  @Patch('password')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Update password (requires recent re-authentication)',
-  })
-  @ApiOkResponse({
-    description: 'Password updated; all other sessions invalidated',
-  })
-  async updatePassword(
-    @Request() req: ExpressRequest & { user: { userId: string } },
-    @Body() dto: UpdatePasswordDto,
-  ) {
-    await this.emailService.updatePassword(req.user.userId, dto.newPassword);
-    return { ok: true };
   }
 
   @UseGuards(JwtFreshGuard)

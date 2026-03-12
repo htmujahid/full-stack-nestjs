@@ -11,7 +11,7 @@ import {
 } from '../auth.constants';
 import { hashToken, verifyToken } from '../crypto.util';
 
-export type AuthMethod = 'password' | 'google' | 'refresh';
+export type AuthMethod = 'password' | 'phone' | 'google' | 'refresh';
 
 export interface TokenPair {
   accessToken: string;
