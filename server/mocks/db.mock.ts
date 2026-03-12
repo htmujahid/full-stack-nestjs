@@ -17,9 +17,10 @@ export const mockRepository = () => ({
  * Mock TypeORM DataSource.
  * Use as a provider: { provide: DataSource, useValue: mockDataSource() }
  */
-export const mockDataSource = (): jest.Mocked<
-  Pick<DataSource, 'getRepository' | 'transaction'>
-> => ({
+export const mockDataSource = (): {
+  getRepository: jest.Mock;
+  transaction: jest.Mock;
+} => ({
   getRepository: jest.fn().mockReturnValue(mockRepository()),
   transaction: jest.fn().mockImplementation((cb) => cb(mockDataSource())),
 });
