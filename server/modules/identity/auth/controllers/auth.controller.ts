@@ -12,6 +12,7 @@ import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import type { Request as ExpressRequest, Response } from 'express';
 import { AuthService } from '../services/auth.service';
+import { TwoFactorGateService } from '../services/two-factor-gate.service';
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '../auth.constants';
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
 import { BaseAuthController } from './base-auth.controller';
@@ -27,8 +28,11 @@ interface RefreshUser {
 @Controller('api/auth')
 @UseGuards(ThrottlerGuard)
 export class AuthController extends BaseAuthController {
-  constructor(private readonly authService: AuthService) {
-    super();
+  constructor(
+    private readonly authService: AuthService,
+    twoFactorGate: TwoFactorGateService,
+  ) {
+    super(twoFactorGate);
   }
 
   @UseGuards(JwtRefreshGuard)

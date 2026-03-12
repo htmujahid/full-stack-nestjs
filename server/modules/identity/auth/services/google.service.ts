@@ -17,10 +17,7 @@ export class GoogleService {
     private readonly authService: AuthService,
   ) {}
 
-  async signIn(
-    profile: GoogleProfile,
-    ctx: RequestContext,
-  ): Promise<{ user: User; tokens: TokenPair }> {
+  async findOrCreateUser(profile: GoogleProfile): Promise<User> {
     return this.dataSource.transaction(async (tx) => {
       const userRepo = tx.getRepository(User);
       const accountRepo = tx.getRepository(Account);
@@ -72,13 +69,11 @@ export class GoogleService {
         );
       }
 
-      const tokens = await this.authService.createAuthSession(
-        user.id,
-        true,
-        ctx,
-        'google',
-      );
-      return { user, tokens };
+      return user;
     });
+  }
+
+  async createSession(userId: string, ctx: RequestContext): Promise<TokenPair> {
+    return this.authService.createAuthSession(userId, true, ctx, 'google');
   }
 }

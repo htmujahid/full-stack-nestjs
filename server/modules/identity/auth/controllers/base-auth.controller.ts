@@ -1,5 +1,6 @@
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import type { TokenPair } from '../services/auth.service';
+import { TwoFactorGateService } from '../services/two-factor-gate.service';
 import {
   ACCESS_EXPIRES_MS,
   ACCESS_TOKEN_COOKIE,
@@ -13,6 +14,36 @@ import {
 } from '../auth.constants';
 
 export abstract class BaseAuthController {
+  constructor(protected readonly twoFactorGate: TwoFactorGateService) {}
+
+  protected async checkTwoFactor(
+    user: { id: string; twoFactorEnabled: boolean },
+    req: Request,
+    res: Response,
+  ): Promise<'pass' | 'pending'> {
+    if (!user.twoFactorEnabled) return 'pass';
+
+    const trustCookieValue = (req.cookies as Record<string, string>)?.[
+      TRUST_DEVICE_COOKIE
+    ];
+    const isTrusted = trustCookieValue
+      ? await this.twoFactorGate.checkTrustDevice(trustCookieValue, user.id)
+      : false;
+
+    if (!isTrusted) {
+      const pendingToken = await this.twoFactorGate.createPendingToken(user.id);
+      this.setPendingCookie(res, pendingToken);
+      return 'pending';
+    }
+
+    const newTrustValue = await this.twoFactorGate.rotateTrustDevice(
+      trustCookieValue,
+      user.id,
+    );
+    this.setTrustDeviceCookie(res, newTrustValue);
+    return 'pass';
+  }
+
   protected setTokenCookies(
     res: Response,
     tokens: TokenPair,

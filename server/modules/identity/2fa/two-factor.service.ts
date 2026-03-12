@@ -16,7 +16,7 @@ import {
   NobleCryptoPlugin,
   ScureBase32Plugin,
 } from 'otplib';
-import { decrypt, encrypt, hashToken, signHmac } from '../auth/crypto.util';
+import { decrypt, encrypt, hashToken } from '../auth/crypto.util';
 import { TwoFactor } from './two-factor.entity';
 import { User } from '../user/user.entity';
 import { Account } from '../auth/entities/account.entity';
@@ -26,6 +26,7 @@ import {
   type RequestContext,
   type TokenPair,
 } from '../auth/services/auth.service';
+import { TwoFactorGateService } from '../auth/services/two-factor-gate.service';
 import {
   CREDENTIAL_PROVIDER,
   BACKUP_CODE_COUNT,
@@ -36,7 +37,6 @@ import {
   TFA_OTP_EXPIRES_MS,
   OTP_MAX_ATTEMPTS,
   TRUST_DEVICE_TYPE,
-  TRUST_DEVICE_EXPIRES_MS,
 } from '../auth/auth.constants';
 import type { EnableTwoFactorDto } from './dto/enable-two-factor.dto';
 
@@ -59,6 +59,7 @@ export class TwoFactorService {
     private readonly configService: ConfigService,
     private readonly mailerService: MailerService,
     private readonly authService: AuthService,
+    private readonly twoFactorGate: TwoFactorGateService,
   ) {}
 
   async enable(
@@ -191,7 +192,7 @@ export class TwoFactorService {
       'password',
     );
     const trustCookieValue = trustDevice
-      ? await this.createTrustDeviceCookieValue(userId)
+      ? await this.twoFactorGate.createTrustDeviceCookieValue(userId)
       : null;
     return { tokens, trustCookieValue };
   }
@@ -270,7 +271,7 @@ export class TwoFactorService {
       'password',
     );
     const trustCookieValue = trustDevice
-      ? await this.createTrustDeviceCookieValue(userId)
+      ? await this.twoFactorGate.createTrustDeviceCookieValue(userId)
       : null;
     return { tokens, trustCookieValue };
   }
@@ -330,25 +331,9 @@ export class TwoFactorService {
       'password',
     );
     const trustCookieValue = trustDevice
-      ? await this.createTrustDeviceCookieValue(userId)
+      ? await this.twoFactorGate.createTrustDeviceCookieValue(userId)
       : null;
     return { tokens, trustCookieValue };
-  }
-
-  async createTrustDeviceCookieValue(userId: string): Promise<string> {
-    const token = randomBytes(24).toString('hex');
-    const tokenHash = hashToken(token);
-    const verRepo = this.dataSource.getRepository(Verification);
-    await verRepo.save(
-      verRepo.create({
-        identifier: `${TRUST_DEVICE_TYPE}:${tokenHash}`,
-        value: userId,
-        expiresAt: new Date(Date.now() + TRUST_DEVICE_EXPIRES_MS),
-      }),
-    );
-    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
-    const sig = signHmac(secret, `${userId}.${token}`);
-    return `${userId}.${token}.${sig}`;
   }
 
   private async requireCredentialAccount(

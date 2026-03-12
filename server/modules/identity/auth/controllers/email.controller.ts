@@ -17,11 +17,8 @@ import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import type { Request as ExpressRequest, Response } from 'express';
 import { EmailService } from '../services/email.service';
-import {
-  AUTH_THROTTLE_LIMIT,
-  AUTH_THROTTLE_TTL_MS,
-  TRUST_DEVICE_COOKIE,
-} from '../auth.constants';
+import { TwoFactorGateService } from '../services/two-factor-gate.service';
+import { AUTH_THROTTLE_LIMIT, AUTH_THROTTLE_TTL_MS } from '../auth.constants';
 import { BaseAuthController } from './base-auth.controller';
 import { SignUpDto } from '../dto/sign-up.dto';
 import { SignInDto } from '../dto/sign-in.dto';
@@ -39,8 +36,11 @@ import type { User } from '../../user/user.entity';
 @Controller('api/auth')
 @UseGuards(ThrottlerGuard)
 export class EmailController extends BaseAuthController {
-  constructor(private readonly emailService: EmailService) {
-    super();
+  constructor(
+    private readonly emailService: EmailService,
+    twoFactorGate: TwoFactorGateService,
+  ) {
+    super(twoFactorGate);
   }
 
   @Public()
@@ -75,29 +75,8 @@ export class EmailController extends BaseAuthController {
     const rememberMe = dto.rememberMe !== false;
     const user = req.user;
 
-    if (user.twoFactorEnabled) {
-      const trustCookieValue = (req.cookies as Record<string, string>)?.[
-        TRUST_DEVICE_COOKIE
-      ];
-      const isTrusted = trustCookieValue
-        ? await this.emailService.checkTrustDevice(trustCookieValue, user.id)
-        : false;
-
-      if (!isTrusted) {
-        const pendingToken = await this.emailService.createPendingToken(
-          user.id,
-        );
-        this.setPendingCookie(res, pendingToken);
-        return { twoFactorRedirect: true };
-      }
-
-      // Trusted device: rotate trust cookie and proceed to full sign-in
-      const newTrustValue = await this.emailService.rotateTrustDevice(
-        trustCookieValue,
-        user.id,
-      );
-      this.setTrustDeviceCookie(res, newTrustValue);
-    }
+    const gate = await this.checkTwoFactor(user, req, res);
+    if (gate === 'pending') return { twoFactorRedirect: true };
 
     const result = await this.emailService.signIn(user, rememberMe, {
       ip,

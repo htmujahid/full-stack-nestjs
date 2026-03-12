@@ -16,6 +16,7 @@ import { GoogleController } from './controllers/google.controller';
 import { AuthService } from './services/auth.service';
 import { EmailService } from './services/email.service';
 import { GoogleService } from './services/google.service';
+import { TwoFactorGateService } from './services/two-factor-gate.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
@@ -40,6 +41,7 @@ import { JwtAccessGuard } from './guards/jwt-access.guard';
     AuthService,
     EmailService,
     GoogleService,
+    TwoFactorGateService,
     LocalStrategy,
     JwtAccessStrategy,
     JwtRefreshStrategy,
@@ -49,6 +51,6 @@ import { JwtAccessGuard } from './guards/jwt-access.guard';
       useClass: JwtAccessGuard,
     },
   ],
-  exports: [TypeOrmModule, AuthService],
+  exports: [TypeOrmModule, AuthService, TwoFactorGateService],
 })
 export class AuthModule {}
