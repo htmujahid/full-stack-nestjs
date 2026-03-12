@@ -20,6 +20,7 @@ import { EmailService } from '../services/email.service';
 import {
   AUTH_THROTTLE_LIMIT,
   AUTH_THROTTLE_TTL_MS,
+  TRUST_DEVICE_COOKIE,
 } from '../auth.constants';
 import { BaseAuthController } from './base-auth.controller';
 import { SignUpDto } from '../dto/sign-up.dto';
@@ -44,7 +45,9 @@ export class EmailController extends BaseAuthController {
 
   @Public()
   @Post('sign-up/email')
-  @Throttle({ default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS } })
+  @Throttle({
+    default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
+  })
   @ApiOperation({ summary: 'Sign up with email and password' })
   @ApiOkResponse({ description: 'User created; verification email sent' })
   async signUp(@Body() dto: SignUpDto) {
@@ -56,7 +59,9 @@ export class EmailController extends BaseAuthController {
   @UseGuards(LocalAuthGuard)
   @Post('sign-in/email')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS } })
+  @Throttle({
+    default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
+  })
   @ApiOperation({ summary: 'Sign in with email and password' })
   @ApiOkResponse({ description: 'Sets access and refresh token cookies' })
   async signIn(
@@ -68,7 +73,33 @@ export class EmailController extends BaseAuthController {
   ) {
     const ip = forwardedFor?.split(',')[0]?.trim() ?? null;
     const rememberMe = dto.rememberMe !== false;
-    const result = await this.emailService.signIn(req.user, rememberMe, {
+    const user = req.user;
+
+    if (user.twoFactorEnabled) {
+      const trustCookieValue = (req.cookies as Record<string, string>)?.[
+        TRUST_DEVICE_COOKIE
+      ];
+      const isTrusted = trustCookieValue
+        ? await this.emailService.checkTrustDevice(trustCookieValue, user.id)
+        : false;
+
+      if (!isTrusted) {
+        const pendingToken = await this.emailService.createPendingToken(
+          user.id,
+        );
+        this.setPendingCookie(res, pendingToken);
+        return { twoFactorRedirect: true };
+      }
+
+      // Trusted device: rotate trust cookie and proceed to full sign-in
+      const newTrustValue = await this.emailService.rotateTrustDevice(
+        trustCookieValue,
+        user.id,
+      );
+      this.setTrustDeviceCookie(res, newTrustValue);
+    }
+
+    const result = await this.emailService.signIn(user, rememberMe, {
       ip,
       userAgent: userAgent ?? null,
     });
@@ -84,9 +115,13 @@ export class EmailController extends BaseAuthController {
   @Public()
   @Post('send-verification-email')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS } })
+  @Throttle({
+    default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
+  })
   @ApiOperation({ summary: 'Send or resend verification email' })
-  @ApiOkResponse({ description: 'Always returns ok; does not leak whether account exists' })
+  @ApiOkResponse({
+    description: 'Always returns ok; does not leak whether account exists',
+  })
   async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
     await this.emailService.resendVerificationEmail(dto.email, dto.callbackURL);
     return { ok: true };
@@ -103,7 +138,10 @@ export class EmailController extends BaseAuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const ip = forwardedFor?.split(',')[0]?.trim() ?? null;
-    const result = await this.emailService.verifyEmail(token, { ip, userAgent: userAgent ?? null });
+    const result = await this.emailService.verifyEmail(token, {
+      ip,
+      userAgent: userAgent ?? null,
+    });
 
     if (!result.ok) {
       return { ok: false, error: result.error, url: callbackURL ?? null };
@@ -121,9 +159,13 @@ export class EmailController extends BaseAuthController {
   @Public()
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS } })
+  @Throttle({
+    default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
+  })
   @ApiOperation({ summary: 'Send password reset email' })
-  @ApiOkResponse({ description: 'Always returns ok; does not leak whether account exists' })
+  @ApiOkResponse({
+    description: 'Always returns ok; does not leak whether account exists',
+  })
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     await this.emailService.forgotPassword(dto.email, dto.callbackURL);
     return { ok: true };
@@ -131,7 +173,9 @@ export class EmailController extends BaseAuthController {
 
   @Public()
   @Get('reset-password/:token')
-  @ApiOperation({ summary: 'Validate reset token and redirect to frontend with token' })
+  @ApiOperation({
+    summary: 'Validate reset token and redirect to frontend with token',
+  })
   async resetPasswordCallback(
     @Param('token') token: string,
     @Query('callbackURL') callbackURL: string | undefined,
@@ -153,7 +197,9 @@ export class EmailController extends BaseAuthController {
   @Public()
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS } })
+  @Throttle({
+    default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
+  })
   @ApiOperation({ summary: 'Reset password using token from email' })
   @ApiOkResponse({ description: 'Password reset successfully' })
   async resetPassword(@Body() dto: ResetPasswordDto) {
@@ -164,8 +210,12 @@ export class EmailController extends BaseAuthController {
   @UseGuards(JwtFreshGuard)
   @Patch('password')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update password (requires recent re-authentication)' })
-  @ApiOkResponse({ description: 'Password updated; all other sessions invalidated' })
+  @ApiOperation({
+    summary: 'Update password (requires recent re-authentication)',
+  })
+  @ApiOkResponse({
+    description: 'Password updated; all other sessions invalidated',
+  })
   async updatePassword(
     @Request() req: ExpressRequest & { user: { userId: string } },
     @Body() dto: UpdatePasswordDto,
@@ -177,8 +227,12 @@ export class EmailController extends BaseAuthController {
   @UseGuards(JwtFreshGuard)
   @Patch('email')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS } })
-  @ApiOperation({ summary: 'Request email change (requires recent re-authentication)' })
+  @Throttle({
+    default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
+  })
+  @ApiOperation({
+    summary: 'Request email change (requires recent re-authentication)',
+  })
   @ApiOkResponse({ description: 'Verification email sent to new address' })
   async updateEmail(
     @Request() req: ExpressRequest & { user: { userId: string } },

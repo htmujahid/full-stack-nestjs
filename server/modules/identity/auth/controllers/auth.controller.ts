@@ -44,12 +44,22 @@ export class AuthController extends BaseAuthController {
   ) {
     const ip = forwardedFor?.split(',')[0]?.trim() ?? null;
     const { userId, sessionId, familyId, rawRefreshToken } = req.user;
-    const tokens = await this.authService.refreshTokens(userId, sessionId, familyId, rawRefreshToken, {
-      ip,
-      userAgent: userAgent ?? null,
-    });
+    const tokens = await this.authService.refreshTokens(
+      userId,
+      sessionId,
+      familyId,
+      rawRefreshToken,
+      {
+        ip,
+        userAgent: userAgent ?? null,
+      },
+    );
     this.setTokenCookies(res, tokens, false);
-    return { ok: true, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken };
+    return {
+      ok: true,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
   }
 
   @UseGuards(JwtRefreshGuard)

@@ -21,3 +21,16 @@ export const RESET_PASSWORD_IDENTIFIER_PREFIX = 'reset-password:';
 export const ACCESS_EXPIRES_MS = 15 * 60 * 1000; // 15 minutes
 export const REFRESH_EXPIRES_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 export const REFRESH_REMEMBER_ME_EXPIRES_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+export const TFA_PENDING_COOKIE = '2fa_pending';
+export const TFA_PENDING_EXPIRES_MS = 10 * 60 * 1000; // 10 minutes
+export const TRUST_DEVICE_COOKIE = 'trust_device';
+export const TRUST_DEVICE_EXPIRES_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+export const TRUST_DEVICE_TYPE = '2fa-trust';
+export const TFA_OTP_TYPE = '2fa-otp';
+export const TFA_OTP_EXPIRES_MS = 3 * 60 * 1000; // 3 minutes
+export const BACKUP_CODE_COUNT = 10;
+export const BACKUP_CODE_LENGTH = 10;
+export const OTP_MAX_ATTEMPTS = 5;
+export const TOTP_DIGITS = 6;
+export const TOTP_PERIOD = 30;

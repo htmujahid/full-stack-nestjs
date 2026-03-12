@@ -6,6 +6,10 @@ import {
   REFRESH_EXPIRES_MS,
   REFRESH_REMEMBER_ME_EXPIRES_MS,
   REFRESH_TOKEN_COOKIE,
+  TFA_PENDING_COOKIE,
+  TFA_PENDING_EXPIRES_MS,
+  TRUST_DEVICE_COOKIE,
+  TRUST_DEVICE_EXPIRES_MS,
 } from '../auth.constants';
 
 export abstract class BaseAuthController {
@@ -31,6 +35,28 @@ export abstract class BaseAuthController {
       sameSite,
       path: '/api/auth',
       maxAge: rememberMe ? REFRESH_REMEMBER_ME_EXPIRES_MS : REFRESH_EXPIRES_MS,
+    });
+  }
+
+  protected setPendingCookie(res: Response, token: string): void {
+    const secure = process.env.NODE_ENV === 'production';
+    res.cookie(TFA_PENDING_COOKIE, token, {
+      httpOnly: true,
+      secure,
+      sameSite: 'strict',
+      path: '/api/two-factor',
+      maxAge: TFA_PENDING_EXPIRES_MS,
+    });
+  }
+
+  protected setTrustDeviceCookie(res: Response, value: string): void {
+    const secure = process.env.NODE_ENV === 'production';
+    res.cookie(TRUST_DEVICE_COOKIE, value, {
+      httpOnly: true,
+      secure,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: TRUST_DEVICE_EXPIRES_MS,
     });
   }
 }
