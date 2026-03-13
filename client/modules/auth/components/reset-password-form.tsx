@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
+import { toast } from 'sonner';
 import { useResetPasswordMutation, getAuthErrorMessage } from '../lib/query';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -56,7 +57,10 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     resetPassword.mutate(
       { token, newPassword: data.password },
       {
-        onSuccess: () => navigate('/auth/sign-in', { replace: true }),
+        onSuccess: () => {
+          toast.success('Password reset successful');
+          navigate('/auth/sign-in', { replace: true });
+        },
         onError: (e) => setError('root', { message: getAuthErrorMessage(e) }),
       },
     );
