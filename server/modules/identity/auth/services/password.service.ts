@@ -25,7 +25,6 @@ import {
   type TokenPair,
 } from './auth.service';
 import { EmailService } from './email.service';
-import { PhoneService } from './phone.service';
 
 @Injectable()
 export class PasswordService {
@@ -34,14 +33,13 @@ export class PasswordService {
     private readonly dataSource: DataSource,
     private readonly mailerService: MailerService,
     private readonly emailService: EmailService,
-    private readonly phoneService: PhoneService,
     private readonly authService: AuthService,
   ) {}
 
   async signUp(dto: SignUpDto): Promise<{ user: User }> {
     const normalizedEmail = dto.email.toLowerCase().trim();
 
-    return this.dataSource.transaction(async (tx) => {
+    const result = await this.dataSource.transaction(async (tx) => {
       const userRepo = tx.getRepository(User);
       const accountRepo = tx.getRepository(Account);
 
@@ -63,20 +61,11 @@ export class PasswordService {
         }
       }
 
-      if (dto.phone) {
-        const existingPhone = await userRepo.findOne({
-          where: { phone: dto.phone.trim() },
-        });
-        if (existingPhone) {
-          throw new ConflictException('Phone number is already in use.');
-        }
-      }
 
       const user = userRepo.create({
         name: dto.name,
         email: normalizedEmail,
         username: dto.username ? dto.username.toLowerCase().trim() : null,
-        phone: dto.phone ? dto.phone.trim() : null,
         image: dto.image ?? null,
         emailVerified: false,
       });
@@ -92,12 +81,10 @@ export class PasswordService {
 
       await this.emailService.sendVerificationEmail(normalizedEmail, dto.callbackURL);
 
-      if (dto.phone) {
-        await this.phoneService.sendVerificationOtp(dto.phone);
-      }
-
       return { user: savedUser };
     });
+
+    return result;
   }
 
   async signIn(

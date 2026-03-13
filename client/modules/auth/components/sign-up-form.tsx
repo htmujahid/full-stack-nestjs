@@ -24,10 +24,13 @@ import { OAuthProviders } from './oauth-providers';
 import { Spinner } from '@/components/ui/spinner';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USERNAME_RE = /^[a-zA-Z0-9_-]+$/;
 const MIN_PASSWORD_LENGTH = 8;
+const MIN_USERNAME_LENGTH = 3;
+const MAX_USERNAME_LENGTH = 30;
 
 type SignUpFormData = {
-  name: string;
+  username: string;
   email: string;
   password: string;
 };
@@ -45,14 +48,15 @@ export function SignUpForm() {
     formState: { errors },
   } = useForm<SignUpFormData>({
     mode: 'onBlur',
-    defaultValues: { name: '', email: '', password: '' },
+    defaultValues: { username: '', email: '', password: '' },
   });
 
   const onSubmit = (data: SignUpFormData) => {
     clearErrors('root');
     signUp.mutate(
       {
-        name: data.name,
+        name: data.username,
+        username: data.username,
         email: data.email,
         password: data.password,
         callbackURL: '/home'
@@ -81,18 +85,23 @@ export function SignUpForm() {
             {errors.root.message}
           </div>
         )}
-        <Field data-invalid={!!errors.name}>
-          <FieldLabel htmlFor="sign-up-name">Name</FieldLabel>
+        <Field data-invalid={!!errors.username}>
+          <FieldLabel htmlFor="sign-up-username">Username</FieldLabel>
           <Input
-            id="sign-up-name"
+            id="sign-up-username"
             type="text"
-            placeholder="Your name"
-            autoComplete="name"
-            aria-invalid={!!errors.name}
-            aria-describedby={errors.name ? 'sign-up-name-error' : undefined}
-            {...register('name', { required: 'Name is required' })}
+            placeholder="username"
+            autoComplete="username"
+            aria-invalid={!!errors.username}
+            aria-describedby={errors.username ? 'sign-up-username-error' : undefined}
+            {...register('username', {
+              required: 'Username is required',
+              minLength: { value: MIN_USERNAME_LENGTH, message: `At least ${MIN_USERNAME_LENGTH} characters` },
+              maxLength: { value: MAX_USERNAME_LENGTH, message: `At most ${MAX_USERNAME_LENGTH} characters` },
+              pattern: { value: USERNAME_RE, message: 'Letters, numbers, underscores, hyphens only' },
+            })}
           />
-          <FieldError id="sign-up-name-error">{errors.name?.message}</FieldError>
+          <FieldError id="sign-up-username-error">{errors.username?.message}</FieldError>
         </Field>
         <Field data-invalid={!!errors.email}>
           <FieldLabel htmlFor="sign-up-email">Email</FieldLabel>

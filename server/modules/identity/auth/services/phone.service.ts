@@ -34,7 +34,7 @@ export class PhoneService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly authService: AuthService,
-  ) {}
+  ) { }
 
   /** Step 1: request OTP to sign in via phone */
   async sendSignInOtp(phone: string): Promise<void> {
@@ -84,10 +84,10 @@ export class PhoneService {
   /** Send an OTP to verify ownership of a phone number */
   async sendVerificationOtp(phone: string): Promise<void> {
     const normalizedPhone = phone.trim();
+
     const user = await this.dataSource
       .getRepository(User)
       .findOne({ where: { phone: normalizedPhone } });
-
     if (!user || user.phoneVerified) return; // prevent enumeration
 
     await this.upsertOtp(PHONE_VERIFY_IDENTIFIER_PREFIX + normalizedPhone);

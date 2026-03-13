@@ -38,11 +38,6 @@ export class SignUpDto {
   })
   password: string;
 
-  @ApiPropertyOptional({ description: 'Phone number in E.164 format, e.g. +12345678900' })
-  @IsOptional()
-  @IsString()
-  phone?: string;
-
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

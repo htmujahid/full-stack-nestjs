@@ -46,6 +46,8 @@ export class PasswordAuthStrategy extends PassportStrategy(
 
     const valid = await bcrypt.compare(password, account.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
+    
+    if (user.phone?.includes('+') && !user.phoneVerified) throw new ForbiddenException('Phone not verified');
 
     if (!user.emailVerified) throw new ForbiddenException('Email not verified');
 

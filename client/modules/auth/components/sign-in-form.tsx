@@ -24,10 +24,8 @@ import {
 import { OAuthProviders } from './oauth-providers';
 import { Spinner } from '@/components/ui/spinner';
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 type SignInFormData = {
-  email: string;
+  identifier: string;
   password: string;
 };
 
@@ -45,14 +43,14 @@ export function SignInForm() {
     formState: { errors },
   } = useForm<SignInFormData>({
     mode: 'onBlur',
-    defaultValues: { email: '', password: '' },
+    defaultValues: { identifier: '', password: '' },
   });
 
   const onSubmit = (data: SignInFormData) => {
     clearErrors('root');
     signIn.mutate(
       {
-        identifier: data.email,
+        identifier: data.identifier,
         password: data.password,
         rememberMe: true,
       },
@@ -82,21 +80,18 @@ export function SignInForm() {
             {errors.root.message}
           </div>
         )}
-        <Field data-invalid={!!errors.email}>
-          <FieldLabel htmlFor="sign-in-email">Email</FieldLabel>
+        <Field data-invalid={!!errors.identifier}>
+          <FieldLabel htmlFor="sign-in-identifier">Email, username, or phone</FieldLabel>
           <Input
-            id="sign-in-email"
-            type="email"
-            placeholder="m@example.com"
-            autoComplete="email"
-            aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? 'sign-in-email-error' : undefined}
-            {...register('email', {
-              required: 'Email is required',
-              pattern: { value: EMAIL_RE, message: 'Please enter a valid email' },
-            })}
+            id="sign-in-identifier"
+            type="text"
+            placeholder="Email, username, or phone"
+            autoComplete="username"
+            aria-invalid={!!errors.identifier}
+            aria-describedby={errors.identifier ? 'sign-in-identifier-error' : undefined}
+            {...register('identifier', { required: 'Email, username, or phone is required' })}
           />
-          <FieldError id="sign-in-email-error">{errors.email?.message}</FieldError>
+          <FieldError id="sign-in-identifier-error">{errors.identifier?.message}</FieldError>
         </Field>
         <Field data-invalid={!!errors.password}>
           <div className="flex items-center">

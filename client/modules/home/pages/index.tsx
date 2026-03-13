@@ -1,4 +1,4 @@
-import { Mail, Shield, User } from 'lucide-react';
+import { Mail, Phone, Shield, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/components/providers/auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -72,6 +72,24 @@ export default function HomePage() {
                     Username
                   </p>
                   <p className="truncate font-medium">@{user.username}</p>
+                </div>
+              </div>
+            )}
+            {user.phone && (
+              <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-4">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                  <Phone className="size-5 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Phone
+                  </p>
+                  <p className="truncate font-medium">{user.phone}</p>
+                  {user.phoneVerified && (
+                    <Badge variant="secondary" className="mt-1">
+                      Verified
+                    </Badge>
+                  )}
                 </div>
               </div>
             )}
