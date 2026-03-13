@@ -1,6 +1,7 @@
-import { useTransition } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
+import { useForgotPasswordMutation, getAuthErrorMessage } from '../lib/query';
 import { Button } from '@/components/ui/button';
 import {
   Field,
@@ -19,11 +20,14 @@ type ForgotPasswordFormData = {
 };
 
 export function ForgotPasswordForm() {
-  const [isPending, startTransition] = useTransition();
+  const [success, setSuccess] = useState(false);
+  const forgotPassword = useForgotPasswordMutation();
 
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<ForgotPasswordFormData>({
     mode: 'onBlur',
@@ -31,16 +35,40 @@ export function ForgotPasswordForm() {
   });
 
   const onSubmit = (data: ForgotPasswordFormData) => {
-    startTransition(async () => {
-      // TODO: wire to auth API with data
-      void data;
-      await new Promise((r) => setTimeout(r, 800));
-    });
+    clearErrors('root');
+    forgotPassword.mutate(
+      {
+        email: data.email,
+        callbackURL: `${window.location.origin}/auth/reset-password`,
+      },
+      {
+        onSuccess: () => setSuccess(true),
+        onError: (e) => setError('root', { message: getAuthErrorMessage(e) }),
+      },
+    );
   };
+
+  if (success) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Check your email for a link to reset your password.
+        </p>
+        <Link to="/auth/sign-in" className="text-sm text-primary underline-offset-4 hover:underline">
+          Back to sign in
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <FieldGroup>
+        {errors.root?.message && (
+          <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {errors.root.message}
+          </div>
+        )}
         <Field data-invalid={!!errors.email}>
           <FieldLabel htmlFor="forgot-email">Email</FieldLabel>
           <Input
@@ -58,8 +86,8 @@ export function ForgotPasswordForm() {
           <FieldError id="forgot-email-error">{errors.email?.message}</FieldError>
         </Field>
         <Field>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? (
+          <Button type="submit" disabled={forgotPassword.isPending}>
+            {forgotPassword.isPending ? (
               <>
                 <Spinner aria-hidden />
                 Sending…

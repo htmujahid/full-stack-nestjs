@@ -45,7 +45,7 @@ export class PhoneService {
 
     if (!user) return; // prevent enumeration
 
-    await this.upsertOtp(PHONE_OTP_IDENTIFIER_PREFIX + normalizedPhone);
+    await this.upsertOtp(PHONE_OTP_IDENTIFIER_PREFIX + normalizedPhone, user.id);
   }
 
   /** Step 2: verify OTP and issue tokens */

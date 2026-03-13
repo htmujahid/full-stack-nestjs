@@ -121,9 +121,13 @@ export class EmailController extends BaseAuthController {
     }
 
     this.setTokenCookies(res, result.tokens, false);
+
+    if (callbackURL) {
+      res.redirect(callbackURL);
+    }
+
     return {
       ok: true,
-      url: callbackURL ?? null,
       accessToken: result.tokens.accessToken,
       refreshToken: result.tokens.refreshToken,
     };

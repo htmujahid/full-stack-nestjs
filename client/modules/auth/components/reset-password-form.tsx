@@ -1,7 +1,8 @@
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+import { useResetPasswordMutation, getAuthErrorMessage } from '../lib/query';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Field,
@@ -32,12 +33,15 @@ type ResetPasswordFormProps = {
 export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const navigate = useNavigate();
+  const resetPassword = useResetPasswordMutation();
 
   const {
     register,
     handleSubmit,
     watch,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<ResetPasswordFormData>({
     mode: 'onBlur',
@@ -47,12 +51,15 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const password = watch('password');
 
   const onSubmit = (data: ResetPasswordFormData) => {
-    startTransition(async () => {
-      // TODO: wire to auth API with data + token
-      void data;
-      void token;
-      await new Promise((r) => setTimeout(r, 800));
-    });
+    if (!token) return;
+    clearErrors('root');
+    resetPassword.mutate(
+      { token, newPassword: data.password },
+      {
+        onSuccess: () => navigate('/auth/sign-in', { replace: true }),
+        onError: (e) => setError('root', { message: getAuthErrorMessage(e) }),
+      },
+    );
   };
 
   if (!token) {
@@ -71,6 +78,11 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <FieldGroup>
+        {errors.root?.message && (
+          <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {errors.root.message}
+          </div>
+        )}
         <Field data-invalid={!!errors.password}>
           <FieldLabel htmlFor="reset-password">New password</FieldLabel>
           <InputGroup>
@@ -136,8 +148,8 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           </FieldError>
         </Field>
         <Field>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? (
+          <Button type="submit" disabled={resetPassword.isPending}>
+            {resetPassword.isPending ? (
               <>
                 <Spinner aria-hidden />
                 Resetting…

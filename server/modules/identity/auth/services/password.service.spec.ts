@@ -1,22 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { DataSource } from 'typeorm';
 import { PasswordService } from './password.service';
 import { AuthService } from './auth.service';
+import { EmailService } from './email.service';
+import { PhoneService } from './phone.service';
 import { User } from '../../user/user.entity';
 import { UserRole } from '../../user/user-role.enum';
 import { Account } from '../../account/account.entity';
 import { Verification } from '../entities/verification.entity';
 import { RefreshSession } from '../entities/refresh-session.entity';
 import { mockDataSource, mockRepository } from '../../../../mocks/db.mock';
-import {
-  CREDENTIAL_PROVIDER,
-  EMAIL_VERIFICATION_TYPE,
-  RESET_PASSWORD_IDENTIFIER_PREFIX,
-} from '../auth.constants';
+import { CREDENTIAL_PROVIDER, RESET_PASSWORD_IDENTIFIER_PREFIX } from '../auth.constants';
 import type { SignUpDto } from '../dto/sign-up.dto';
 
 // A fixed timestamp used as the frozen "current time" across all tests.
@@ -73,8 +70,9 @@ describe('PasswordService', () => {
   let service: PasswordService;
   let dataSource: ReturnType<typeof mockDataSource>;
   let configService: { getOrThrow: jest.Mock };
-  let jwtService: { signAsync: jest.Mock };
   let mailerService: { sendMail: jest.Mock };
+  let emailService: { sendVerificationEmail: jest.Mock };
+  let phoneService: { sendVerificationOtp: jest.Mock };
   let authService: { createAuthSession: jest.Mock };
 
   beforeEach(async () => {
@@ -83,8 +81,9 @@ describe('PasswordService', () => {
 
     dataSource = mockDataSource();
     configService = { getOrThrow: jest.fn().mockReturnValue('http://localhost:3000') };
-    jwtService = { signAsync: jest.fn().mockResolvedValue('signed-jwt-token') };
     mailerService = { sendMail: jest.fn().mockResolvedValue(undefined) };
+    emailService = { sendVerificationEmail: jest.fn().mockResolvedValue(undefined) };
+    phoneService = { sendVerificationOtp: jest.fn().mockResolvedValue(undefined) };
     authService = { createAuthSession: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -92,8 +91,9 @@ describe('PasswordService', () => {
         PasswordService,
         { provide: DataSource, useValue: dataSource },
         { provide: ConfigService, useValue: configService },
-        { provide: JwtService, useValue: jwtService },
         { provide: MailerService, useValue: mailerService },
+        { provide: EmailService, useValue: emailService },
+        { provide: PhoneService, useValue: phoneService },
         { provide: AuthService, useValue: authService },
       ],
     }).compile();
@@ -127,7 +127,7 @@ describe('PasswordService', () => {
       expect(result.user).toBe(savedUser);
       expect(txRepo.create).toHaveBeenCalledTimes(2);
       expect(txRepo.save).toHaveBeenCalledTimes(2);
-      expect(mailerService.sendMail).toHaveBeenCalledTimes(1);
+      expect(emailService.sendVerificationEmail).toHaveBeenCalledTimes(1);
     });
 
     it('normalizes email to lowercase before checking uniqueness', async () => {
@@ -224,17 +224,11 @@ describe('PasswordService', () => {
         return cb(tx);
       });
 
-      configService.getOrThrow
-        .mockReturnValueOnce('secret-val') // auth.accessSecret
-        .mockReturnValueOnce('http://localhost:3000'); // app.url
-
       await service.signUp(dto);
 
-      expect(mailerService.sendMail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: 'test@example.com',
-          subject: 'Verify your email',
-        }),
+      expect(emailService.sendVerificationEmail).toHaveBeenCalledWith(
+        'test@example.com',
+        'https://app.example.com/verify',
       );
     });
 
@@ -294,8 +288,8 @@ describe('PasswordService', () => {
       expect(userCreateArg.image).toBeNull();
     });
 
-    it('signs verification JWT with normalized email and EMAIL_VERIFICATION_TYPE in payload', async () => {
-      const dto = makeSignUpDto({ email: 'TEST@EXAMPLE.COM' });
+    it('calls phoneService.sendVerificationOtp when phone is provided', async () => {
+      const dto = makeSignUpDto({ phone: '+12345678900' });
       const txRepo = mockRepository();
       txRepo.findOne.mockResolvedValue(null);
       txRepo.create.mockReturnValue(makeUser());
@@ -306,19 +300,12 @@ describe('PasswordService', () => {
         return cb(tx);
       });
 
-      configService.getOrThrow
-        .mockReturnValueOnce('my-secret')
-        .mockReturnValueOnce('http://localhost:3000');
-
       await service.signUp(dto);
 
-      expect(jwtService.signAsync).toHaveBeenCalledWith(
-        { email: 'test@example.com', type: EMAIL_VERIFICATION_TYPE },
-        expect.objectContaining({ secret: 'my-secret' }),
-      );
+      expect(phoneService.sendVerificationOtp).toHaveBeenCalledWith('+12345678900');
     });
 
-    it('propagates error when mailerService.sendMail throws during sign up', async () => {
+    it('propagates error when emailService.sendVerificationEmail throws during sign up', async () => {
       const dto = makeSignUpDto();
       const txRepo = mockRepository();
       txRepo.findOne.mockResolvedValue(null);
@@ -330,7 +317,7 @@ describe('PasswordService', () => {
         return cb(tx);
       });
 
-      mailerService.sendMail.mockRejectedValue(new Error('SMTP error'));
+      emailService.sendVerificationEmail.mockRejectedValue(new Error('SMTP error'));
 
       await expect(service.signUp(dto)).rejects.toThrow('SMTP error');
     });

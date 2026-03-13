@@ -300,7 +300,6 @@ describe('EmailController', () => {
       expect(res.cookie).toHaveBeenCalledTimes(2);
       expect(result).toEqual({
         ok: true,
-        url: '/verify',
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
       });

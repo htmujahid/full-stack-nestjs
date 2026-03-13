@@ -1,9 +1,24 @@
 import { Suspense } from 'react';
 import { GalleryVerticalEnd } from 'lucide-react';
-import { Link, Outlet } from 'react-router';
+import { Link, Navigate, Outlet } from 'react-router';
+import { useAuth } from '@/components/providers/auth-provider';
 import { Spinner } from '@/components/ui/spinner';
 
 export default function AuthLayout() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-svh items-center justify-center bg-muted">
+        <Spinner className="size-8 text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/home" replace />;
+  }
+
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-8 bg-muted p-6 transition-colors md:p-10">
       <div className="flex items-center w-full max-w-sm flex-col gap-6">

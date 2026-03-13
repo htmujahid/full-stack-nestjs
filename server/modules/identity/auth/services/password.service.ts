@@ -4,7 +4,6 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { randomUUID } from 'crypto';
 import { DataSource } from 'typeorm';
@@ -18,8 +17,6 @@ import {
   RESET_PASSWORD_EXPIRES_MS,
   RESET_PASSWORD_IDENTIFIER_PREFIX,
   SALT_ROUNDS,
-  VERIFICATION_EXPIRES_MS,
-  EMAIL_VERIFICATION_TYPE,
 } from '../auth.constants';
 import type { SignUpDto } from '../dto/sign-up.dto';
 import {
@@ -27,14 +24,17 @@ import {
   type RequestContext,
   type TokenPair,
 } from './auth.service';
+import { EmailService } from './email.service';
+import { PhoneService } from './phone.service';
 
 @Injectable()
 export class PasswordService {
   constructor(
     private readonly configService: ConfigService,
     private readonly dataSource: DataSource,
-    private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
+    private readonly emailService: EmailService,
+    private readonly phoneService: PhoneService,
     private readonly authService: AuthService,
   ) {}
 
@@ -90,7 +90,11 @@ export class PasswordService {
       });
       await accountRepo.save(account);
 
-      await this.sendVerificationEmail(normalizedEmail, dto.callbackURL);
+      await this.emailService.sendVerificationEmail(normalizedEmail, dto.callbackURL);
+
+      if (dto.phone) {
+        await this.phoneService.sendVerificationOtp(dto.phone);
+      }
 
       return { user: savedUser };
     });
@@ -204,28 +208,6 @@ export class PasswordService {
 
       // Invalidate all refresh sessions to force re-login on other devices
       await tx.getRepository(RefreshSession).delete({ userId });
-    });
-  }
-
-  private async sendVerificationEmail(
-    email: string,
-    callbackURL?: string,
-  ): Promise<void> {
-    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
-    const token = await this.jwtService.signAsync(
-      { email, type: EMAIL_VERIFICATION_TYPE },
-      { secret, expiresIn: VERIFICATION_EXPIRES_MS / 1000 },
-    );
-
-    const encodedCallback = encodeURIComponent(callbackURL ?? '/');
-    const baseURL = this.configService.getOrThrow<string>('app.url');
-    const url = `${baseURL}/api/auth/verify-email?token=${token}&callbackURL=${encodedCallback}`;
-
-    await this.mailerService.sendMail({
-      to: email,
-      subject: 'Verify your email',
-      text: `Verify your email by clicking: ${url}`,
-      html: `<p>Verify your email by clicking: <a href="${url}">${url}</a></p>`,
     });
   }
 }

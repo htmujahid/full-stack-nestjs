@@ -1,7 +1,10 @@
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
+import { useSignInMutation, getAuthErrorMessage } from '../lib/query';
+import { ME_QUERY_KEY } from '@/components/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 import {
   Field,
@@ -30,11 +33,15 @@ type SignInFormData = {
 
 export function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const signIn = useSignInMutation();
 
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<SignInFormData>({
     mode: 'onBlur',
@@ -42,20 +49,40 @@ export function SignInForm() {
   });
 
   const onSubmit = (data: SignInFormData) => {
-    startTransition(async () => {
-      // TODO: wire to auth API with data
-      void data;
-      await new Promise((r) => setTimeout(r, 800));
-    });
+    clearErrors('root');
+    signIn.mutate(
+      {
+        identifier: data.email,
+        password: data.password,
+        rememberMe: true,
+        callbackURL: '/home',
+      },
+      {
+        onSuccess: (res) => {
+          if ('twoFactorRedirect' in res) {
+            navigate('/auth/two-factor', { replace: true });
+            return;
+          }
+          void queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY });
+          navigate(res.url ?? '/home', { replace: true });
+        },
+        onError: (e) => setError('root', { message: getAuthErrorMessage(e) }),
+      },
+    );
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <FieldGroup>
-        <OAuthProviders action="sign-in" disabled={isPending} />
+        <OAuthProviders action="sign-in" disabled={signIn.isPending} />
         <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
           Or continue with
         </FieldSeparator>
+        {errors.root?.message && (
+          <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {errors.root.message}
+          </div>
+        )}
         <Field data-invalid={!!errors.email}>
           <FieldLabel htmlFor="sign-in-email">Email</FieldLabel>
           <Input
@@ -108,8 +135,8 @@ export function SignInForm() {
           <FieldError id="sign-in-password-error">{errors.password?.message}</FieldError>
         </Field>
         <Field>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? (
+          <Button type="submit" disabled={signIn.isPending}>
+            {signIn.isPending ? (
               <>
                 <Spinner aria-hidden />
                 Signing in…
