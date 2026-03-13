@@ -10,17 +10,17 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import type { Request as ExpressRequest, Response } from 'express';
-import { Public } from '../decorators/public.decorator';
+import { Public } from '../../auth/decorators/public.decorator';
 import { GoogleService } from '../services/google.service';
 import { AccountService } from '../../account/account.service';
-import { TwoFactorGateService } from '../services/two-factor-gate.service';
+import { TwoFactorGateService } from '../../auth/services/two-factor-gate.service';
 import type { GoogleProfile } from '../strategies/google.strategy';
 import { BaseOAuthController } from './base-oauth.controller';
-import { LINK_INTENT_COOKIE } from '../auth.constants';
+import { LINK_INTENT_COOKIE } from '../../auth/auth.constants';
 import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Auth')
-@Controller('api/auth/google')
+@Controller('api/oauth/google')
 export class GoogleController extends BaseOAuthController {
   constructor(
     private readonly googleService: GoogleService,

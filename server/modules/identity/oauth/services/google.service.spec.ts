@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { GoogleService } from './google.service';
-import { AuthService } from './auth.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { User } from '../../user/user.entity';
 import { UserRole } from '../../user/user-role.enum';
 import { Account } from '../../account/account.entity';
 import { mockDataSource, mockRepository } from '../../../../mocks/db.mock';
-import { GOOGLE_PROVIDER } from '../auth.constants';
+import { GOOGLE_PROVIDER } from '../../auth/auth.constants';
 import type { GoogleProfile } from '../strategies/google.strategy';
-import type { TokenPair } from './auth.service';
+import type { TokenPair } from '../../auth/services/auth.service';
 
 const NOW = 2_000_000_000_000;
 

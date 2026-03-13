@@ -1,15 +1,15 @@
 import { JwtService } from '@nestjs/jwt';
 import type { Request as ExpressRequest, Response } from 'express';
 import { BaseOAuthController } from './base-oauth.controller';
-import { TwoFactorGateService } from '../services/two-factor-gate.service';
+import { TwoFactorGateService } from '../../auth/services/two-factor-gate.service';
 import { AccountService } from '../../account/account.service';
 import { UserRole } from '../../user/user-role.enum';
-import type { TokenPair } from '../services/auth.service';
+import type { TokenPair } from '../../auth/services/auth.service';
 import {
   ACCESS_TOKEN_COOKIE,
   OAUTH_REDIRECT_COOKIE,
   TRUST_DEVICE_COOKIE,
-} from '../auth.constants';
+} from '../../auth/auth.constants';
 
 // ─── Concrete subclass exposing protected methods for testing ─────────────────
 // Instantiated directly (not via TestingModule) so that constructor injection

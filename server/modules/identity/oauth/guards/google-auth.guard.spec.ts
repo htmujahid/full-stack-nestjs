@@ -1,6 +1,6 @@
 import { ExecutionContext } from '@nestjs/common';
 import { GoogleAuthGuard } from './google-auth.guard';
-import { OAUTH_REDIRECT_COOKIE, OAUTH_REDIRECT_EXPIRES_MS } from '../auth.constants';
+import { OAUTH_REDIRECT_COOKIE, OAUTH_REDIRECT_EXPIRES_MS } from '../../auth/auth.constants';
 
 const makeContext = (
   path: string,
@@ -33,7 +33,7 @@ describe('GoogleAuthGuard', () => {
       const superCanActivate = jest
         .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(GoogleAuthGuard.prototype)), 'canActivate')
         .mockReturnValue(true);
-      const ctx = makeContext('/api/auth/google', { redirectUri: '/dashboard' }, cookieFn);
+      const ctx = makeContext('/api/oauth/google', { redirectUri: '/dashboard' }, cookieFn);
 
       guard.canActivate(ctx);
 
@@ -56,7 +56,7 @@ describe('GoogleAuthGuard', () => {
       const superCanActivate = jest
         .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(GoogleAuthGuard.prototype)), 'canActivate')
         .mockReturnValue(true);
-      const ctx = makeContext('/api/auth/google/callback', { redirectUri: '/dashboard' }, cookieFn);
+      const ctx = makeContext('/api/oauth/google/callback', { redirectUri: '/dashboard' }, cookieFn);
 
       guard.canActivate(ctx);
 
@@ -70,7 +70,7 @@ describe('GoogleAuthGuard', () => {
       const superCanActivate = jest
         .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(GoogleAuthGuard.prototype)), 'canActivate')
         .mockReturnValue(true);
-      const ctx = makeContext('/api/auth/google', {}, cookieFn);
+      const ctx = makeContext('/api/oauth/google', {}, cookieFn);
 
       guard.canActivate(ctx);
 
@@ -84,7 +84,7 @@ describe('GoogleAuthGuard', () => {
       const superCanActivate = jest
         .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(GoogleAuthGuard.prototype)), 'canActivate')
         .mockReturnValue(true);
-      const ctx = makeContext('/api/auth/google', { redirectUri: 'https://evil.com' }, cookieFn);
+      const ctx = makeContext('/api/oauth/google', { redirectUri: 'https://evil.com' }, cookieFn);
 
       guard.canActivate(ctx);
 
@@ -98,7 +98,7 @@ describe('GoogleAuthGuard', () => {
       const superCanActivate = jest
         .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(GoogleAuthGuard.prototype)), 'canActivate')
         .mockReturnValue(true);
-      const ctx = makeContext('/api/auth/google', { redirectUri: '/dashboard' }, cookieFn);
+      const ctx = makeContext('/api/oauth/google', { redirectUri: '/dashboard' }, cookieFn);
 
       const result = guard.canActivate(ctx);
 

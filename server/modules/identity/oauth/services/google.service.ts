@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { User } from '../../user/user.entity';
 import { Account } from '../../account/account.entity';
-import { GOOGLE_PROVIDER } from '../auth.constants';
+import { GOOGLE_PROVIDER } from '../../auth/auth.constants';
 import {
   AuthService,
   type RequestContext,
   type TokenPair,
-} from './auth.service';
+} from '../../auth/services/auth.service';
 import type { GoogleProfile } from '../strategies/google.strategy';
 import { UserRole } from '../../user/user-role.enum';
 

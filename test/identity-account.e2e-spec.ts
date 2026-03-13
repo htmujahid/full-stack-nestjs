@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { AccountController } from '../server/modules/identity/account/account.controller';
 import { AccountService } from '../server/modules/identity/account/account.service';
@@ -41,6 +42,7 @@ describe('Accounts (e2e)', () => {
     }).compile();
 
     app = module.createNestApplication();
+    app.use(cookieParser());
     app.use((req: any, _res, next) => {
       req.user = req.user ?? { userId: 'test-user-id' };
       next();
@@ -91,6 +93,35 @@ describe('Accounts (e2e)', () => {
     it('returns 302 redirect to OAuth flow', async () => {
       const res = await request(app.getHttpServer())
         .patch('/api/accounts/google')
+        .expect(302);
+
+      expect(res.headers.location).toBe('/api/auth/google');
+    });
+
+    it('sets LINK_INTENT_COOKIE on the response', async () => {
+      const res = await request(app.getHttpServer())
+        .patch('/api/accounts/google')
+        .expect(302);
+
+      const setCookieHeader: string[] = ([] as string[]).concat(
+        res.headers['set-cookie'] ?? [],
+      );
+      expect(setCookieHeader.some((c) => c.startsWith('link_intent=google'))).toBe(true);
+    });
+
+    it('appends redirectUri query param to OAuth URL when it starts with "/"', async () => {
+      const res = await request(app.getHttpServer())
+        .patch('/api/accounts/google?redirectUri=/settings/accounts')
+        .expect(302);
+
+      expect(res.headers.location).toBe(
+        '/api/auth/google?redirectUri=%2Fsettings%2Faccounts',
+      );
+    });
+
+    it('ignores redirectUri when it does not start with "/"', async () => {
+      const res = await request(app.getHttpServer())
+        .patch('/api/accounts/google?redirectUri=https://evil.com')
         .expect(302);
 
       expect(res.headers.location).toBe('/api/auth/google');

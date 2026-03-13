@@ -4,13 +4,13 @@ import { JwtService } from '@nestjs/jwt';
 import { GoogleController } from './google.controller';
 import { GoogleService } from '../services/google.service';
 import { AccountService } from '../../account/account.service';
-import { TwoFactorGateService } from '../services/two-factor-gate.service';
+import { TwoFactorGateService } from '../../auth/services/two-factor-gate.service';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import {
   ACCESS_TOKEN_COOKIE,
   LINK_INTENT_COOKIE,
   OAUTH_REDIRECT_COOKIE,
-} from '../auth.constants';
+} from '../../auth/auth.constants';
 import type { GoogleProfile } from '../strategies/google.strategy';
 import { User } from '../../user/user.entity';
 import { UserRole } from '../../user/user-role.enum';

@@ -32,7 +32,7 @@ export function OAuthProviders({ action, disabled }: OAuthProvidersProps) {
 
   const handleClick = (providerId: string) => {
     setLoadingProvider(providerId);
-    // TODO: wire to actual OAuth flow; reset on error
+    window.location.href = `/api/oauth/${providerId}`;
   };
 
   return (

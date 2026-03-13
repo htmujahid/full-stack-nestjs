@@ -1,7 +1,7 @@
 import { ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { withOAuthRedirect } from './base-oauth.guard';
-import { OAUTH_REDIRECT_COOKIE, OAUTH_REDIRECT_EXPIRES_MS } from '../auth.constants';
+import { OAUTH_REDIRECT_COOKIE, OAUTH_REDIRECT_EXPIRES_MS } from '../../auth/auth.constants';
 
 class MockBase {
   canActivate(_ctx: ExecutionContext): boolean | Promise<boolean> {
@@ -36,7 +36,7 @@ describe('withOAuthRedirect', () => {
 
   it('sets OAUTH_REDIRECT_COOKIE when redirectUri starts with "/" and path is not a callback', () => {
     const cookieFn = jest.fn();
-    const ctx = makeContext('/api/auth/google', { redirectUri: '/dashboard' }, cookieFn);
+    const ctx = makeContext('/api/oauth/google', { redirectUri: '/dashboard' }, cookieFn);
 
     guard.canActivate(ctx);
 
@@ -55,7 +55,7 @@ describe('withOAuthRedirect', () => {
   it('does NOT set cookie when path ends with "/callback"', () => {
     const cookieFn = jest.fn();
     const ctx = makeContext(
-      '/api/auth/google/callback',
+      '/api/oauth/google/callback',
       { redirectUri: '/dashboard' },
       cookieFn,
     );
@@ -67,7 +67,7 @@ describe('withOAuthRedirect', () => {
 
   it('does NOT set cookie when redirectUri is absent', () => {
     const cookieFn = jest.fn();
-    const ctx = makeContext('/api/auth/google', {}, cookieFn);
+    const ctx = makeContext('/api/oauth/google', {}, cookieFn);
 
     guard.canActivate(ctx);
 
@@ -77,7 +77,7 @@ describe('withOAuthRedirect', () => {
   it('does NOT set cookie when redirectUri does not start with "/"', () => {
     const cookieFn = jest.fn();
     const ctx = makeContext(
-      '/api/auth/google',
+      '/api/oauth/google',
       { redirectUri: 'https://evil.com' },
       cookieFn,
     );
@@ -89,7 +89,7 @@ describe('withOAuthRedirect', () => {
 
   it('always calls super.canActivate and returns true when base returns true', () => {
     const cookieFn = jest.fn();
-    const ctx = makeContext('/api/auth/google', { redirectUri: '/dashboard' }, cookieFn);
+    const ctx = makeContext('/api/oauth/google', { redirectUri: '/dashboard' }, cookieFn);
 
     const result = guard.canActivate(ctx);
 
@@ -99,7 +99,7 @@ describe('withOAuthRedirect', () => {
   it('always calls super.canActivate and returns false when base returns false', () => {
     jest.spyOn(MockBase.prototype, 'canActivate').mockReturnValue(false);
     const cookieFn = jest.fn();
-    const ctx = makeContext('/api/auth/google', { redirectUri: '/dashboard' }, cookieFn);
+    const ctx = makeContext('/api/oauth/google', { redirectUri: '/dashboard' }, cookieFn);
 
     const result = guard.canActivate(ctx);
 
@@ -112,7 +112,7 @@ describe('withOAuthRedirect', () => {
     const getResponseFn = jest.fn(() => ({ cookie: jest.fn() }));
     const ctx = {
       switchToHttp: () => ({
-        getRequest: () => ({ path: '/api/auth/google/callback', query: { redirectUri: '/dashboard' } }),
+        getRequest: () => ({ path: '/api/oauth/google/callback', query: { redirectUri: '/dashboard' } }),
         getResponse: getResponseFn,
       }),
     } as unknown as ExecutionContext;

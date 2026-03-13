@@ -2,14 +2,14 @@ import { HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { Request as ExpressRequest, Response } from 'express';
 import { AccountService } from '../../account/account.service';
-import { TwoFactorGateService } from '../services/two-factor-gate.service';
-import type { TokenPair } from '../services/auth.service';
+import { TwoFactorGateService } from '../../auth/services/two-factor-gate.service';
+import type { TokenPair } from '../../auth/services/auth.service';
 import { UserRole } from '../../user/user-role.enum';
 import {
   ACCESS_TOKEN_COOKIE,
   OAUTH_REDIRECT_COOKIE,
-} from '../auth.constants';
-import { BaseAuthController } from './base-auth.controller';
+} from '../../auth/auth.constants';
+import { BaseAuthController } from '../../auth/controllers/base-auth.controller';
 
 type OAuthAccount = {
   providerId: string;

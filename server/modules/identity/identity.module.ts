@@ -5,6 +5,7 @@ import { MeModule } from './me/me.module';
 import { TwoFactorModule } from './2fa/two-factor.module';
 import { AccountModule } from './account/account.module';
 import { RbacModule } from './rbac/rbac.module';
+import { OAuthModule } from './oauth/oauth.module';
 
 @Module({
   imports: [
@@ -14,7 +15,8 @@ import { RbacModule } from './rbac/rbac.module';
     TwoFactorModule,
     AccountModule,
     RbacModule,
+    OAuthModule,
   ],
-  exports: [UserModule, AuthModule, TwoFactorModule, AccountModule, RbacModule],
+  exports: [UserModule, AuthModule, TwoFactorModule, AccountModule, RbacModule, OAuthModule],
 })
 export class IdentityModule {}

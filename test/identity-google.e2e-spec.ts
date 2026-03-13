@@ -5,13 +5,16 @@ import {
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
-import { ACCESS_TOKEN_COOKIE } from '../server/modules/identity/auth/auth.constants';
-import { GoogleController } from '../server/modules/identity/auth/controllers/google.controller';
-import { GoogleService } from '../server/modules/identity/auth/services/google.service';
+import {
+  ACCESS_TOKEN_COOKIE,
+  LINK_INTENT_COOKIE,
+  OAUTH_REDIRECT_COOKIE,
+} from '../server/modules/identity/auth/auth.constants';
+import { GoogleController } from '../server/modules/identity/oauth/controllers/google.controller';
+import { GoogleService } from '../server/modules/identity/oauth/services/google.service';
 import { AccountService } from '../server/modules/identity/account/account.service';
 import { TwoFactorGateService } from '../server/modules/identity/auth/services/two-factor-gate.service';
-import { GoogleAuthGuard } from '../server/modules/identity/auth/guards/google-auth.guard';
-import { LINK_INTENT_COOKIE } from '../server/modules/identity/auth/auth.constants';
+import { GoogleAuthGuard } from '../server/modules/identity/oauth/guards/google-auth.guard';
 import { User } from '../server/modules/identity/user/user.entity';
 import { UserRole } from '../server/modules/identity/user/user-role.enum';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -108,20 +111,20 @@ describe('Identity Google (e2e)', () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  // ─── GET /api/auth/google ──────────────────────────────────────────────────
+  // ─── GET /api/oauth/google ──────────────────────────────────────────────────
 
-  describe('GET /api/auth/google', () => {
+  describe('GET /api/oauth/google', () => {
     it('returns 200 when guard is overridden (no real OAuth)', async () => {
       const res = await request(app.getHttpServer())
-        .get('/api/auth/google')
+        .get('/api/oauth/google')
         .expect(200);
       expect(res.body).toEqual({});
     });
   });
 
-  // ─── GET /api/auth/google/callback ─────────────────────────────────────────
+  // ─── GET /api/oauth/google/callback ─────────────────────────────────────────
 
-  describe('GET /api/auth/google/callback', () => {
+  describe('GET /api/oauth/google/callback', () => {
     it('redirects to / on successful sign-in', async () => {
       const user = makeUser();
       googleService.findOrCreateUser.mockResolvedValue(user);
@@ -132,7 +135,7 @@ describe('Identity Google (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get('/api/auth/google/callback')
+        .get('/api/oauth/google/callback')
         .expect(302);
 
       expect(res.headers.location).toBe('/');
@@ -143,7 +146,7 @@ describe('Identity Google (e2e)', () => {
       accountService.linkAccount.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .get('/api/auth/google/callback')
+        .get('/api/oauth/google/callback')
         .set(
           'Cookie',
           [`${LINK_INTENT_COOKIE}=google`, `${ACCESS_TOKEN_COOKIE}=valid-token`].join('; '),
@@ -155,13 +158,69 @@ describe('Identity Google (e2e)', () => {
 
     it('redirects to error when link intent but no access token', async () => {
       const res = await request(app.getHttpServer())
-        .get('/api/auth/google/callback')
+        .get('/api/oauth/google/callback')
         .set('Cookie', `${LINK_INTENT_COOKIE}=google`)
         .expect(302);
 
       expect(res.headers.location).toBe(
         '/settings/accounts?error=not_authenticated',
       );
+    });
+
+    it('redirects to OAUTH_REDIRECT_COOKIE path on successful sign-in', async () => {
+      const user = makeUser();
+      googleService.findOrCreateUser.mockResolvedValue(user);
+      googleService.createSession.mockResolvedValue({
+        accessToken: 'at',
+        refreshToken: 'rt',
+        refreshExpiresAt: new Date(),
+      });
+
+      const res = await request(app.getHttpServer())
+        .get('/api/oauth/google/callback')
+        .set('Cookie', `${OAUTH_REDIRECT_COOKIE}=/dashboard`)
+        .expect(302);
+
+      expect(res.headers.location).toBe('/dashboard');
+    });
+
+    it('clears oauth_redirect cookie after sign-in', async () => {
+      const user = makeUser();
+      googleService.findOrCreateUser.mockResolvedValue(user);
+      googleService.createSession.mockResolvedValue({
+        accessToken: 'at',
+        refreshToken: 'rt',
+        refreshExpiresAt: new Date(),
+      });
+
+      const res = await request(app.getHttpServer())
+        .get('/api/oauth/google/callback')
+        .set('Cookie', `${OAUTH_REDIRECT_COOKIE}=/dashboard`)
+        .expect(302);
+
+      const setCookieHeader: string[] = ([] as string[]).concat(
+        res.headers['set-cookie'] ?? [],
+      );
+      expect(setCookieHeader.some((c) => c.startsWith(`${OAUTH_REDIRECT_COOKIE}=;`))).toBe(true);
+    });
+
+    it('uses OAUTH_REDIRECT_COOKIE as base URL for link redirect', async () => {
+      jwtService.verify.mockImplementation(() => ({ sub: 'test-user-id' }));
+      accountService.linkAccount.mockResolvedValue(undefined);
+
+      const res = await request(app.getHttpServer())
+        .get('/api/oauth/google/callback')
+        .set(
+          'Cookie',
+          [
+            `${LINK_INTENT_COOKIE}=google`,
+            `${ACCESS_TOKEN_COOKIE}=valid-token`,
+            `${OAUTH_REDIRECT_COOKIE}=/settings/accounts`,
+          ].join('; '),
+        )
+        .expect(302);
+
+      expect(res.headers.location).toBe('/settings/accounts?linked=google');
     });
   });
 });
