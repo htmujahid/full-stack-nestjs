@@ -7,20 +7,20 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { FieldDescription } from '@/components/ui/field';
-import { SignUpForm } from '../components/sign-up-form';
+import { ForgotPasswordForm } from '../components/forgot-password-form';
 
-export default function SignUpPage() {
+export default function ForgotPasswordPage() {
   return (
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Create an account</CardTitle>
+          <CardTitle className="text-xl">Forgot password</CardTitle>
           <CardDescription>
-            Sign up with Google or your email
+            Enter your email and we&apos;ll send you a reset link
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <SignUpForm />
+          <ForgotPasswordForm />
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
