@@ -46,3 +46,6 @@ export const PHONE_CHANGE_IDENTIFIER_PREFIX = 'phone-change:';
 
 export const LINK_INTENT_COOKIE = 'link_intent';
 export const LINK_INTENT_EXPIRES_MS = 5 * 60 * 1000; // 5 minutes
+
+export const OAUTH_REDIRECT_COOKIE = 'oauth_redirect';
+export const OAUTH_REDIRECT_EXPIRES_MS = 5 * 60 * 1000; // 5 minutes

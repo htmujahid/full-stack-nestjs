@@ -67,7 +67,7 @@ describe('AccountController', () => {
     it('sets LINK_INTENT_COOKIE with the providerId', () => {
       const res = makeMockResponse();
 
-      controller.linkAccount('google', res);
+      controller.linkAccount('google', undefined, res);
 
       expect(res.cookie).toHaveBeenCalledWith(
         LINK_INTENT_COOKIE,
@@ -81,10 +81,10 @@ describe('AccountController', () => {
       );
     });
 
-    it('returns redirect to /api/auth/:providerId', () => {
+    it('returns redirect to /api/auth/:providerId when redirectUri is undefined', () => {
       const res = makeMockResponse();
 
-      const result = controller.linkAccount('google', res);
+      const result = controller.linkAccount('google', undefined, res);
 
       expect(result).toEqual({ url: '/api/auth/google', statusCode: 302 });
     });
@@ -94,7 +94,7 @@ describe('AccountController', () => {
       process.env.NODE_ENV = 'development';
 
       const res = makeMockResponse();
-      controller.linkAccount('google', res);
+      controller.linkAccount('google', undefined, res);
 
       expect(res.cookie).toHaveBeenCalledWith(
         LINK_INTENT_COOKIE,
@@ -110,7 +110,7 @@ describe('AccountController', () => {
       process.env.NODE_ENV = 'production';
 
       const res = makeMockResponse();
-      controller.linkAccount('google', res);
+      controller.linkAccount('google', undefined, res);
 
       expect(res.cookie).toHaveBeenCalledWith(
         LINK_INTENT_COOKIE,
@@ -119,6 +119,25 @@ describe('AccountController', () => {
       );
 
       process.env.NODE_ENV = originalEnv;
+    });
+
+    it('appends redirectUri as query param when it starts with "/"', () => {
+      const res = makeMockResponse();
+
+      const result = controller.linkAccount('google', '/dashboard', res);
+
+      expect(result).toEqual({
+        url: '/api/auth/google?redirectUri=%2Fdashboard',
+        statusCode: 302,
+      });
+    });
+
+    it('ignores redirectUri and returns base URL when redirectUri does not start with "/"', () => {
+      const res = makeMockResponse();
+
+      const result = controller.linkAccount('google', 'https://evil.com', res);
+
+      expect(result).toEqual({ url: '/api/auth/google', statusCode: 302 });
     });
   });
 

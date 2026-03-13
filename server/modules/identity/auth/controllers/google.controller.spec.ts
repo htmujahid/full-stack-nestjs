@@ -6,7 +6,11 @@ import { GoogleService } from '../services/google.service';
 import { AccountService } from '../../account/account.service';
 import { TwoFactorGateService } from '../services/two-factor-gate.service';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
-import { ACCESS_TOKEN_COOKIE, LINK_INTENT_COOKIE } from '../auth.constants';
+import {
+  ACCESS_TOKEN_COOKIE,
+  LINK_INTENT_COOKIE,
+  OAUTH_REDIRECT_COOKIE,
+} from '../auth.constants';
 import type { GoogleProfile } from '../strategies/google.strategy';
 import { User } from '../../user/user.entity';
 import { UserRole } from '../../user/user-role.enum';
@@ -120,7 +124,7 @@ describe('GoogleController', () => {
   // ─── callback — sign-in path ─────────────────────────────────────────────────
 
   describe('callback — sign-in path', () => {
-    it('calls googleService.findOrCreateUser, creates session, sets cookies, and redirects to "/"', async () => {
+    it('calls findOrCreateUser, creates session lazily, sets cookies, and redirects to "/"', async () => {
       const user = makeUser({ twoFactorEnabled: false });
       const tokens = makeTokens();
       googleService.findOrCreateUser.mockResolvedValue(user);
@@ -160,7 +164,37 @@ describe('GoogleController', () => {
       );
     });
 
-    it('redirects to "/auth/two-factor" when 2FA gate is pending', async () => {
+    it('redirects to the OAUTH_REDIRECT_COOKIE path when present', async () => {
+      const user = makeUser({ twoFactorEnabled: false });
+      googleService.findOrCreateUser.mockResolvedValue(user);
+      googleService.createSession.mockResolvedValue(makeTokens());
+
+      const req = makeMockRequest(makeGoogleProfile(), {
+        [OAUTH_REDIRECT_COOKIE]: '/dashboard',
+      });
+      const res = makeMockResponse();
+
+      const result = await controller.callback(req, undefined, undefined, res);
+
+      expect(result).toEqual({ url: '/dashboard', statusCode: 302 });
+    });
+
+    it('clears OAUTH_REDIRECT_COOKIE after sign-in', async () => {
+      const user = makeUser({ twoFactorEnabled: false });
+      googleService.findOrCreateUser.mockResolvedValue(user);
+      googleService.createSession.mockResolvedValue(makeTokens());
+
+      const req = makeMockRequest(makeGoogleProfile(), {
+        [OAUTH_REDIRECT_COOKIE]: '/dashboard',
+      });
+      const res = makeMockResponse();
+
+      await controller.callback(req, undefined, undefined, res);
+
+      expect(res.clearCookie).toHaveBeenCalledWith(OAUTH_REDIRECT_COOKIE, { path: '/' });
+    });
+
+    it('redirects to "/auth/two-factor" and does NOT create a session when 2FA gate is pending', async () => {
       const user = makeUser({ twoFactorEnabled: true });
       googleService.findOrCreateUser.mockResolvedValue(user);
       twoFactorGate.checkTrustDevice.mockResolvedValue(false);
@@ -179,7 +213,7 @@ describe('GoogleController', () => {
   // ─── callback — link path ────────────────────────────────────────────────────
 
   describe('callback — link path', () => {
-    it('reads access_token cookie, verifies JWT, calls accountService.linkAccount, and redirects to "/settings/accounts?linked=google"', async () => {
+    it('verifies JWT, calls accountService.linkAccount, and redirects to "/settings/accounts?linked=google"', async () => {
       const profile = makeGoogleProfile();
       const req = makeMockRequest(profile, {
         [LINK_INTENT_COOKIE]: 'google',
@@ -190,7 +224,7 @@ describe('GoogleController', () => {
       jwtService.verify.mockReturnValue({ sub: 'user-uuid' });
       accountService.linkAccount.mockResolvedValue(undefined);
 
-      await controller.callback(req, undefined, undefined, res);
+      const result = await controller.callback(req, undefined, undefined, res);
 
       expect(jwtService.verify).toHaveBeenCalledWith('valid-access-token');
       expect(accountService.linkAccount).toHaveBeenCalledWith(
@@ -202,10 +236,23 @@ describe('GoogleController', () => {
           refreshToken: profile.refreshToken,
         }),
       );
-      expect(await controller.callback(req, undefined, undefined, res)).toEqual({
-        url: '/settings/accounts?linked=google',
-        statusCode: 302,
+      expect(result).toEqual({ url: '/settings/accounts?linked=google', statusCode: 302 });
+    });
+
+    it('uses OAUTH_REDIRECT_COOKIE as the base redirect URL when present', async () => {
+      const req = makeMockRequest(makeGoogleProfile(), {
+        [LINK_INTENT_COOKIE]: 'google',
+        [ACCESS_TOKEN_COOKIE]: 'valid-access-token',
+        [OAUTH_REDIRECT_COOKIE]: '/settings/accounts',
       });
+      const res = makeMockResponse();
+
+      jwtService.verify.mockReturnValue({ sub: 'user-uuid' });
+      accountService.linkAccount.mockResolvedValue(undefined);
+
+      const result = await controller.callback(req, undefined, undefined, res);
+
+      expect(result).toEqual({ url: '/settings/accounts?linked=google', statusCode: 302 });
     });
 
     it('redirects with error=not_authenticated when no access_token cookie is present', async () => {
@@ -263,7 +310,22 @@ describe('GoogleController', () => {
       });
     });
 
-    it('clears the LINK_INTENT_COOKIE before handling link callback', async () => {
+    it("falls back to 'link_failed' when a non-Error is thrown by accountService.linkAccount", async () => {
+      const req = makeMockRequest(makeGoogleProfile(), {
+        [LINK_INTENT_COOKIE]: 'google',
+        [ACCESS_TOKEN_COOKIE]: 'valid-access-token',
+      });
+      const res = makeMockResponse();
+
+      jwtService.verify.mockReturnValue({ sub: 'user-uuid' });
+      accountService.linkAccount.mockRejectedValue('raw string error');
+
+      const result = await controller.callback(req, undefined, undefined, res);
+
+      expect(result).toEqual({ url: '/settings/accounts?error=link_failed', statusCode: 302 });
+    });
+
+    it('clears LINK_INTENT_COOKIE and OAUTH_REDIRECT_COOKIE before handling link callback', async () => {
       const req = makeMockRequest(makeGoogleProfile(), {
         [LINK_INTENT_COOKIE]: 'google',
         [ACCESS_TOKEN_COOKIE]: 'valid-access-token',
@@ -275,10 +337,8 @@ describe('GoogleController', () => {
 
       await controller.callback(req, undefined, undefined, res);
 
-      expect(res.clearCookie).toHaveBeenCalledWith(
-        LINK_INTENT_COOKIE,
-        { path: '/' },
-      );
+      expect(res.clearCookie).toHaveBeenCalledWith(LINK_INTENT_COOKIE, { path: '/' });
+      expect(res.clearCookie).toHaveBeenCalledWith(OAUTH_REDIRECT_COOKIE, { path: '/' });
     });
   });
 });

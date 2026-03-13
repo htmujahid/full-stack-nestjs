@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Headers,
-  HttpStatus,
   Redirect,
   Request,
   Res,
@@ -16,20 +15,20 @@ import { GoogleService } from '../services/google.service';
 import { AccountService } from '../../account/account.service';
 import { TwoFactorGateService } from '../services/two-factor-gate.service';
 import type { GoogleProfile } from '../strategies/google.strategy';
-import { BaseAuthController } from './base-auth.controller';
-import { ACCESS_TOKEN_COOKIE, LINK_INTENT_COOKIE } from '../auth.constants';
+import { BaseOAuthController } from './base-oauth.controller';
+import { LINK_INTENT_COOKIE } from '../auth.constants';
 import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Auth')
 @Controller('api/auth/google')
-export class GoogleController extends BaseAuthController {
+export class GoogleController extends BaseOAuthController {
   constructor(
     private readonly googleService: GoogleService,
-    private readonly accountService: AccountService,
-    private readonly jwtService: JwtService,
+    accountService: AccountService,
+    jwtService: JwtService,
     twoFactorGate: TwoFactorGateService,
   ) {
-    super(twoFactorGate);
+    super(twoFactorGate, accountService, jwtService);
   }
 
   @Public()
@@ -52,65 +51,17 @@ export class GoogleController extends BaseAuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const cookies = req.cookies as Record<string, string>;
-    const linkIntent = cookies?.[LINK_INTENT_COOKIE];
 
-    if (linkIntent) {
+    if (cookies?.[LINK_INTENT_COOKIE]) {
       res.clearCookie(LINK_INTENT_COOKIE, { path: '/' });
-      return this.handleLinkCallback(req, res);
+      return this.handleOAuthLink(req, res, req.user);
     }
 
-    return this.handleSignInCallback(req, res, forwardedFor, userAgent);
-  }
-
-  private async handleLinkCallback(
-    req: ExpressRequest & { user: GoogleProfile },
-    res: Response,
-  ) {
-    const cookies = req.cookies as Record<string, string>;
-    const accessToken = cookies?.[ACCESS_TOKEN_COOKIE];
-
-    if (!accessToken) {
-      return { url: '/settings/accounts?error=not_authenticated', statusCode: HttpStatus.FOUND };
-    }
-
-    let userId: string;
-    try {
-      const payload = this.jwtService.verify<{ sub: string }>(accessToken);
-      userId = payload.sub;
-    } catch {
-      return { url: '/settings/accounts?error=session_expired', statusCode: HttpStatus.FOUND };
-    }
-
-    try {
-      await this.accountService.linkAccount(userId, {
-        providerId: req.user.providerId,
-        accountId: req.user.accountId,
-        accessToken: req.user.accessToken,
-        refreshToken: req.user.refreshToken,
-      });
-      return { url: '/settings/accounts?linked=google', statusCode: HttpStatus.FOUND };
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? encodeURIComponent(err.message) : 'link_failed';
-      return { url: `/settings/accounts?error=${message}`, statusCode: HttpStatus.FOUND };
-    }
-  }
-
-  private async handleSignInCallback(
-    req: ExpressRequest & { user: GoogleProfile },
-    res: Response,
-    forwardedFor: string | undefined,
-    userAgent: string | undefined,
-  ) {
     const ip = forwardedFor?.split(',')[0]?.trim() ?? null;
     const ctx = { ip, userAgent: userAgent ?? null };
     const user = await this.googleService.findOrCreateUser(req.user);
-
-    const gate = await this.checkTwoFactor(user, req, res);
-    if (gate === 'pending') return { url: '/auth/two-factor', statusCode: HttpStatus.FOUND };
-
-    const tokens = await this.googleService.createSession(user.id, user.role, ctx);
-    this.setTokenCookies(res, tokens, true, 'lax');
-    return { url: '/', statusCode: HttpStatus.FOUND };
+    return this.handleOAuthSignIn(req, res, user, () =>
+      this.googleService.createSession(user.id, user.role, ctx),
+    );
   }
 }
