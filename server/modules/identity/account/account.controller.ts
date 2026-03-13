@@ -38,7 +38,7 @@ export class AccountController {
   @HttpCode(HttpStatus.FOUND)
   @ApiOperation({ summary: 'Initiate account link for a given provider' })
   @ApiResponse({ status: 302, description: 'Redirects to the provider OAuth flow' })
-  linkAccount(@Param('providerId') providerId: string, @Res() res: Response) {
+  linkAccount(@Param('providerId') providerId: string, @Res({ passthrough: true }) res: Response) {
     const secure = process.env.NODE_ENV === 'production';
     res.cookie(LINK_INTENT_COOKIE, providerId, {
       httpOnly: true,
