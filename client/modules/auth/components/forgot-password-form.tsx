@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
+import { toast } from 'sonner';
 import { useForgotPasswordMutation, getAuthErrorMessage } from '../lib/query';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,7 +20,6 @@ type ForgotPasswordFormData = {
 };
 
 export function ForgotPasswordForm() {
-  const [success, setSuccess] = useState(false);
   const forgotPassword = useForgotPasswordMutation();
 
   const {
@@ -42,24 +41,13 @@ export function ForgotPasswordForm() {
         callbackURL: `${window.location.origin}/auth/reset-password`,
       },
       {
-        onSuccess: () => setSuccess(true),
+        onSuccess: () => toast.success('Check your email', {
+          description: 'If an account exists, you\'ll receive a link to reset your password.',
+        }),
         onError: (e) => setError('root', { message: getAuthErrorMessage(e) }),
       },
     );
   };
-
-  if (success) {
-    return (
-      <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Check your email for a link to reset your password.
-        </p>
-        <Link to="/auth/sign-in" className="text-sm text-primary underline-offset-4 hover:underline">
-          Back to sign in
-        </Link>
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>

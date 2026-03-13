@@ -411,7 +411,7 @@ describe('Identity Auth (e2e)', () => {
   // ─── GET /api/auth/verify-email ─────────────────────────────────────────────
 
   describe('GET /api/auth/verify-email', () => {
-    it('returns 200 with ok and tokens when valid', async () => {
+    it('redirects to callbackURL or / when valid', async () => {
       emailService.verifyEmail.mockResolvedValue({
         ok: true,
         tokens: {
@@ -421,13 +421,30 @@ describe('Identity Auth (e2e)', () => {
         },
       });
 
-      const { body } = await request(app.getHttpServer())
+      const res = await request(app.getHttpServer())
         .get('/api/auth/verify-email')
         .query({ token: 'valid-token' })
-        .expect(200);
+        .expect(302);
 
-      expect(body.ok).toBe(true);
-      expect(body.accessToken).toBe('at');
+      expect(res.header.location).toBe('/');
+    });
+
+    it('redirects to callbackURL when provided', async () => {
+      emailService.verifyEmail.mockResolvedValue({
+        ok: true,
+        tokens: {
+          accessToken: 'at',
+          refreshToken: 'rt',
+          refreshExpiresAt: new Date(),
+        },
+      });
+
+      const res = await request(app.getHttpServer())
+        .get('/api/auth/verify-email')
+        .query({ token: 'valid-token', callbackURL: '/dashboard' })
+        .expect(302);
+
+      expect(res.header.location).toBe('/dashboard');
     });
   });
 

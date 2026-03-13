@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Redirect,
   Request,
   Res,
   UseGuards,
@@ -102,6 +103,7 @@ export class EmailController extends BaseAuthController {
 
   @Public()
   @Get('verify-email')
+  @Redirect()
   @ApiOperation({ summary: 'Verify email via token from link' })
   async verifyEmail(
     @Query('token') token: string,
@@ -121,16 +123,7 @@ export class EmailController extends BaseAuthController {
     }
 
     this.setTokenCookies(res, result.tokens, false);
-
-    if (callbackURL) {
-      return res.redirect(callbackURL);
-    }
-
-    return {
-      ok: true,
-      accessToken: result.tokens.accessToken,
-      refreshToken: result.tokens.refreshToken,
-    };
+    return { url: callbackURL ?? '/' };
   }
 
   @UseGuards(JwtFreshGuard)

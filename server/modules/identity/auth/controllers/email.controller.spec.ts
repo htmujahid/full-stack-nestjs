@@ -283,7 +283,7 @@ describe('EmailController', () => {
       expect(res.cookie).not.toHaveBeenCalled();
     });
 
-    it('sets token cookies and returns { ok: true, tokens } on success', async () => {
+    it('sets token cookies and returns { url } on success (Redirect)', async () => {
       const tokens = makeTokens();
       emailService.verifyEmail.mockResolvedValue({ ok: true, tokens });
 
@@ -298,11 +298,25 @@ describe('EmailController', () => {
       );
 
       expect(res.cookie).toHaveBeenCalledTimes(2);
-      expect(result).toEqual({
-        ok: true,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-      });
+      expect(result).toEqual({ url: '/' });
+    });
+
+    it('returns { url: callbackURL } when callbackURL provided', async () => {
+      const tokens = makeTokens();
+      emailService.verifyEmail.mockResolvedValue({ ok: true, tokens });
+
+      const res = makeMockResponse();
+
+      const result = await controller.verifyEmail(
+        'valid-token',
+        '/dashboard',
+        undefined,
+        undefined,
+        res,
+      );
+
+      expect(res.cookie).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({ url: '/dashboard' });
     });
   });
 
