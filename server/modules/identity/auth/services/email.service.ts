@@ -88,6 +88,7 @@ export class EmailService {
 
     const tokens = await this.authService.createAuthSession(
       user.id,
+      user.role,
       false,
       ctx,
       'password',
@@ -126,6 +127,7 @@ export class EmailService {
 
     const tokens = await this.authService.createAuthSession(
       user.id,
+      user.role,
       false,
       ctx,
       'password',

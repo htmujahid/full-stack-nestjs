@@ -13,6 +13,7 @@ import { TwoFactorGateService } from '../server/modules/identity/auth/services/t
 import { GoogleAuthGuard } from '../server/modules/identity/auth/guards/google-auth.guard';
 import { LINK_INTENT_COOKIE } from '../server/modules/identity/auth/auth.constants';
 import { User } from '../server/modules/identity/user/user.entity';
+import { UserRole } from '../server/modules/identity/user/user-role.enum';
 import { Test, TestingModule } from '@nestjs/testing';
 
 const mockGoogleProfile = {
@@ -44,6 +45,7 @@ const makeUser = (overrides: Partial<User> = {}): User =>
     emailVerified: true,
     twoFactorEnabled: false,
     image: null,
+    role: UserRole.Member,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,

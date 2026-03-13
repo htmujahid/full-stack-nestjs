@@ -16,9 +16,11 @@ import { TwoFactorGateService } from '../services/two-factor-gate.service';
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '../auth.constants';
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
 import { BaseAuthController } from './base-auth.controller';
+import { UserRole } from '../../user/user-role.enum';
 
 interface RefreshUser {
   userId: string;
+  role: UserRole;
   sessionId: string;
   familyId: string;
   rawRefreshToken: string;
@@ -47,9 +49,10 @@ export class AuthController extends BaseAuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const ip = forwardedFor?.split(',')[0]?.trim() ?? null;
-    const { userId, sessionId, familyId, rawRefreshToken } = req.user;
+    const { userId, role, sessionId, familyId, rawRefreshToken } = req.user;
     const tokens = await this.authService.refreshTokens(
       userId,
+      role,
       sessionId,
       familyId,
       rawRefreshToken,

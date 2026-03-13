@@ -24,18 +24,18 @@ export class TwoFactorPendingGuard implements CanActivate {
     if (!token) throw new UnauthorizedException('No pending 2FA session');
 
     const secret = this.configService.getOrThrow<string>('auth.accessSecret');
-    let payload: { sub?: string; type?: string };
+    let payload: { sub?: string; role?: string; type?: string };
     try {
       payload = await this.jwtService.verifyAsync(token, { secret });
     } catch {
       throw new UnauthorizedException('Invalid or expired 2FA session');
     }
 
-    if (payload.type !== '2fa_pending' || !payload.sub) {
+    if (payload.type !== '2fa_pending' || !payload.sub || !payload.role) {
       throw new UnauthorizedException('Invalid 2FA session');
     }
 
-    req.user = { userId: payload.sub };
+    req.user = { userId: payload.sub, role: payload.role };
     return true;
   }
 }

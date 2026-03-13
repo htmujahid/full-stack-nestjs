@@ -10,6 +10,7 @@ import {
   TFA_PENDING_COOKIE,
   TRUST_DEVICE_COOKIE,
 } from '../auth/auth.constants';
+import { UserRole } from '../user/user-role.enum';
 import type { Request as ExpressRequest, Response } from 'express';
 
 // Prevent transitive ESM imports (otplib / @scure/base) from being evaluated
@@ -27,12 +28,13 @@ const noopGuard: CanActivate = { canActivate: () => true };
 
 const makeRequest = (
   userId = 'user-uuid',
-): ExpressRequest & { user: { userId: string } } =>
+  role = UserRole.Member,
+): ExpressRequest & { user: { userId: string; role: UserRole } } =>
   ({
-    user: { userId },
+    user: { userId, role },
     cookies: {},
     headers: {},
-  }) as unknown as ExpressRequest & { user: { userId: string } };
+  }) as unknown as ExpressRequest & { user: { userId: string; role: UserRole } };
 
 const makeMockResponse = (): jest.Mocked<Response> =>
   ({
@@ -243,6 +245,7 @@ describe('TwoFactorController', () => {
 
       expect(twoFactorService.verifyTotp).toHaveBeenCalledWith(
         'user-uuid',
+        UserRole.Member,
         '123456',
         false,
         { ip: '10.0.0.1', userAgent: 'jest-agent' },

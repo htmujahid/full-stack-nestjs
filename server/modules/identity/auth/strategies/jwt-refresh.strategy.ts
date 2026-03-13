@@ -7,9 +7,11 @@ import type { Request } from 'express';
 import { DataSource } from 'typeorm';
 import { RefreshSession } from '../entities/refresh-session.entity';
 import { REFRESH_TOKEN_COOKIE } from '../auth.constants';
+import { UserRole } from '../../user/user-role.enum';
 
 export interface JwtRefreshPayload {
   sub: string;
+  role: UserRole;
   sid: string; // session ID
   fid: string; // family ID
 }
@@ -65,6 +67,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
 
     return {
       userId: payload.sub,
+      role: payload.role,
       sessionId: payload.sid,
       familyId: payload.fid,
       rawRefreshToken: rawToken,

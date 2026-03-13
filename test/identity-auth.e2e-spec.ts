@@ -19,6 +19,7 @@ import { JwtRefreshGuard } from '../server/modules/identity/auth/guards/jwt-refr
 import { PasswordAuthGuard } from '../server/modules/identity/auth/guards/password-auth.guard';
 import { JwtFreshGuard } from '../server/modules/identity/auth/guards/jwt-fresh.guard';
 import { User } from '../server/modules/identity/user/user.entity';
+import { UserRole } from '../server/modules/identity/user/user-role.enum';
 
 const throttlerGuard = { canActivate: () => true };
 
@@ -32,6 +33,7 @@ const setUserGuard = (user: object) => ({
 
 const refreshUser = {
   userId: 'test-user-id',
+  role: UserRole.Member,
   sessionId: 's1',
   familyId: 'f1',
   rawRefreshToken: 'rt',

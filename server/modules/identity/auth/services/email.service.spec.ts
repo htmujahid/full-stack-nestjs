@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm';
 import { EmailService } from './email.service';
 import { AuthService } from './auth.service';
 import { User } from '../../user/user.entity';
+import { UserRole } from '../../user/user-role.enum';
 import { RefreshSession } from '../entities/refresh-session.entity';
 import { mockDataSource, mockRepository } from '../../../../mocks/db.mock';
 import {
@@ -28,6 +29,7 @@ const makeUser = (overrides: Partial<User> = {}): User =>
     phoneVerified: false,
     emailVerified: false,
     twoFactorEnabled: false,
+    role: UserRole.Member,
     image: null,
     createdAt: new Date(NOW),
     updatedAt: new Date(NOW),
@@ -289,6 +291,7 @@ describe('EmailService', () => {
 
       expect(authService.createAuthSession).toHaveBeenCalledWith(
         'user-uuid',
+        UserRole.Member,
         false,
         ctx,
         'password',

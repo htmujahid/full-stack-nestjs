@@ -106,7 +106,7 @@ export class GoogleController extends BaseAuthController {
     const gate = await this.checkTwoFactor(user, req, res);
     if (gate === 'pending') return res.redirect('/auth/two-factor');
 
-    const tokens = await this.googleService.createSession(user.id, ctx);
+    const tokens = await this.googleService.createSession(user.id, user.role, ctx);
     this.setTokenCookies(res, tokens, true, 'lax');
     res.redirect('/');
   }

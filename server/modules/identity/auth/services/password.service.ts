@@ -103,6 +103,7 @@ export class PasswordService {
   ): Promise<{ user: User; tokens: TokenPair }> {
     const tokens = await this.authService.createAuthSession(
       user.id,
+      user.role,
       rememberMe,
       ctx,
       'password',

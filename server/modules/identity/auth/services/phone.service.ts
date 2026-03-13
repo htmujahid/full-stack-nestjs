@@ -73,6 +73,7 @@ export class PhoneService {
 
     const tokens = await this.authService.createAuthSession(
       user.id,
+      user.role,
       rememberMe,
       ctx,
       'phone',

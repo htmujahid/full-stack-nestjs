@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import { GoogleService } from './google.service';
 import { AuthService } from './auth.service';
 import { User } from '../../user/user.entity';
+import { UserRole } from '../../user/user-role.enum';
 import { Account } from '../../account/account.entity';
 import { mockDataSource, mockRepository } from '../../../../mocks/db.mock';
 import { GOOGLE_PROVIDER } from '../auth.constants';
@@ -21,6 +22,7 @@ const makeUser = (overrides: Partial<User> = {}): User =>
     phoneVerified: false,
     emailVerified: true,
     twoFactorEnabled: false,
+    role: UserRole.Member,
     image: 'https://example.com/photo.jpg',
     createdAt: new Date(NOW),
     updatedAt: new Date(NOW),
@@ -285,13 +287,14 @@ describe('GoogleService', () => {
       const tokenPair = makeTokenPair();
       authService.createAuthSession.mockResolvedValue(tokenPair);
 
-      const result = await service.createSession('user-uuid', {
+      const result = await service.createSession('user-uuid', UserRole.Member, {
         ip: '10.0.0.1',
         userAgent: 'Chrome',
       });
 
       expect(authService.createAuthSession).toHaveBeenCalledWith(
         'user-uuid',
+        UserRole.Member,
         true,
         { ip: '10.0.0.1', userAgent: 'Chrome' },
         'google',

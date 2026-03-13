@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import type { TokenPair } from '../services/auth.service';
 import { TwoFactorGateService } from '../services/two-factor-gate.service';
+import { UserRole } from '../../user/user-role.enum';
 import {
   ACCESS_EXPIRES_MS,
   ACCESS_TOKEN_COOKIE,
@@ -17,7 +18,7 @@ export abstract class BaseAuthController {
   constructor(protected readonly twoFactorGate: TwoFactorGateService) {}
 
   protected async checkTwoFactor(
-    user: { id: string; twoFactorEnabled: boolean },
+    user: { id: string; role: UserRole; twoFactorEnabled: boolean },
     req: Request,
     res: Response,
   ): Promise<'pass' | 'pending'> {
@@ -31,7 +32,7 @@ export abstract class BaseAuthController {
       : false;
 
     if (!isTrusted) {
-      const pendingToken = await this.twoFactorGate.createPendingToken(user.id);
+      const pendingToken = await this.twoFactorGate.createPendingToken(user.id, user.role);
       this.setPendingCookie(res, pendingToken);
       return 'pending';
     }

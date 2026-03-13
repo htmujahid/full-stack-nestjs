@@ -5,9 +5,11 @@ import { JwtRefreshStrategy, type JwtRefreshPayload } from './jwt-refresh.strate
 import { RefreshSession } from '../entities/refresh-session.entity';
 import { REFRESH_TOKEN_COOKIE } from '../auth.constants';
 import { mockRepository } from '../../../../mocks/db.mock';
+import { UserRole } from '../../user/user-role.enum';
 
 const makePayload = (overrides: Partial<JwtRefreshPayload> = {}): JwtRefreshPayload => ({
   sub: 'user-uuid',
+  role: UserRole.Member,
   sid: 'session-uuid',
   fid: 'family-uuid',
   ...overrides,
@@ -54,7 +56,7 @@ describe('JwtRefreshStrategy', () => {
   });
 
   describe('validate', () => {
-    it('returns { userId, sessionId, familyId, rawRefreshToken } on valid session', async () => {
+    it('returns { userId, role, sessionId, familyId, rawRefreshToken } on valid session', async () => {
       const session = makeSession();
       repo.findOne.mockResolvedValue(session);
 
@@ -63,6 +65,7 @@ describe('JwtRefreshStrategy', () => {
 
       expect(result).toEqual({
         userId: 'user-uuid',
+        role: UserRole.Member,
         sessionId: 'session-uuid',
         familyId: 'family-uuid',
         rawRefreshToken: 'raw-token',

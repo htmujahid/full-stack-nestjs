@@ -9,6 +9,7 @@ import {
   type TokenPair,
 } from './auth.service';
 import type { GoogleProfile } from '../strategies/google.strategy';
+import { UserRole } from '../../user/user-role.enum';
 
 @Injectable()
 export class GoogleService {
@@ -73,7 +74,7 @@ export class GoogleService {
     });
   }
 
-  async createSession(userId: string, ctx: RequestContext): Promise<TokenPair> {
-    return this.authService.createAuthSession(userId, true, ctx, 'google');
+  async createSession(userId: string, role: UserRole, ctx: RequestContext): Promise<TokenPair> {
+    return this.authService.createAuthSession(userId, role, true, ctx, 'google');
   }
 }

@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm';
 import { PasswordService } from './password.service';
 import { AuthService } from './auth.service';
 import { User } from '../../user/user.entity';
+import { UserRole } from '../../user/user-role.enum';
 import { Account } from '../../account/account.entity';
 import { Verification } from '../entities/verification.entity';
 import { RefreshSession } from '../entities/refresh-session.entity';
@@ -33,6 +34,7 @@ const makeUser = (overrides: Partial<User> = {}): User =>
     phoneVerified: false,
     emailVerified: false,
     twoFactorEnabled: false,
+    role: UserRole.Member,
     image: null,
     createdAt: new Date(NOW),
     updatedAt: new Date(NOW),
@@ -353,6 +355,7 @@ describe('PasswordService', () => {
 
       expect(authService.createAuthSession).toHaveBeenCalledWith(
         user.id,
+        user.role,
         true,
         { ip: '127.0.0.1', userAgent: 'jest' },
         'password',
@@ -373,6 +376,7 @@ describe('PasswordService', () => {
 
       expect(authService.createAuthSession).toHaveBeenCalledWith(
         user.id,
+        user.role,
         false,
         expect.any(Object),
         'password',

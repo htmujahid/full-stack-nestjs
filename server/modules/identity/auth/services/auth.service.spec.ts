@@ -6,6 +6,7 @@ import { DataSource } from 'typeorm';
 import { AuthService } from './auth.service';
 import { RefreshSession } from '../entities/refresh-session.entity';
 import { mockDataSource, mockRepository } from '../../../../mocks/db.mock';
+import { UserRole } from '../../user/user-role.enum';
 import {
   ACCESS_EXPIRES_MS,
   REFRESH_EXPIRES_MS,
@@ -80,6 +81,7 @@ describe('AuthService', () => {
 
       const result = await service.createAuthSession(
         'user-uuid',
+        UserRole.Member,
         false,
         { ip: '127.0.0.1', userAgent: 'jest' },
         'password',
@@ -103,13 +105,14 @@ describe('AuthService', () => {
 
       await service.createAuthSession(
         'user-uuid',
+        UserRole.Member,
         false,
         { ip: null, userAgent: null },
         'password',
       );
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
-        { sub: 'user-uuid', auth_method: 'password' },
+        { sub: 'user-uuid', role: UserRole.Member, auth_method: 'password' },
         expect.objectContaining({ secret: 'access-secret' }),
       );
     });
@@ -126,6 +129,7 @@ describe('AuthService', () => {
 
       await service.createAuthSession(
         'user-uuid',
+        UserRole.Member,
         false,
         { ip: null, userAgent: null },
         'password',
@@ -145,6 +149,7 @@ describe('AuthService', () => {
 
       const result = await service.createAuthSession(
         'user-uuid',
+        UserRole.Member,
         true,
         { ip: null, userAgent: null },
         'password',
@@ -163,6 +168,7 @@ describe('AuthService', () => {
 
       const result = await service.createAuthSession(
         'user-uuid',
+        UserRole.Member,
         false,
         { ip: null, userAgent: null },
         'password',
@@ -179,6 +185,7 @@ describe('AuthService', () => {
 
       await service.createAuthSession(
         'user-uuid',
+        UserRole.Member,
         false,
         { ip: '10.0.0.1', userAgent: 'Mozilla/5.0' },
         'password',
@@ -201,6 +208,7 @@ describe('AuthService', () => {
 
       await service.createAuthSession(
         'user-uuid',
+        UserRole.Member,
         false,
         { ip: null, userAgent: null },
         'password',
@@ -229,6 +237,7 @@ describe('AuthService', () => {
 
       const result = await service.refreshTokens(
         'user-uuid',
+        UserRole.Member,
         'session-uuid',
         'family-uuid',
         'raw-refresh-token',
@@ -249,6 +258,7 @@ describe('AuthService', () => {
       await expect(
         service.refreshTokens(
           'user-uuid',
+          UserRole.Member,
           'session-uuid',
           'family-uuid',
           'raw-refresh-token',
@@ -273,6 +283,7 @@ describe('AuthService', () => {
       await expect(
         service.refreshTokens(
           'user-uuid',
+          UserRole.Member,
           'session-uuid',
           'family-uuid',
           'tampered-token',
@@ -300,6 +311,7 @@ describe('AuthService', () => {
 
       await service.refreshTokens(
         'user-uuid',
+        UserRole.Member,
         'session-uuid',
         'family-uuid',
         'raw-token',
@@ -307,7 +319,7 @@ describe('AuthService', () => {
       );
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
-        { sub: 'user-uuid', auth_method: 'refresh' },
+        { sub: 'user-uuid', role: UserRole.Member, auth_method: 'refresh' },
         expect.objectContaining({ secret: 'access-secret' }),
       );
     });
@@ -321,6 +333,7 @@ describe('AuthService', () => {
       await expect(
         service.refreshTokens(
           'user-uuid',
+          UserRole.Member,
           'session-uuid',
           'family-uuid',
           'raw-token',

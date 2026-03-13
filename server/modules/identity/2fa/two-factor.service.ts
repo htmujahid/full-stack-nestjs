@@ -39,6 +39,7 @@ import {
   TRUST_DEVICE_TYPE,
 } from '../auth/auth.constants';
 import type { EnableTwoFactorDto } from './dto/enable-two-factor.dto';
+import { UserRole } from '../user/user-role.enum';
 
 function makeTOTP(secret: string, issuer?: string, label?: string): TOTP {
   return new TOTP({
@@ -166,6 +167,7 @@ export class TwoFactorService {
 
   async verifyTotp(
     userId: string,
+    role: UserRole,
     code: string,
     trustDevice: boolean,
     ctx: RequestContext,
@@ -187,6 +189,7 @@ export class TwoFactorService {
 
     const tokens = await this.authService.createAuthSession(
       userId,
+      role,
       false,
       ctx,
       'password',
@@ -228,6 +231,7 @@ export class TwoFactorService {
 
   async verifyOtp(
     userId: string,
+    role: UserRole,
     code: string,
     trustDevice: boolean,
     ctx: RequestContext,
@@ -266,6 +270,7 @@ export class TwoFactorService {
 
     const tokens = await this.authService.createAuthSession(
       userId,
+      role,
       false,
       ctx,
       'password',
@@ -290,6 +295,7 @@ export class TwoFactorService {
 
   async verifyBackupCode(
     userId: string,
+    role: UserRole,
     code: string,
     trustDevice: boolean,
     ctx: RequestContext,
@@ -326,6 +332,7 @@ export class TwoFactorService {
 
     const tokens = await this.authService.createAuthSession(
       userId,
+      role,
       false,
       ctx,
       'password',

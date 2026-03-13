@@ -11,6 +11,7 @@ import {
   TRUST_DEVICE_EXPIRES_MS,
   TRUST_DEVICE_TYPE,
 } from '../auth.constants';
+import { UserRole } from '../../user/user-role.enum';
 
 @Injectable()
 export class TwoFactorGateService {
@@ -20,10 +21,10 @@ export class TwoFactorGateService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async createPendingToken(userId: string): Promise<string> {
+  async createPendingToken(userId: string, role: UserRole): Promise<string> {
     const secret = this.configService.getOrThrow<string>('auth.accessSecret');
     return this.jwtService.signAsync(
-      { sub: userId, type: '2fa_pending' },
+      { sub: userId, role, type: '2fa_pending' },
       { secret, expiresIn: TFA_PENDING_EXPIRES_MS / 1000 },
     );
   }

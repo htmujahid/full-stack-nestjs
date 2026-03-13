@@ -10,6 +10,7 @@ import {
   REFRESH_REMEMBER_ME_EXPIRES_MS,
 } from '../auth.constants';
 import { hashToken, verifyToken } from '../crypto.util';
+import { UserRole } from '../../user/user-role.enum';
 
 export type AuthMethod = 'password' | 'phone' | 'google' | 'refresh';
 
@@ -34,6 +35,7 @@ export class AuthService {
 
   async createAuthSession(
     userId: string,
+    role: UserRole,
     rememberMe: boolean,
     ctx: RequestContext,
     authMethod: AuthMethod,
@@ -41,6 +43,7 @@ export class AuthService {
     const familyId = randomUUID();
     const tokens = await this.issueTokens(
       userId,
+      role,
       familyId,
       rememberMe,
       authMethod,
@@ -51,6 +54,7 @@ export class AuthService {
 
   async refreshTokens(
     userId: string,
+    role: UserRole,
     sessionId: string,
     familyId: string,
     rawRefreshToken: string,
@@ -74,7 +78,7 @@ export class AuthService {
 
     await sessionRepo.delete(session.id);
 
-    const tokens = await this.issueTokens(userId, familyId, false, 'refresh');
+    const tokens = await this.issueTokens(userId, role, familyId, false, 'refresh');
     await this.createRefreshSession(userId, familyId, tokens, ctx);
     return tokens;
   }
@@ -87,6 +91,7 @@ export class AuthService {
 
   private async issueTokens(
     userId: string,
+    role: UserRole,
     familyId: string,
     rememberMe: boolean,
     authMethod: AuthMethod,
@@ -104,11 +109,11 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { sub: userId, auth_method: authMethod },
+        { sub: userId, role, auth_method: authMethod },
         { secret: accessSecret, expiresIn: ACCESS_EXPIRES_MS / 1000 },
       ),
       this.jwtService.signAsync(
-        { sub: userId, sid: sessionId, fid: familyId },
+        { sub: userId, role, sid: sessionId, fid: familyId },
         { secret: refreshSecret, expiresIn: refreshMs / 1000 },
       ),
     ]);

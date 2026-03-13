@@ -6,6 +6,7 @@ import { DataSource } from 'typeorm';
 import { TwoFactorGateService } from './two-factor-gate.service';
 import { Verification } from '../entities/verification.entity';
 import { mockDataSource, mockRepository } from '../../../../mocks/db.mock';
+import { UserRole } from '../../user/user-role.enum';
 import {
   TFA_PENDING_EXPIRES_MS,
   TRUST_DEVICE_EXPIRES_MS,
@@ -67,19 +68,19 @@ describe('TwoFactorGateService', () => {
   // ─── createPendingToken ──────────────────────────────────────────────────────
 
   describe('createPendingToken', () => {
-    it('signs JWT with sub and type=2fa_pending payload', async () => {
+    it('signs JWT with sub, role and type=2fa_pending payload', async () => {
       configService.getOrThrow.mockReturnValue('my-access-secret');
 
-      await service.createPendingToken('user-uuid');
+      await service.createPendingToken('user-uuid', UserRole.Member);
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
-        { sub: 'user-uuid', type: '2fa_pending' },
+        { sub: 'user-uuid', role: UserRole.Member, type: '2fa_pending' },
         expect.objectContaining({ secret: 'my-access-secret' }),
       );
     });
 
     it('signs JWT with TFA_PENDING_EXPIRES_MS / 1000 as expiresIn', async () => {
-      await service.createPendingToken('user-uuid');
+      await service.createPendingToken('user-uuid', UserRole.Member);
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
         expect.any(Object),
@@ -88,7 +89,7 @@ describe('TwoFactorGateService', () => {
     });
 
     it('returns the signed JWT', async () => {
-      const result = await service.createPendingToken('user-uuid');
+      const result = await service.createPendingToken('user-uuid', UserRole.Member);
 
       expect(result).toBe('pending-jwt');
     });

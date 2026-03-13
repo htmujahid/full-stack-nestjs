@@ -47,7 +47,7 @@ describe('TwoFactorPendingGuard', () => {
 
     it('throws UnauthorizedException when payload.type is not "2fa_pending"', async () => {
       const { ctx } = makeContext({ [TFA_PENDING_COOKIE]: 'valid-token' });
-      jwtService.verifyAsync.mockResolvedValue({ type: 'access', sub: 'user-uuid' });
+      jwtService.verifyAsync.mockResolvedValue({ type: 'access', sub: 'user-uuid', role: 'member' });
 
       await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
       await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid 2FA session');
@@ -55,25 +55,33 @@ describe('TwoFactorPendingGuard', () => {
 
     it('throws UnauthorizedException when payload.sub is missing', async () => {
       const { ctx } = makeContext({ [TFA_PENDING_COOKIE]: 'valid-token' });
-      jwtService.verifyAsync.mockResolvedValue({ type: '2fa_pending', sub: undefined });
+      jwtService.verifyAsync.mockResolvedValue({ type: '2fa_pending', sub: undefined, role: 'member' });
 
       await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
       await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid 2FA session');
     });
 
-    it('sets req.user = { userId } and returns true on valid token', async () => {
+    it('throws UnauthorizedException when payload.role is missing', async () => {
+      const { ctx } = makeContext({ [TFA_PENDING_COOKIE]: 'valid-token' });
+      jwtService.verifyAsync.mockResolvedValue({ type: '2fa_pending', sub: 'user-uuid', role: undefined });
+
+      await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid 2FA session');
+    });
+
+    it('sets req.user = { userId, role } and returns true on valid token', async () => {
       const { ctx, req } = makeContext({ [TFA_PENDING_COOKIE]: 'valid-token' });
-      jwtService.verifyAsync.mockResolvedValue({ type: '2fa_pending', sub: 'user-uuid' });
+      jwtService.verifyAsync.mockResolvedValue({ type: '2fa_pending', sub: 'user-uuid', role: 'member' });
 
       const result = await guard.canActivate(ctx);
 
       expect(result).toBe(true);
-      expect(req.user).toEqual({ userId: 'user-uuid' });
+      expect(req.user).toEqual({ userId: 'user-uuid', role: 'member' });
     });
 
     it('uses auth.accessSecret from configService', async () => {
       const { ctx } = makeContext({ [TFA_PENDING_COOKIE]: 'valid-token' });
-      jwtService.verifyAsync.mockResolvedValue({ type: '2fa_pending', sub: 'user-uuid' });
+      jwtService.verifyAsync.mockResolvedValue({ type: '2fa_pending', sub: 'user-uuid', role: 'member' });
 
       await guard.canActivate(ctx);
 

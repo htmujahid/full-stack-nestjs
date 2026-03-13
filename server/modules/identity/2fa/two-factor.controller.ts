@@ -30,6 +30,7 @@ import {
   TFA_PENDING_COOKIE,
   TRUST_DEVICE_COOKIE,
 } from '../auth/auth.constants';
+import { UserRole } from '../user/user-role.enum';
 
 const TFA_THROTTLE = { default: { limit: 3, ttl: 10_000 } };
 
@@ -109,7 +110,7 @@ export class TwoFactorController extends BaseAuthController {
   @Throttle(TFA_THROTTLE)
   @ApiOperation({ summary: 'Verify TOTP code to complete sign-in' })
   async verifyTotp(
-    @Request() req: ExpressRequest & { user: { userId: string } },
+    @Request() req: ExpressRequest & { user: { userId: string; role: UserRole } },
     @Body() dto: VerifyTotpDto,
     @Headers('x-forwarded-for') forwardedFor: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
@@ -118,6 +119,7 @@ export class TwoFactorController extends BaseAuthController {
     const ip = forwardedFor?.split(',')[0]?.trim() ?? null;
     const { tokens, trustCookieValue } = await this.twoFactorService.verifyTotp(
       req.user.userId,
+      req.user.role,
       dto.code,
       dto.trustDevice ?? false,
       { ip, userAgent: userAgent ?? null },
@@ -150,7 +152,7 @@ export class TwoFactorController extends BaseAuthController {
   @Throttle(TFA_THROTTLE)
   @ApiOperation({ summary: 'Verify email OTP code to complete sign-in' })
   async verifyOtp(
-    @Request() req: ExpressRequest & { user: { userId: string } },
+    @Request() req: ExpressRequest & { user: { userId: string; role: UserRole } },
     @Body() dto: VerifyOtpDto,
     @Headers('x-forwarded-for') forwardedFor: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
@@ -159,6 +161,7 @@ export class TwoFactorController extends BaseAuthController {
     const ip = forwardedFor?.split(',')[0]?.trim() ?? null;
     const { tokens, trustCookieValue } = await this.twoFactorService.verifyOtp(
       req.user.userId,
+      req.user.role,
       dto.code,
       dto.trustDevice ?? false,
       { ip, userAgent: userAgent ?? null },
@@ -181,7 +184,7 @@ export class TwoFactorController extends BaseAuthController {
   @Throttle(TFA_THROTTLE)
   @ApiOperation({ summary: 'Verify backup code to complete sign-in' })
   async verifyBackupCode(
-    @Request() req: ExpressRequest & { user: { userId: string } },
+    @Request() req: ExpressRequest & { user: { userId: string; role: UserRole } },
     @Body() dto: VerifyBackupCodeDto,
     @Headers('x-forwarded-for') forwardedFor: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
@@ -191,6 +194,7 @@ export class TwoFactorController extends BaseAuthController {
     const { tokens, trustCookieValue } =
       await this.twoFactorService.verifyBackupCode(
         req.user.userId,
+        req.user.role,
         dto.code,
         dto.trustDevice ?? false,
         { ip, userAgent: userAgent ?? null },

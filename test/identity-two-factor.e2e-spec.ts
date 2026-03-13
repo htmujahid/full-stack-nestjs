@@ -16,6 +16,7 @@ import { TwoFactorGateService } from '../server/modules/identity/auth/services/t
 import { JwtAccessGuard } from '../server/modules/identity/auth/guards/jwt-access.guard';
 import { JwtFreshGuard } from '../server/modules/identity/auth/guards/jwt-fresh.guard';
 import { TwoFactorPendingGuard } from '../server/modules/identity/2fa/guards/two-factor-pending.guard';
+import { UserRole } from '../server/modules/identity/user/user-role.enum';
 
 const throttlerGuard = { canActivate: () => true };
 
@@ -28,6 +29,7 @@ const setUserGuard = (user: object) => ({
 });
 
 const userId = 'test-user-id';
+const pendingUser = { userId, role: UserRole.Member };
 
 describe('Two-Factor (e2e)', () => {
   let app: INestApplication;
@@ -73,7 +75,7 @@ describe('Two-Factor (e2e)', () => {
       .overrideGuard(JwtFreshGuard)
       .useValue(setUserGuard({ userId }))
       .overrideGuard(TwoFactorPendingGuard)
-      .useValue(setUserGuard({ userId }))
+      .useValue(setUserGuard(pendingUser))
       .compile();
 
     app = module.createNestApplication();

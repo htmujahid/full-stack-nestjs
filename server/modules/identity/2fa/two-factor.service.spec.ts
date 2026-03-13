@@ -11,6 +11,7 @@ import { Account } from '../account/account.entity';
 import { Verification } from '../auth/entities/verification.entity';
 import { AuthService, type RequestContext, type TokenPair } from '../auth/services/auth.service';
 import { TwoFactorGateService } from '../auth/services/two-factor-gate.service';
+import { UserRole } from '../user/user-role.enum';
 import { mockDataSource, mockRepository } from '../../../mocks/db.mock';
 import {
   CREDENTIAL_PROVIDER,
@@ -571,7 +572,7 @@ describe('TwoFactorService', () => {
       const mockTotpInstance = { verify: jest.fn().mockResolvedValue({ valid: true }) };
       MockTOTP.mockImplementationOnce(() => mockTotpInstance);
 
-      const result = await service.verifyTotp('user-uuid', '123456', false, makeCtx());
+      const result = await service.verifyTotp('user-uuid', UserRole.Member, '123456', false, makeCtx());
 
       expect(result.tokens).toEqual(makeTokenPair());
       expect(result.trustCookieValue).toBeNull();
@@ -588,7 +589,7 @@ describe('TwoFactorService', () => {
       const mockTotpInstance = { verify: jest.fn().mockResolvedValue({ valid: true }) };
       MockTOTP.mockImplementationOnce(() => mockTotpInstance);
 
-      const result = await service.verifyTotp('user-uuid', '123456', true, makeCtx());
+      const result = await service.verifyTotp('user-uuid', UserRole.Member, '123456', true, makeCtx());
 
       expect(result.trustCookieValue).toBe('trust-cookie');
       expect(twoFactorGate.createTrustDeviceCookieValue).toHaveBeenCalledWith('user-uuid');
@@ -603,7 +604,7 @@ describe('TwoFactorService', () => {
       const mockTotpInstance = { verify: jest.fn().mockResolvedValue({ valid: false }) };
       MockTOTP.mockImplementationOnce(() => mockTotpInstance);
 
-      await expect(service.verifyTotp('user-uuid', '000000', false, makeCtx())).rejects.toThrow(
+      await expect(service.verifyTotp('user-uuid', UserRole.Member, '000000', false, makeCtx())).rejects.toThrow(
         UnauthorizedException,
       );
     });
@@ -614,7 +615,7 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      await expect(service.verifyTotp('user-uuid', '123456', false, makeCtx())).rejects.toThrow(
+      await expect(service.verifyTotp('user-uuid', UserRole.Member, '123456', false, makeCtx())).rejects.toThrow(
         UnauthorizedException,
       );
     });
@@ -629,7 +630,7 @@ describe('TwoFactorService', () => {
       const mockTotpInstance = { verify: jest.fn().mockResolvedValue({ valid: true }) };
       MockTOTP.mockImplementationOnce(() => mockTotpInstance);
 
-      await service.verifyTotp('user-uuid', '123456', false, makeCtx());
+      await service.verifyTotp('user-uuid', UserRole.Member, '123456', false, makeCtx());
 
       expect(tfRepo.update).toHaveBeenCalledWith('tf-uuid', { lastUsedPeriod: currentPeriod });
     });
@@ -640,7 +641,7 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      await expect(service.verifyTotp('user-uuid', '123456', false, makeCtx())).rejects.toThrow(
+      await expect(service.verifyTotp('user-uuid', UserRole.Member, '123456', false, makeCtx())).rejects.toThrow(
         ForbiddenException,
       );
     });
@@ -745,7 +746,7 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      const result = await service.verifyOtp('user-uuid', '123456', false, makeCtx());
+      const result = await service.verifyOtp('user-uuid', UserRole.Member, '123456', false, makeCtx());
 
       expect(result.tokens).toEqual(makeTokenPair());
       expect(verRepo.delete).toHaveBeenCalledWith(record.id);
@@ -757,7 +758,7 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      await expect(service.verifyOtp('user-uuid', '123456', false, makeCtx())).rejects.toThrow(
+      await expect(service.verifyOtp('user-uuid', UserRole.Member, '123456', false, makeCtx())).rejects.toThrow(
         UnauthorizedException,
       );
     });
@@ -770,7 +771,7 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      await expect(service.verifyOtp('user-uuid', '123456', false, makeCtx())).rejects.toThrow(
+      await expect(service.verifyOtp('user-uuid', UserRole.Member, '123456', false, makeCtx())).rejects.toThrow(
         UnauthorizedException,
       );
       expect(verRepo.delete).toHaveBeenCalledWith(record.id);
@@ -784,7 +785,7 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      await expect(service.verifyOtp('user-uuid', 'whatever', false, makeCtx())).rejects.toThrow(
+      await expect(service.verifyOtp('user-uuid', UserRole.Member, 'whatever', false, makeCtx())).rejects.toThrow(
         UnauthorizedException,
       );
       expect(verRepo.delete).toHaveBeenCalledWith(record.id);
@@ -801,7 +802,7 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      await expect(service.verifyOtp('user-uuid', 'wrong', false, makeCtx())).rejects.toThrow(
+      await expect(service.verifyOtp('user-uuid', UserRole.Member, 'wrong', false, makeCtx())).rejects.toThrow(
         UnauthorizedException,
       );
 
@@ -821,7 +822,7 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      const result = await service.verifyOtp('user-uuid', '123456', true, makeCtx());
+      const result = await service.verifyOtp('user-uuid', UserRole.Member, '123456', true, makeCtx());
 
       expect(result.trustCookieValue).toBe('trust-cookie');
       expect(twoFactorGate.createTrustDeviceCookieValue).toHaveBeenCalledWith('user-uuid');
@@ -912,7 +913,7 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      const result = await service.verifyBackupCode('user-uuid', 'AAAAA-BBBBB', false, makeCtx());
+      const result = await service.verifyBackupCode('user-uuid', UserRole.Member, 'AAAAA-BBBBB', false, makeCtx());
 
       expect(result.tokens).toEqual(makeTokenPair());
     });
@@ -927,7 +928,7 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      await service.verifyBackupCode('user-uuid', 'AAAAA-BBBBB', false, makeCtx());
+      await service.verifyBackupCode('user-uuid', UserRole.Member, 'AAAAA-BBBBB', false, makeCtx());
 
       const updateArg = tfRepo.update.mock.calls[0][1] as { backupCodes: string };
       const remaining: string[] = JSON.parse(updateArg.backupCodes) as string[];
@@ -941,7 +942,7 @@ describe('TwoFactorService', () => {
       dataSource.getRepository.mockReturnValue(tfRepo);
 
       await expect(
-        service.verifyBackupCode('user-uuid', 'AAAAA-BBBBB', false, makeCtx()),
+        service.verifyBackupCode('user-uuid', UserRole.Member, 'AAAAA-BBBBB', false, makeCtx()),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -952,7 +953,7 @@ describe('TwoFactorService', () => {
       dataSource.getRepository.mockReturnValue(tfRepo);
 
       await expect(
-        service.verifyBackupCode('user-uuid', 'AAAAA-BBBBB', false, makeCtx()),
+        service.verifyBackupCode('user-uuid', UserRole.Member, 'AAAAA-BBBBB', false, makeCtx()),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -967,7 +968,7 @@ describe('TwoFactorService', () => {
       dataSource.getRepository.mockReturnValue(tfRepo);
 
       await expect(
-        service.verifyBackupCode('user-uuid', 'WRONG-CODES', false, makeCtx()),
+        service.verifyBackupCode('user-uuid', UserRole.Member, 'WRONG-CODES', false, makeCtx()),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -981,7 +982,7 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      const result = await service.verifyBackupCode('user-uuid', 'AAAAA-BBBBB', true, makeCtx());
+      const result = await service.verifyBackupCode('user-uuid', UserRole.Member, 'AAAAA-BBBBB', true, makeCtx());
 
       expect(result.trustCookieValue).toBe('trust-cookie');
       expect(twoFactorGate.createTrustDeviceCookieValue).toHaveBeenCalledWith('user-uuid');

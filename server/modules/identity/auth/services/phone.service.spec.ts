@@ -8,6 +8,7 @@ import { DataSource } from 'typeorm';
 import { PhoneService } from './phone.service';
 import { AuthService } from './auth.service';
 import { User } from '../../user/user.entity';
+import { UserRole } from '../../user/user-role.enum';
 import { Verification } from '../entities/verification.entity';
 import { RefreshSession } from '../entities/refresh-session.entity';
 import { mockDataSource, mockRepository } from '../../../../mocks/db.mock';
@@ -32,6 +33,7 @@ const makeUser = (overrides: Partial<User> = {}): User =>
     phoneVerified: false,
     emailVerified: true,
     twoFactorEnabled: false,
+    role: UserRole.Member,
     image: null,
     createdAt: new Date(NOW),
     updatedAt: new Date(NOW),
@@ -318,6 +320,7 @@ describe('PhoneService', () => {
 
       expect(authService.createAuthSession).toHaveBeenCalledWith(
         'user-uuid',
+        UserRole.Member,
         true,
         ctx,
         'phone',

@@ -5,9 +5,11 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { Request } from 'express';
 import { ACCESS_TOKEN_COOKIE } from '../auth.constants';
 import type { AuthMethod } from '../services/auth.service';
+import { UserRole } from '../../user/user-role.enum';
 
 export interface JwtAccessPayload {
   sub: string;
+  role: UserRole;
   auth_method: AuthMethod;
 }
 
@@ -30,6 +32,6 @@ export class JwtAccessStrategy extends PassportStrategy(
   }
 
   validate(payload: JwtAccessPayload) {
-    return { userId: payload.sub, authMethod: payload.auth_method };
+    return { userId: payload.sub, role: payload.role, authMethod: payload.auth_method };
   }
 }

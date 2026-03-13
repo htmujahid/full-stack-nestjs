@@ -6,12 +6,14 @@ import { AuthService } from '../services/auth.service';
 import { TwoFactorGateService } from '../services/two-factor-gate.service';
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '../auth.constants';
+import { UserRole } from '../../user/user-role.enum';
 import type { Request as ExpressRequest, Response } from 'express';
 
 const noopGuard: CanActivate = { canActivate: () => true };
 
 interface RefreshUser {
   userId: string;
+  role: UserRole;
   sessionId: string;
   familyId: string;
   rawRefreshToken: string;
@@ -19,6 +21,7 @@ interface RefreshUser {
 
 const makeRefreshUser = (overrides: Partial<RefreshUser> = {}): RefreshUser => ({
   userId: 'user-uuid',
+  role: UserRole.Member,
   sessionId: 'session-uuid',
   familyId: 'family-uuid',
   rawRefreshToken: 'raw-refresh-token',
@@ -102,6 +105,7 @@ describe('AuthController', () => {
 
       expect(authService.refreshTokens).toHaveBeenCalledWith(
         user.userId,
+        user.role,
         user.sessionId,
         user.familyId,
         user.rawRefreshToken,
@@ -121,6 +125,7 @@ describe('AuthController', () => {
 
       expect(authService.refreshTokens).toHaveBeenCalledWith(
         user.userId,
+        user.role,
         user.sessionId,
         user.familyId,
         user.rawRefreshToken,

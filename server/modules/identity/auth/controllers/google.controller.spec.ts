@@ -9,6 +9,7 @@ import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import { ACCESS_TOKEN_COOKIE, LINK_INTENT_COOKIE } from '../auth.constants';
 import type { GoogleProfile } from '../strategies/google.strategy';
 import { User } from '../../user/user.entity';
+import { UserRole } from '../../user/user-role.enum';
 import type { Request as ExpressRequest, Response } from 'express';
 
 const noopGuard: CanActivate = { canActivate: () => true };
@@ -23,6 +24,7 @@ const makeUser = (overrides: Partial<User> = {}): User =>
     phoneVerified: false,
     emailVerified: true,
     twoFactorEnabled: false,
+    role: UserRole.Member,
     image: null,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -133,6 +135,7 @@ describe('GoogleController', () => {
       expect(googleService.findOrCreateUser).toHaveBeenCalledWith(profile);
       expect(googleService.createSession).toHaveBeenCalledWith(
         user.id,
+        user.role,
         expect.objectContaining({ ip: null, userAgent: null }),
       );
       expect(res.cookie).toHaveBeenCalledTimes(2);
@@ -152,6 +155,7 @@ describe('GoogleController', () => {
 
       expect(googleService.createSession).toHaveBeenCalledWith(
         user.id,
+        user.role,
         { ip: '10.0.0.1', userAgent: 'jest-agent' },
       );
     });

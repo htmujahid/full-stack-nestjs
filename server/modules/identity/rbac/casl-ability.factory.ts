@@ -17,7 +17,7 @@ export type AppAbility = MongoAbility<[Action, Subjects]>;
 
 @Injectable()
 export class CaslAbilityFactory {
-  createForUser(user: User): AppAbility {
+  createForUser(user: Pick<User, 'id' | 'role'>): AppAbility {
     const { can, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
 
     if (user.role === UserRole.Admin) {
