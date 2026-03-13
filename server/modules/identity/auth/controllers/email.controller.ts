@@ -58,6 +58,7 @@ export class EmailController extends BaseAuthController {
 
   @Public()
   @Get('verify-email-link')
+  @Redirect()
   @ApiOperation({ summary: 'Verify magic sign-in link and issue tokens' })
   async verifySignInLink(
     @Query('token') token: string,
@@ -78,22 +79,20 @@ export class EmailController extends BaseAuthController {
       const errorTarget = errorURL ?? '/auth/error';
       const sep = errorTarget.includes('?') ? '&' : '?';
       return {
-        ok: false,
-        error: result.error,
         url: `${errorTarget}${sep}error=${encodeURIComponent(result.error)}`,
+        statusCode: HttpStatus.FOUND,
       };
     }
 
     const gate = await this.checkTwoFactor(result.user, req, res);
-    if (gate === 'pending') return { twoFactorRedirect: true };
+    if (gate === 'pending') {
+      return { url: '/auth/two-factor', statusCode: HttpStatus.FOUND };
+    }
 
     this.setTokenCookies(res, result.tokens, false);
     return {
-      ok: true,
-      url: callbackURL ?? null,
-      user: result.user,
-      accessToken: result.tokens.accessToken,
-      refreshToken: result.tokens.refreshToken,
+      url: callbackURL ?? '/',
+      statusCode: HttpStatus.FOUND,
     };
   }
 

@@ -126,7 +126,7 @@ describe('EmailController', () => {
   // ─── verifySignInLink ────────────────────────────────────────────────────────
 
   describe('verifySignInLink', () => {
-    it('returns { ok: false, error, url } when service returns !ok', async () => {
+    it('returns redirect to errorURL when service returns !ok', async () => {
       emailService.verifySignInLink.mockResolvedValue({
         ok: false,
         error: 'INVALID_TOKEN',
@@ -138,7 +138,7 @@ describe('EmailController', () => {
       const result = await controller.verifySignInLink(
         'bad-token',
         '/dashboard',
-        undefined,
+        '/auth/error',
         undefined,
         undefined,
         res,
@@ -146,14 +146,13 @@ describe('EmailController', () => {
       );
 
       expect(result).toEqual({
-        ok: false,
-        error: 'INVALID_TOKEN',
         url: '/auth/error?error=INVALID_TOKEN',
+        statusCode: 302,
       });
       expect(res.cookie).not.toHaveBeenCalled();
     });
 
-    it('returns null url when callbackURL is not provided and service returns !ok', async () => {
+    it('returns redirect to /auth/error when errorURL not provided and service returns !ok', async () => {
       emailService.verifySignInLink.mockResolvedValue({
         ok: false,
         error: 'EXPIRED',
@@ -173,13 +172,12 @@ describe('EmailController', () => {
       );
 
       expect(result).toEqual({
-        ok: false,
-        error: 'EXPIRED',
         url: '/auth/error?error=EXPIRED',
+        statusCode: 302,
       });
     });
 
-    it('returns { twoFactorRedirect: true } when 2FA gate is pending', async () => {
+    it('returns redirect to /auth/two-factor when 2FA gate is pending', async () => {
       const user = makeUser({ twoFactorEnabled: true });
       const tokens = makeTokens();
       emailService.verifySignInLink.mockResolvedValue({ ok: true, user, tokens });
@@ -199,11 +197,11 @@ describe('EmailController', () => {
         req,
       );
 
-      expect(result).toEqual({ twoFactorRedirect: true });
+      expect(result).toEqual({ url: '/auth/two-factor', statusCode: 302 });
       expect(res.cookie).toHaveBeenCalledTimes(1); // pending cookie only
     });
 
-    it('sets token cookies and returns tokens on success', async () => {
+    it('sets token cookies and returns redirect to callbackURL on success', async () => {
       const user = makeUser({ twoFactorEnabled: false });
       const tokens = makeTokens();
       emailService.verifySignInLink.mockResolvedValue({ ok: true, user, tokens });
@@ -223,11 +221,8 @@ describe('EmailController', () => {
 
       expect(res.cookie).toHaveBeenCalledTimes(2);
       expect(result).toEqual({
-        ok: true,
         url: '/dashboard',
-        user,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
+        statusCode: 302,
       });
     });
 

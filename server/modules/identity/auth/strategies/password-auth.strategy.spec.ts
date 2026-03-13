@@ -15,6 +15,7 @@ const makeUser = (overrides: Partial<User> = {}): User =>
     email: 'test@example.com',
     username: 'testuser',
     phone: '+1234567890',
+    phoneVerified: true,
     emailVerified: true,
     twoFactorEnabled: false,
     image: null,

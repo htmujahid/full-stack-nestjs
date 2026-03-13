@@ -11,8 +11,8 @@ import { SignInForm } from '../components/sign-in-form';
 
 export default function SignInPage() {
   return (
-    <div className="flex flex-col gap-6">
-      <Card>
+    <div className="flex w-full flex-col gap-6">
+      <Card className="w-full">
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
           <CardDescription>

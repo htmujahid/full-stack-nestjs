@@ -356,11 +356,10 @@ describe('Identity Auth (e2e)', () => {
   // ─── GET /api/auth/verify-email-link ────────────────────────────────────────
 
   describe('GET /api/auth/verify-email-link', () => {
-    it('returns 200 with ok and tokens when valid', async () => {
-      const user = makeUser();
+    it('redirects to callbackURL or / when valid', async () => {
       emailService.verifySignInLink.mockResolvedValue({
         ok: true,
-        user,
+        user: makeUser(),
         tokens: {
           accessToken: 'at',
           refreshToken: 'rt',
@@ -368,28 +367,46 @@ describe('Identity Auth (e2e)', () => {
         },
       });
 
-      const { body } = await request(app.getHttpServer())
+      const res = await request(app.getHttpServer())
         .get('/api/auth/verify-email-link')
         .query({ token: 'valid-token' })
-        .expect(200);
+        .expect(302);
 
-      expect(body.ok).toBe(true);
-      expect(body.accessToken).toBe('at');
+      expect(res.header.location).toBe('/');
     });
 
-    it('returns ok false when invalid', async () => {
+    it('redirects to callbackURL when provided', async () => {
+      emailService.verifySignInLink.mockResolvedValue({
+        ok: true,
+        user: makeUser(),
+        tokens: {
+          accessToken: 'at',
+          refreshToken: 'rt',
+          refreshExpiresAt: new Date(),
+        },
+      });
+
+      const res = await request(app.getHttpServer())
+        .get('/api/auth/verify-email-link')
+        .query({ token: 'valid-token', callbackURL: '/dashboard' })
+        .expect(302);
+
+      expect(res.header.location).toBe('/dashboard');
+    });
+
+    it('redirects with error when invalid', async () => {
       emailService.verifySignInLink.mockResolvedValue({
         ok: false,
         error: 'INVALID_TOKEN',
       });
 
-      const { body } = await request(app.getHttpServer())
+      const res = await request(app.getHttpServer())
         .get('/api/auth/verify-email-link')
-        .query({ token: 'bad-token' })
-        .expect(200);
+        .query({ token: 'bad-token', errorURL: '/auth/error' })
+        .expect(302);
 
-      expect(body.ok).toBe(false);
-      expect(body.error).toBeDefined();
+      expect(res.header.location).toContain('/auth/error');
+      expect(res.header.location).toContain('error=INVALID_TOKEN');
     });
   });
 

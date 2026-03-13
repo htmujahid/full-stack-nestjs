@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSignInMutation, getAuthErrorMessage } from '../lib/query';
 import { ME_QUERY_KEY } from '@/components/providers/auth-provider';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Field,
   FieldDescription,
@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/input-group';
 import { OAuthProviders } from './oauth-providers';
 import { Spinner } from '@/components/ui/spinner';
+import { cn } from '@/lib/utils';
 
 type SignInFormData = {
   identifier: string;
@@ -69,8 +70,9 @@ export function SignInForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate>
-      <FieldGroup>
+    <>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <FieldGroup>
         <OAuthProviders action="sign-in" disabled={signIn.isPending} />
         <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
           Or continue with
@@ -139,14 +141,21 @@ export function SignInForm() {
               'Sign in'
             )}
           </Button>
-          <FieldDescription className="text-center">
-            Don&apos;t have an account?{' '}
-            <Link to="/auth/sign-up">
-              Sign up
-            </Link>
-          </FieldDescription>
         </Field>
       </FieldGroup>
     </form>
+    <div className="mt-4 flex flex-col gap-3">
+      <Link
+        to="/auth/magic-link"
+        className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}
+      >
+        Sign in with magic link or OTP
+      </Link>
+      <FieldDescription className="text-center">
+        Don&apos;t have an account?{' '}
+        <Link to="/auth/sign-up">Sign up</Link>
+      </FieldDescription>
+    </div>
+    </>
   );
 }

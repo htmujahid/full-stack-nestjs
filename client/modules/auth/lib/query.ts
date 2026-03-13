@@ -48,6 +48,28 @@ export type ResetPasswordResponse = { ok: boolean };
 
 export type SignOutResponse = { ok: boolean };
 
+export type SignInEmailInput = {
+  email: string;
+  callbackURL?: string;
+  errorURL?: string;
+};
+
+export type SignInEmailResponse = { ok: boolean };
+
+export type SignInPhoneInput = {
+  phone: string;
+  callbackURL?: string;
+};
+
+export type SignInPhoneResponse = { ok: boolean };
+
+export type VerifyPhoneOtpInput = {
+  phone: string;
+  code: string;
+  rememberMe?: boolean;
+  callbackURL?: string;
+};
+
 // ─── Mutations ───────────────────────────────────────────────────────────────
 
 const AUTH_OPTIONS = { skipAuthRetry: true as const };
@@ -123,6 +145,54 @@ export function useSignOutMutation() {
         method: 'POST',
         ...AUTH_OPTIONS,
       });
+      return data;
+    },
+  });
+}
+
+export function useSignInEmailMutation() {
+  return useMutation({
+    mutationFn: async (input: SignInEmailInput) => {
+      const { data } = await fetcher<{ ok: boolean }>(
+        '/api/auth/sign-in/email',
+        {
+          method: 'POST',
+          body: JSON.stringify(input),
+          ...AUTH_OPTIONS,
+        },
+      );
+      return data;
+    },
+  });
+}
+
+export function useSignInPhoneMutation() {
+  return useMutation({
+    mutationFn: async (input: SignInPhoneInput) => {
+      const { data } = await fetcher<{ ok: boolean }>(
+        '/api/auth/sign-in/phone',
+        {
+          method: 'POST',
+          body: JSON.stringify(input),
+          ...AUTH_OPTIONS,
+        },
+      );
+      return data;
+    },
+  });
+}
+
+export function useVerifyPhoneOtpMutation() {
+  return useMutation({
+    mutationFn: async (input: VerifyPhoneOtpInput) => {
+      const { data } = await fetcher<SignInResponse>(
+        '/api/auth/verify-phone-otp',
+        {
+          method: 'POST',
+          body: JSON.stringify(input),
+          ...AUTH_OPTIONS,
+        },
+      );
       return data;
     },
   });

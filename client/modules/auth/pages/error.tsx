@@ -23,8 +23,8 @@ export default function AuthErrorPage() {
   const message = ERROR_MESSAGES[code] ?? ERROR_MESSAGES.DEFAULT;
 
   return (
-    <div className="flex w-full flex-col gap-6">
-      <Card className="w-full">
+    <div className="flex flex-col gap-6">
+      <Card>
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
             <AlertCircle className="size-6" aria-hidden />

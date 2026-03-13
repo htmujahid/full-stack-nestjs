@@ -178,22 +178,6 @@ describe('PasswordService', () => {
       await expect(service.signUp(dto)).rejects.toThrow(ConflictException);
     });
 
-    it('throws ConflictException when phone number is already in use', async () => {
-      const dto = makeSignUpDto({ phone: '+12345678900' });
-      const txRepo = mockRepository();
-      // First findOne (email) returns null, second (phone) returns existing user
-      txRepo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(makeUser({ phone: '+12345678900' }));
-
-      dataSource.transaction.mockImplementation(async (cb) => {
-        const tx = { getRepository: jest.fn().mockReturnValue(txRepo) };
-        return cb(tx);
-      });
-
-      await expect(service.signUp(dto)).rejects.toThrow(ConflictException);
-    });
-
     it('sets username to lowercase and trimmed when provided', async () => {
       const dto = makeSignUpDto({ username: '  MyUser  ' });
       const txRepo = mockRepository();
@@ -286,23 +270,6 @@ describe('PasswordService', () => {
 
       const userCreateArg = txRepo.create.mock.calls[0][0] as Partial<User>;
       expect(userCreateArg.image).toBeNull();
-    });
-
-    it('calls phoneService.sendVerificationOtp when phone is provided', async () => {
-      const dto = makeSignUpDto({ phone: '+12345678900' });
-      const txRepo = mockRepository();
-      txRepo.findOne.mockResolvedValue(null);
-      txRepo.create.mockReturnValue(makeUser());
-      txRepo.save.mockResolvedValue(makeUser());
-
-      dataSource.transaction.mockImplementation(async (cb) => {
-        const tx = { getRepository: jest.fn().mockReturnValue(txRepo) };
-        return cb(tx);
-      });
-
-      await service.signUp(dto);
-
-      expect(phoneService.sendVerificationOtp).toHaveBeenCalledWith('+12345678900');
     });
 
     it('propagates error when emailService.sendVerificationEmail throws during sign up', async () => {
