@@ -55,7 +55,6 @@ export function SignInForm() {
         identifier: data.email,
         password: data.password,
         rememberMe: true,
-        callbackURL: '/home',
       },
       {
         onSuccess: (res) => {
@@ -64,7 +63,7 @@ export function SignInForm() {
             return;
           }
           void queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY });
-          navigate(res.url ?? '/home', { replace: true });
+          navigate('/home', { replace: true });
         },
         onError: (e) => setError('root', { message: getAuthErrorMessage(e) }),
       },

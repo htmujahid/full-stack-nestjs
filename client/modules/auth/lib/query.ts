@@ -7,15 +7,18 @@ export type SignInInput = {
   identifier: string;
   password: string;
   rememberMe?: boolean;
-  callbackURL?: string;
 };
 
 export type SignInSuccess = {
   user: { id: string; email?: string };
-  url: string | null;
+  accessToken: string;
+  refreshToken: string;
 };
 
-export type SignInResponse = SignInSuccess | { twoFactorRedirect: true };
+export type SignInResponse =
+  | SignInSuccess
+  | { twoFactorRedirect: true }
+  | { redirected: true };
 
 export type SignUpInput = {
   name: string;

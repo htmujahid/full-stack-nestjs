@@ -117,13 +117,13 @@ export class EmailController extends BaseAuthController {
     });
 
     if (!result.ok) {
-      return { ok: false, error: result.error, url: callbackURL ?? null };
+      return { ok: false, error: result.error };
     }
 
     this.setTokenCookies(res, result.tokens, false);
 
     if (callbackURL) {
-      res.redirect(callbackURL);
+      return res.redirect(callbackURL);
     }
 
     return {

@@ -279,7 +279,7 @@ describe('EmailController', () => {
         res,
       );
 
-      expect(result).toEqual({ ok: false, error: 'TOKEN_EXPIRED', url: '/verify' });
+      expect(result).toEqual({ ok: false, error: 'TOKEN_EXPIRED' });
       expect(res.cookie).not.toHaveBeenCalled();
     });
 
@@ -291,7 +291,7 @@ describe('EmailController', () => {
 
       const result = await controller.verifyEmail(
         'valid-token',
-        '/verify',
+        undefined,
         undefined,
         undefined,
         res,

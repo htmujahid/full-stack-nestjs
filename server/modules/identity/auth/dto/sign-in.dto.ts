@@ -20,9 +20,4 @@ export class SignInDto {
   @IsOptional()
   @IsBoolean()
   rememberMe?: boolean;
-
-  @ApiPropertyOptional({ description: 'Redirect URL after sign-in' })
-  @IsOptional()
-  @IsString()
-  callbackURL?: string;
 }

@@ -158,7 +158,6 @@ describe('PasswordController', () => {
       });
       expect(res.cookie).toHaveBeenCalledTimes(2);
       expect(result).toEqual({
-        url: null,
         user,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
@@ -294,26 +293,6 @@ describe('PasswordController', () => {
       expect(twoFactorGate.rotateTrustDevice).toHaveBeenCalledWith('old-trust-value', user.id);
       expect(passwordService.signIn).toHaveBeenCalled();
       expect(result).toEqual(expect.objectContaining({ user }));
-    });
-
-    it('includes callbackURL in response when provided in dto', async () => {
-      const user = makeUser({ twoFactorEnabled: false });
-      const tokens = makeTokens();
-      passwordService.signIn.mockResolvedValue({ user, tokens });
-
-      const req = makeMockRequest({ user });
-      const res = makeMockResponse();
-      const dto = {
-        identifier: 'test@example.com',
-        password: 'pass',
-        callbackURL: 'https://app.example.com/dashboard',
-      };
-
-      const result = await controller.signIn(req, dto, undefined, undefined, res);
-
-      expect(result).toEqual(
-        expect.objectContaining({ url: 'https://app.example.com/dashboard' }),
-      );
     });
   });
 

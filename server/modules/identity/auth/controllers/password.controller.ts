@@ -81,8 +81,8 @@ export class PasswordController extends BaseAuthController {
       userAgent: userAgent ?? null,
     });
     this.setTokenCookies(res, result.tokens, rememberMe);
+
     return {
-      url: dto.callbackURL ?? null,
       user: result.user,
       accessToken: result.tokens.accessToken,
       refreshToken: result.tokens.refreshToken,
