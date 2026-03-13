@@ -5,7 +5,9 @@ import { ProjectService } from './project.service';
 import { Project } from './project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { PoliciesGuard } from '../../identity/rbac/policies.guard';
+import { RolesGuard } from '../../identity/rbac/roles.guard';
+import { PermissionsGuard } from '../../identity/rbac/permissions.guard';
+import { UserRole } from '../../identity/user/user-role.enum';
 
 const makeProject = (overrides: Partial<Project> = {}): Project =>
   ({
@@ -18,8 +20,8 @@ const makeProject = (overrides: Partial<Project> = {}): Project =>
     ...overrides,
   }) as Project;
 
-const makeRequest = (userId: string, ability: { can: jest.Mock }): Request =>
-  ({ user: { userId }, ability }) as unknown as Request;
+const makeRequest = (userId: string, role: UserRole = UserRole.Member): Request =>
+  ({ user: { userId, role } }) as unknown as Request;
 
 const mockProjectService = () => ({
   findAll: jest.fn(),
@@ -32,17 +34,17 @@ const mockProjectService = () => ({
 describe('ProjectController', () => {
   let controller: ProjectController;
   let service: ReturnType<typeof mockProjectService>;
-  let mockAbility: { can: jest.Mock };
 
   beforeEach(async () => {
     service = mockProjectService();
-    mockAbility = { can: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProjectController],
       providers: [{ provide: ProjectService, useValue: service }],
     })
-      .overrideGuard(PoliciesGuard)
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
+      .overrideGuard(PermissionsGuard)
       .useValue({ canActivate: jest.fn().mockReturnValue(true) })
       .compile();
 
@@ -88,7 +90,7 @@ describe('ProjectController', () => {
     it('extracts userId from req.user and delegates to service.create()', async () => {
       const dto: CreateProjectDto = { name: 'New Project', description: 'desc' };
       const project = makeProject({ name: 'New Project' });
-      const req = makeRequest('user-1', mockAbility);
+      const req = makeRequest('user-1');
 
       service.create.mockResolvedValue(project);
 
@@ -101,7 +103,7 @@ describe('ProjectController', () => {
 
     it('passes dto unchanged to service', async () => {
       const dto: CreateProjectDto = { name: 'My Project' };
-      const req = makeRequest('user-42', mockAbility);
+      const req = makeRequest('user-42');
       service.create.mockResolvedValue(makeProject());
 
       await controller.create(dto, req);
@@ -111,43 +113,58 @@ describe('ProjectController', () => {
   });
 
   describe('update', () => {
-    it('delegates to service.update(id, dto) and returns result', async () => {
+    it('delegates to service.update(id, dto, auth) with userId and role from req', async () => {
       const dto: UpdateProjectDto = { name: 'Updated Name' };
       const updatedProject = makeProject({ name: 'Updated Name' });
+      const req = makeRequest('user-1', UserRole.Member);
 
       service.update.mockResolvedValue(updatedProject);
 
-      const result = await controller.update('project-1', dto);
+      const result = await controller.update('project-1', dto, req);
 
-      expect(service.update).toHaveBeenCalledWith('project-1', dto);
+      expect(service.update).toHaveBeenCalledWith('project-1', dto, {
+        userId: 'user-1',
+        role: UserRole.Member,
+      });
       expect(service.update).toHaveBeenCalledTimes(1);
       expect(result).toBe(updatedProject);
     });
 
     it('propagates NotFoundException from service when project is not found', async () => {
       const dto: UpdateProjectDto = { name: 'Updated' };
+      const req = makeRequest('user-1');
 
       service.update.mockRejectedValue(new Error('Project not found'));
 
-      await expect(controller.update('project-1', dto)).rejects.toThrow('Project not found');
+      await expect(controller.update('project-1', dto, req)).rejects.toThrow(
+        'Project not found',
+      );
     });
   });
 
   describe('remove', () => {
-    it('delegates to service.remove(id) and returns undefined', async () => {
+    it('delegates to service.remove(id, auth) with userId and role from req', async () => {
+      const req = makeRequest('user-1', UserRole.Member);
       service.remove.mockResolvedValue(undefined);
 
-      const result = await controller.remove('project-1');
+      const result = await controller.remove('project-1', req);
 
-      expect(service.remove).toHaveBeenCalledWith('project-1');
+      expect(service.remove).toHaveBeenCalledWith('project-1', {
+        userId: 'user-1',
+        role: UserRole.Member,
+      });
       expect(service.remove).toHaveBeenCalledTimes(1);
       expect(result).toBeUndefined();
     });
 
     it('propagates NotFoundException from service when project is not found', async () => {
+      const req = makeRequest('user-1');
+
       service.remove.mockRejectedValue(new Error('Project not found'));
 
-      await expect(controller.remove('project-1')).rejects.toThrow('Project not found');
+      await expect(controller.remove('project-1', req)).rejects.toThrow(
+        'Project not found',
+      );
     });
   });
 });

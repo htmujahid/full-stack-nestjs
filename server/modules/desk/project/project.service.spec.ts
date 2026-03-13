@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ProjectService } from './project.service';
 import { Project } from './project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { UserRole } from '../../identity/user/user-role.enum';
 import { mockRepository } from '../../../mocks/db.mock';
 
 const makeProject = (overrides: Partial<Project> = {}): Project =>
@@ -92,7 +93,7 @@ describe('ProjectService', () => {
   });
 
   describe('update', () => {
-    it('updates and returns the project', async () => {
+    it('updates and returns the project when owner', async () => {
       const project = makeProject();
       const dto: UpdateProjectDto = { name: 'Updated Name' };
       const savedProject = makeProject({ name: 'Updated Name' });
@@ -100,18 +101,51 @@ describe('ProjectService', () => {
       projectRepo.findOneBy.mockResolvedValue(project);
       projectRepo.save.mockResolvedValue(savedProject);
 
-      const result = await service.update('project-1', dto);
+      const result = await service.update('project-1', dto, {
+        userId: 'user-1',
+        role: UserRole.Member,
+      });
 
       expect(projectRepo.save).toHaveBeenCalled();
       expect(result).toBe(savedProject);
     });
 
+    it('updates when Admin (bypasses ownership)', async () => {
+      const project = makeProject({ userId: 'other-user' });
+      const dto: UpdateProjectDto = { name: 'Updated' };
+      const savedProject = makeProject({ userId: 'other-user', name: 'Updated' });
+
+      projectRepo.findOneBy.mockResolvedValue(project);
+      projectRepo.save.mockResolvedValue(savedProject);
+
+      const result = await service.update('project-1', dto, {
+        userId: 'admin-1',
+        role: UserRole.Admin,
+      });
+
+      expect(projectRepo.save).toHaveBeenCalled();
+      expect(result).toBe(savedProject);
+    });
+
+    it('throws ForbiddenException when Member updates another user project', async () => {
+      const project = makeProject({ userId: 'other-user' });
+      projectRepo.findOneBy.mockResolvedValue(project);
+
+      await expect(
+        service.update('project-1', { name: 'Updated' }, {
+          userId: 'user-1',
+          role: UserRole.Member,
+        }),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
     it('throws NotFoundException when project does not exist', async () => {
       const dto: UpdateProjectDto = { name: 'Updated' };
-
       projectRepo.findOneBy.mockResolvedValue(null);
 
-      await expect(service.update('missing-id', dto)).rejects.toThrow(NotFoundException);
+      await expect(
+        service.update('missing-id', dto, { userId: 'user-1', role: UserRole.Member }),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('merges dto fields onto the project before saving', async () => {
@@ -121,7 +155,10 @@ describe('ProjectService', () => {
       projectRepo.findOneBy.mockResolvedValue(project);
       projectRepo.save.mockResolvedValue({ ...project, ...dto });
 
-      await service.update('project-1', dto);
+      await service.update('project-1', dto, {
+        userId: 'user-1',
+        role: UserRole.Member,
+      });
 
       expect(projectRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'New Name' }),
@@ -130,21 +167,43 @@ describe('ProjectService', () => {
   });
 
   describe('remove', () => {
-    it('removes the project', async () => {
+    it('removes the project when owner', async () => {
       const project = makeProject();
 
       projectRepo.findOneBy.mockResolvedValue(project);
       projectRepo.remove.mockResolvedValue(undefined);
 
-      await service.remove('project-1');
+      await service.remove('project-1', { userId: 'user-1', role: UserRole.Member });
 
       expect(projectRepo.remove).toHaveBeenCalledWith(project);
+    });
+
+    it('removes when Admin (bypasses ownership)', async () => {
+      const project = makeProject({ userId: 'other-user' });
+
+      projectRepo.findOneBy.mockResolvedValue(project);
+      projectRepo.remove.mockResolvedValue(undefined);
+
+      await service.remove('project-1', { userId: 'admin-1', role: UserRole.Admin });
+
+      expect(projectRepo.remove).toHaveBeenCalledWith(project);
+    });
+
+    it('throws ForbiddenException when Member deletes another user project', async () => {
+      const project = makeProject({ userId: 'other-user' });
+      projectRepo.findOneBy.mockResolvedValue(project);
+
+      await expect(
+        service.remove('project-1', { userId: 'user-1', role: UserRole.Member }),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('throws NotFoundException when project does not exist', async () => {
       projectRepo.findOneBy.mockResolvedValue(null);
 
-      await expect(service.remove('missing-id')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.remove('missing-id', { userId: 'user-1', role: UserRole.Member }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

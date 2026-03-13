@@ -7,8 +7,8 @@ import { ProjectController } from '../server/modules/desk/project/project.contro
 import { ProjectService } from '../server/modules/desk/project/project.service';
 import { Project } from '../server/modules/desk/project/project.entity';
 import { UserRole } from '../server/modules/identity/user/user-role.enum';
-import { CaslAbilityFactory } from '../server/modules/identity/rbac/casl-ability.factory';
-import { PoliciesGuard } from '../server/modules/identity/rbac/policies.guard';
+import { RolesGuard } from '../server/modules/identity/rbac/roles.guard';
+import { PermissionsGuard } from '../server/modules/identity/rbac/permissions.guard';
 import { mockRepository } from '../server/mocks/db.mock';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -45,8 +45,8 @@ describe('Projects (e2e)', () => {
       controllers: [ProjectController],
       providers: [
         ProjectService,
-        CaslAbilityFactory,
-        PoliciesGuard,
+        RolesGuard,
+        PermissionsGuard,
         Reflector,
         { provide: getRepositoryToken(Project), useValue: projectRepo },
       ],
@@ -181,19 +181,15 @@ describe('Projects (e2e)', () => {
       expect(body.name).toBe('Renamed Project');
     });
 
-    it("returns 200 when a member updates another user's project", async () => {
-      const updated = makeProject({ userId: OTHER_USER_ID, name: 'Updated' });
+    it("returns 403 when a member updates another user's project", async () => {
       projectRepo.findOneBy.mockResolvedValue(
         makeProject({ userId: OTHER_USER_ID }),
       );
-      projectRepo.save.mockResolvedValue(updated);
 
-      const { body } = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .patch(`/api/projects/${PROJECT_ID}`)
         .send({ name: 'Updated' })
-        .expect(200);
-
-      expect(body.name).toBe('Updated');
+        .expect(403);
     });
 
     it('returns 404 when the project does not exist', async () => {
@@ -225,15 +221,14 @@ describe('Projects (e2e)', () => {
         .expect(204);
     });
 
-    it("returns 204 when a member deletes another user's project", async () => {
+    it("returns 403 when a member deletes another user's project", async () => {
       projectRepo.findOneBy.mockResolvedValue(
         makeProject({ userId: OTHER_USER_ID }),
       );
-      projectRepo.remove.mockResolvedValue(undefined);
 
       await request(app.getHttpServer())
         .delete(`/api/projects/${PROJECT_ID}`)
-        .expect(204);
+        .expect(403);
     });
 
     it('returns 404 when the project does not exist', async () => {
