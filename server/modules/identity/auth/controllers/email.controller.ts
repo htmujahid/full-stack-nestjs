@@ -48,7 +48,11 @@ export class EmailController extends BaseAuthController {
     description: 'Always returns ok; does not leak whether account exists',
   })
   async sendSignInLink(@Body() dto: SignInEmailDto) {
-    await this.emailService.sendSignInLink(dto.email, dto.callbackURL);
+    await this.emailService.sendSignInLink(
+      dto.email,
+      dto.callbackURL,
+      dto.errorURL,
+    );
     return { ok: true };
   }
 
@@ -58,6 +62,7 @@ export class EmailController extends BaseAuthController {
   async verifySignInLink(
     @Query('token') token: string,
     @Query('callbackURL') callbackURL: string | undefined,
+    @Query('errorURL') errorURL: string | undefined,
     @Headers('x-forwarded-for') forwardedFor: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
     @Res({ passthrough: true }) res: Response,
@@ -70,7 +75,13 @@ export class EmailController extends BaseAuthController {
     });
 
     if (!result.ok) {
-      return { ok: false, error: result.error, url: callbackURL ?? null };
+      const errorTarget = errorURL ?? '/auth/error';
+      const sep = errorTarget.includes('?') ? '&' : '?';
+      return {
+        ok: false,
+        error: result.error,
+        url: `${errorTarget}${sep}error=${encodeURIComponent(result.error)}`,
+      };
     }
 
     const gate = await this.checkTwoFactor(result.user, req, res);
@@ -97,7 +108,11 @@ export class EmailController extends BaseAuthController {
     description: 'Always returns ok; does not leak whether account exists',
   })
   async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
-    await this.emailService.resendVerificationEmail(dto.email, dto.callbackURL);
+    await this.emailService.resendVerificationEmail(
+      dto.email,
+      dto.callbackURL,
+      dto.errorURL,
+    );
     return { ok: true };
   }
 
@@ -108,6 +123,7 @@ export class EmailController extends BaseAuthController {
   async verifyEmail(
     @Query('token') token: string,
     @Query('callbackURL') callbackURL: string | undefined,
+    @Query('errorURL') errorURL: string | undefined,
     @Headers('x-forwarded-for') forwardedFor: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
     @Res({ passthrough: true }) res: Response,
@@ -119,11 +135,13 @@ export class EmailController extends BaseAuthController {
     });
 
     if (!result.ok) {
-      return { ok: false, error: result.error };
+      const errorTarget = errorURL ?? '/auth/error';
+      const sep = errorTarget.includes('?') ? '&' : '?';
+      return { url: `${errorTarget}${sep}error=${encodeURIComponent(result.error)}`, statusCode: HttpStatus.FOUND };
     }
 
     this.setTokenCookies(res, result.tokens, false);
-    return { url: callbackURL ?? '/' };
+    return { url: callbackURL ?? '/', statusCode: HttpStatus.FOUND };
   }
 
   @UseGuards(JwtFreshGuard)
@@ -140,18 +158,34 @@ export class EmailController extends BaseAuthController {
     @Request() req: ExpressRequest & { user: { userId: string } },
     @Body() dto: UpdateEmailDto,
   ) {
-    await this.emailService.initiateEmailChange(req.user.userId, dto.newEmail);
+    await this.emailService.initiateEmailChange(
+      req.user.userId,
+      dto.newEmail,
+      dto.callbackURL,
+      dto.errorURL,
+    );
     return { ok: true };
   }
 
   @Public()
   @Get('verify-email-change')
+  @Redirect()
   @ApiOperation({ summary: 'Confirm email change via token from link' })
-  async verifyEmailChange(@Query('token') token: string) {
+  async verifyEmailChange(
+    @Query('token') token: string,
+    @Query('callbackURL') callbackURL: string | undefined,
+    @Query('errorURL') errorURL: string | undefined,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const result = await this.emailService.verifyEmailChange(token);
     if (!result.ok) {
-      return { ok: false, error: result.error };
+      const errorTarget = errorURL ?? '/auth/error';
+      const sep = errorTarget.includes('?') ? '&' : '?';
+      return {
+        url: `${errorTarget}${sep}error=${encodeURIComponent(result.error)}`,
+        statusCode: HttpStatus.FOUND,
+      };
     }
-    return { ok: true };
+    return { url: callbackURL ?? '/', statusCode: HttpStatus.FOUND };
   }
 }

@@ -2,6 +2,8 @@ import {
   Controller,
   Get,
   Headers,
+  HttpStatus,
+  Redirect,
   Request,
   Res,
   UseGuards,
@@ -41,12 +43,13 @@ export class GoogleController extends BaseAuthController {
   @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('callback')
+  @Redirect()
   @ApiOperation({ summary: 'Google OAuth2 callback' })
   async callback(
     @Request() req: ExpressRequest & { user: GoogleProfile },
     @Headers('x-forwarded-for') forwardedFor: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ) {
     const cookies = req.cookies as Record<string, string>;
     const linkIntent = cookies?.[LINK_INTENT_COOKIE];
@@ -67,7 +70,7 @@ export class GoogleController extends BaseAuthController {
     const accessToken = cookies?.[ACCESS_TOKEN_COOKIE];
 
     if (!accessToken) {
-      return res.redirect('/settings/accounts?error=not_authenticated');
+      return { url: '/settings/accounts?error=not_authenticated', statusCode: HttpStatus.FOUND };
     }
 
     let userId: string;
@@ -75,7 +78,7 @@ export class GoogleController extends BaseAuthController {
       const payload = this.jwtService.verify<{ sub: string }>(accessToken);
       userId = payload.sub;
     } catch {
-      return res.redirect('/settings/accounts?error=session_expired');
+      return { url: '/settings/accounts?error=session_expired', statusCode: HttpStatus.FOUND };
     }
 
     try {
@@ -85,11 +88,11 @@ export class GoogleController extends BaseAuthController {
         accessToken: req.user.accessToken,
         refreshToken: req.user.refreshToken,
       });
-      res.redirect('/settings/accounts?linked=google');
+      return { url: '/settings/accounts?linked=google', statusCode: HttpStatus.FOUND };
     } catch (err: unknown) {
       const message =
         err instanceof Error ? encodeURIComponent(err.message) : 'link_failed';
-      res.redirect(`/settings/accounts?error=${message}`);
+      return { url: `/settings/accounts?error=${message}`, statusCode: HttpStatus.FOUND };
     }
   }
 
@@ -104,10 +107,10 @@ export class GoogleController extends BaseAuthController {
     const user = await this.googleService.findOrCreateUser(req.user);
 
     const gate = await this.checkTwoFactor(user, req, res);
-    if (gate === 'pending') return res.redirect('/auth/two-factor');
+    if (gate === 'pending') return { url: '/auth/two-factor', statusCode: HttpStatus.FOUND };
 
     const tokens = await this.googleService.createSession(user.id, user.role, ctx);
     this.setTokenCookies(res, tokens, true, 'lax');
-    res.redirect('/');
+    return { url: '/', statusCode: HttpStatus.FOUND };
   }
 }

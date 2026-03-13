@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Patch,
+  Redirect,
   Request,
   Res,
 } from '@nestjs/common';
@@ -33,6 +34,7 @@ export class AccountController {
   }
 
   @Patch(':providerId')
+  @Redirect()
   @HttpCode(HttpStatus.FOUND)
   @ApiOperation({ summary: 'Initiate account link for a given provider' })
   @ApiResponse({ status: 302, description: 'Redirects to the provider OAuth flow' })
@@ -45,7 +47,7 @@ export class AccountController {
       path: '/',
       maxAge: LINK_INTENT_EXPIRES_MS,
     });
-    res.redirect(`/api/auth/${providerId}`);
+    return { url: `/api/auth/${providerId}`, statusCode: HttpStatus.FOUND };
   }
 
   @Delete(':id')

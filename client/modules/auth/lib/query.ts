@@ -34,6 +34,7 @@ export type SignUpResponse = { user: { id: string } };
 export type ForgotPasswordInput = {
   email: string;
   callbackURL?: string;
+  errorURL?: string;
 };
 
 export type ForgotPasswordResponse = { ok: boolean };

@@ -30,7 +30,11 @@ export class EmailService {
   ) {}
 
   /** Step 1: send a magic sign-in link to the email address */
-  async sendSignInLink(email: string, callbackURL?: string): Promise<void> {
+  async sendSignInLink(
+    email: string,
+    callbackURL?: string,
+    errorURL?: string,
+  ): Promise<void> {
     const normalizedEmail = email.toLowerCase().trim();
     const user = await this.dataSource
       .getRepository(User)
@@ -45,8 +49,9 @@ export class EmailService {
     );
 
     const encodedCallback = encodeURIComponent(callbackURL ?? '/');
+    const encodedError = encodeURIComponent(errorURL ?? '/auth/error');
     const baseURL = this.configService.getOrThrow<string>('app.url');
-    const url = `${baseURL}/api/auth/verify-email-link?token=${token}&callbackURL=${encodedCallback}`;
+    const url = `${baseURL}/api/auth/verify-email-link?token=${token}&callbackURL=${encodedCallback}&errorURL=${encodedError}`;
 
     await this.mailerService.sendMail({
       to: normalizedEmail,
@@ -138,6 +143,7 @@ export class EmailService {
   async resendVerificationEmail(
     email: string,
     callbackURL?: string,
+    errorURL?: string,
   ): Promise<void> {
     const normalizedEmail = email.toLowerCase().trim();
     const user = await this.dataSource
@@ -145,10 +151,15 @@ export class EmailService {
       .findOne({ where: { email: normalizedEmail } });
 
     if (!user || user.emailVerified) return; // prevent enumeration
-    await this.sendVerificationEmail(normalizedEmail, callbackURL);
+    await this.sendVerificationEmail(normalizedEmail, callbackURL, errorURL);
   }
 
-  async initiateEmailChange(userId: string, newEmail: string): Promise<void> {
+  async initiateEmailChange(
+    userId: string,
+    newEmail: string,
+    callbackURL?: string,
+    errorURL?: string,
+  ): Promise<void> {
     const normalizedEmail = newEmail.toLowerCase().trim();
 
     const existing = await this.dataSource
@@ -166,8 +177,10 @@ export class EmailService {
       { secret, expiresIn: EMAIL_CHANGE_EXPIRES_MS / 1000 },
     );
 
+    const encodedCallback = encodeURIComponent(callbackURL ?? '/');
+    const encodedError = encodeURIComponent(errorURL ?? '/auth/error');
     const baseURL = this.configService.getOrThrow<string>('app.url');
-    const url = `${baseURL}/api/auth/verify-email-change?token=${token}`;
+    const url = `${baseURL}/api/auth/verify-email-change?token=${token}&callbackURL=${encodedCallback}&errorURL=${encodedError}`;
 
     await this.mailerService.sendMail({
       to: normalizedEmail,
@@ -218,6 +231,7 @@ export class EmailService {
   async sendVerificationEmail(
     email: string,
     callbackURL?: string,
+    errorURL?: string,
   ): Promise<void> {
     const secret = this.configService.getOrThrow<string>('auth.accessSecret');
     const token = await this.jwtService.signAsync(
@@ -226,8 +240,9 @@ export class EmailService {
     );
 
     const encodedCallback = encodeURIComponent(callbackURL ?? '/');
+    const encodedError = encodeURIComponent(errorURL ?? '/auth/error');
     const baseURL = this.configService.getOrThrow<string>('app.url');
-    const url = `${baseURL}/api/auth/verify-email?token=${token}&callbackURL=${encodedCallback}`;
+    const url = `${baseURL}/api/auth/verify-email?token=${token}&callbackURL=${encodedCallback}&errorURL=${encodedError}`;
 
     await this.mailerService.sendMail({
       to: email,

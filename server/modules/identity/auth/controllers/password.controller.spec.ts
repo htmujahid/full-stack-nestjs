@@ -309,21 +309,24 @@ describe('PasswordController', () => {
       expect(passwordService.forgotPassword).toHaveBeenCalledWith(
         'test@example.com',
         undefined,
+        undefined,
       );
       expect(result).toEqual({ ok: true });
     });
 
-    it('passes callbackURL to passwordService.forgotPassword', async () => {
+    it('passes callbackURL and errorURL to passwordService.forgotPassword', async () => {
       passwordService.forgotPassword.mockResolvedValue(undefined);
 
       await controller.forgotPassword({
         email: 'test@example.com',
         callbackURL: 'https://app.example.com/reset',
+        errorURL: 'https://app.example.com/auth/error',
       });
 
       expect(passwordService.forgotPassword).toHaveBeenCalledWith(
         'test@example.com',
         'https://app.example.com/reset',
+        'https://app.example.com/auth/error',
       );
     });
   });
@@ -331,67 +334,65 @@ describe('PasswordController', () => {
   // ─── resetPasswordCallback ───────────────────────────────────────────────────
 
   describe('resetPasswordCallback', () => {
-    it('redirects with token appended when token is valid and callbackURL is provided', async () => {
+    it('returns redirect with token appended when token is valid and callbackURL is provided', async () => {
       passwordService.validateResetPasswordToken.mockResolvedValue(true);
-      const res = makeMockResponse();
 
-      await controller.resetPasswordCallback(
+      const result = await controller.resetPasswordCallback(
         'valid-token',
         'https://app.example.com/reset',
-        res,
+        undefined,
       );
 
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example.com/reset?token=valid-token',
-      );
+      expect(result).toEqual({
+        url: 'https://app.example.com/reset?token=valid-token',
+        statusCode: 302,
+      });
     });
 
-    it('redirects with error=INVALID_TOKEN when token is invalid', async () => {
+    it('returns redirect to errorURL with error=INVALID_TOKEN when token is invalid', async () => {
       passwordService.validateResetPasswordToken.mockResolvedValue(false);
-      const res = makeMockResponse();
 
-      await controller.resetPasswordCallback(
+      const result = await controller.resetPasswordCallback(
         'bad-token',
         'https://app.example.com/reset',
-        res,
+        'https://app.example.com/auth/error',
       );
 
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example.com/reset?error=INVALID_TOKEN',
-      );
+      expect(result).toEqual({
+        url: 'https://app.example.com/auth/error?error=INVALID_TOKEN',
+        statusCode: 302,
+      });
     });
 
-    it('redirects to "/" when callbackURL is missing and token is invalid', async () => {
+    it('returns redirect to /auth/error when errorURL missing and token is invalid', async () => {
       passwordService.validateResetPasswordToken.mockResolvedValue(false);
-      const res = makeMockResponse();
 
-      await controller.resetPasswordCallback('bad-token', undefined, res);
+      const result = await controller.resetPasswordCallback('bad-token', undefined, undefined);
 
-      expect(res.redirect).toHaveBeenCalledWith('/');
+      expect(result).toEqual({ url: '/auth/error?error=INVALID_TOKEN', statusCode: 302 });
     });
 
-    it('redirects to error URL when callbackURL is missing but token is valid', async () => {
+    it('returns redirect to /auth/error when callbackURL missing but token is valid', async () => {
       passwordService.validateResetPasswordToken.mockResolvedValue(true);
-      const res = makeMockResponse();
 
-      await controller.resetPasswordCallback('valid-token', undefined, res);
+      const result = await controller.resetPasswordCallback('valid-token', undefined, undefined);
 
-      expect(res.redirect).toHaveBeenCalledWith('/');
+      expect(result).toEqual({ url: '/auth/error?error=INVALID_TOKEN', statusCode: 302 });
     });
 
     it('uses "&" as separator when callbackURL already contains a query string', async () => {
       passwordService.validateResetPasswordToken.mockResolvedValue(true);
-      const res = makeMockResponse();
 
-      await controller.resetPasswordCallback(
+      const result = await controller.resetPasswordCallback(
         'valid-token',
         'https://app.example.com/reset?step=2',
-        res,
+        undefined,
       );
 
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example.com/reset?step=2&token=valid-token',
-      );
+      expect(result).toEqual({
+        url: 'https://app.example.com/reset?step=2&token=valid-token',
+        statusCode: 302,
+      });
     });
   });
 

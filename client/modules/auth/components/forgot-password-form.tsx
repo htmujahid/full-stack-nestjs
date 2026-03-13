@@ -39,6 +39,7 @@ export function ForgotPasswordForm() {
       {
         email: data.email,
         callbackURL: `${window.location.origin}/auth/reset-password`,
+        errorURL: `${window.location.origin}/auth/error`,
       },
       {
         onSuccess: () => toast.success('Check your email', {

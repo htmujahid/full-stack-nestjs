@@ -473,15 +473,41 @@ describe('Identity Auth (e2e)', () => {
   // ─── GET /api/auth/verify-email-change ──────────────────────────────────────
 
   describe('GET /api/auth/verify-email-change', () => {
-    it('returns 200 with ok when valid', async () => {
+    it('redirects to callbackURL or / when valid', async () => {
       emailService.verifyEmailChange.mockResolvedValue({ ok: true });
 
-      const { body } = await request(app.getHttpServer())
+      const res = await request(app.getHttpServer())
         .get('/api/auth/verify-email-change')
         .query({ token: 'valid-token' })
-        .expect(200);
+        .expect(302);
 
-      expect(body.ok).toBe(true);
+      expect(res.header.location).toBe('/');
+    });
+
+    it('redirects to callbackURL when provided', async () => {
+      emailService.verifyEmailChange.mockResolvedValue({ ok: true });
+
+      const res = await request(app.getHttpServer())
+        .get('/api/auth/verify-email-change')
+        .query({ token: 'valid-token', callbackURL: '/dashboard' })
+        .expect(302);
+
+      expect(res.header.location).toBe('/dashboard');
+    });
+
+    it('redirects to errorURL when invalid', async () => {
+      emailService.verifyEmailChange.mockResolvedValue({
+        ok: false,
+        error: 'INVALID_TOKEN',
+      });
+
+      const res = await request(app.getHttpServer())
+        .get('/api/auth/verify-email-change')
+        .query({ token: 'bad-token', errorURL: '/auth/error' })
+        .expect(302);
+
+      expect(res.header.location).toContain('/auth/error');
+      expect(res.header.location).toContain('error=INVALID_TOKEN');
     });
   });
 

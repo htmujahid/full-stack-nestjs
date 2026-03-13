@@ -10,4 +10,9 @@ export class SignInEmailDto {
   @IsOptional()
   @IsString()
   callbackURL?: string;
+
+  @ApiPropertyOptional({ description: 'URL to redirect on error (e.g. invalid token)' })
+  @IsOptional()
+  @IsString()
+  errorURL?: string;
 }

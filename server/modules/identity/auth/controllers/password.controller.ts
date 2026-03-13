@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  Redirect,
   Request,
   Res,
   UseGuards,
@@ -100,31 +101,39 @@ export class PasswordController extends BaseAuthController {
     description: 'Always returns ok; does not leak whether account exists',
   })
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
-    await this.passwordService.forgotPassword(dto.email, dto.callbackURL);
+    await this.passwordService.forgotPassword(
+      dto.email,
+      dto.callbackURL,
+      dto.errorURL,
+    );
     return { ok: true };
   }
 
   @Public()
   @Get('reset-password/:token')
+  @Redirect('/')
   @ApiOperation({
     summary: 'Validate reset token and redirect to frontend with token',
   })
   async resetPasswordCallback(
     @Param('token') token: string,
     @Query('callbackURL') callbackURL: string | undefined,
-    @Res() res: Response,
+    @Query('errorURL') errorURL: string | undefined,
   ) {
     const isValid = await this.passwordService.validateResetPasswordToken(token);
-    const separator = callbackURL?.includes('?') ? '&' : '?';
+    const successSeparator = callbackURL?.includes('?') ? '&' : '?';
+    const errorTarget = errorURL ?? '/auth/error';
+    const errorSeparator = errorTarget.includes('?') ? '&' : '?';
 
     if (!isValid || !callbackURL) {
-      const errorURL = callbackURL
-        ? `${callbackURL}${separator}error=INVALID_TOKEN`
-        : '/';
-      return res.redirect(errorURL);
+      const url = errorTarget + `${errorSeparator}error=INVALID_TOKEN`;
+      return { url, statusCode: HttpStatus.FOUND };
     }
 
-    return res.redirect(`${callbackURL}${separator}token=${token}`);
+    return {
+      url: `${callbackURL}${successSeparator}token=${token}`,
+      statusCode: HttpStatus.FOUND,
+    };
   }
 
   @Public()

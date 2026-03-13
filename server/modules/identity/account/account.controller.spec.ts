@@ -81,12 +81,12 @@ describe('AccountController', () => {
       );
     });
 
-    it('redirects to /api/auth/:providerId', () => {
+    it('returns redirect to /api/auth/:providerId', () => {
       const res = makeMockResponse();
 
-      controller.linkAccount('google', res);
+      const result = controller.linkAccount('google', res);
 
-      expect(res.redirect).toHaveBeenCalledWith('/api/auth/google');
+      expect(result).toEqual({ url: '/api/auth/google', statusCode: 302 });
     });
 
     it('sets secure: false when NODE_ENV is not production', () => {

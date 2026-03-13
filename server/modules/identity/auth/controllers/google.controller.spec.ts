@@ -130,7 +130,7 @@ describe('GoogleController', () => {
       const req = makeMockRequest(profile, {});
       const res = makeMockResponse();
 
-      await controller.callback(req, undefined, undefined, res);
+      const result = await controller.callback(req, undefined, undefined, res);
 
       expect(googleService.findOrCreateUser).toHaveBeenCalledWith(profile);
       expect(googleService.createSession).toHaveBeenCalledWith(
@@ -139,7 +139,7 @@ describe('GoogleController', () => {
         expect.objectContaining({ ip: null, userAgent: null }),
       );
       expect(res.cookie).toHaveBeenCalledTimes(2);
-      expect(res.redirect).toHaveBeenCalledWith('/');
+      expect(result).toEqual({ url: '/', statusCode: 302 });
     });
 
     it('passes extracted IP and userAgent to createSession', async () => {
@@ -169,9 +169,9 @@ describe('GoogleController', () => {
       const req = makeMockRequest(makeGoogleProfile(), {});
       const res = makeMockResponse();
 
-      await controller.callback(req, undefined, undefined, res);
+      const result = await controller.callback(req, undefined, undefined, res);
 
-      expect(res.redirect).toHaveBeenCalledWith('/auth/two-factor');
+      expect(result).toEqual({ url: '/auth/two-factor', statusCode: 302 });
       expect(googleService.createSession).not.toHaveBeenCalled();
     });
   });
@@ -202,7 +202,10 @@ describe('GoogleController', () => {
           refreshToken: profile.refreshToken,
         }),
       );
-      expect(res.redirect).toHaveBeenCalledWith('/settings/accounts?linked=google');
+      expect(await controller.callback(req, undefined, undefined, res)).toEqual({
+        url: '/settings/accounts?linked=google',
+        statusCode: 302,
+      });
     });
 
     it('redirects with error=not_authenticated when no access_token cookie is present', async () => {
@@ -211,11 +214,12 @@ describe('GoogleController', () => {
       });
       const res = makeMockResponse();
 
-      await controller.callback(req, undefined, undefined, res);
+      const result = await controller.callback(req, undefined, undefined, res);
 
-      expect(res.redirect).toHaveBeenCalledWith(
-        '/settings/accounts?error=not_authenticated',
-      );
+      expect(result).toEqual({
+        url: '/settings/accounts?error=not_authenticated',
+        statusCode: 302,
+      });
       expect(accountService.linkAccount).not.toHaveBeenCalled();
     });
 
@@ -230,11 +234,12 @@ describe('GoogleController', () => {
         throw new Error('jwt expired');
       });
 
-      await controller.callback(req, undefined, undefined, res);
+      const result = await controller.callback(req, undefined, undefined, res);
 
-      expect(res.redirect).toHaveBeenCalledWith(
-        '/settings/accounts?error=session_expired',
-      );
+      expect(result).toEqual({
+        url: '/settings/accounts?error=session_expired',
+        statusCode: 302,
+      });
       expect(accountService.linkAccount).not.toHaveBeenCalled();
     });
 
@@ -250,11 +255,12 @@ describe('GoogleController', () => {
         new Error('This google account is already linked'),
       );
 
-      await controller.callback(req, undefined, undefined, res);
+      const result = await controller.callback(req, undefined, undefined, res);
 
-      expect(res.redirect).toHaveBeenCalledWith(
-        `/settings/accounts?error=${encodeURIComponent('This google account is already linked')}`,
-      );
+      expect(result).toEqual({
+        url: `/settings/accounts?error=${encodeURIComponent('This google account is already linked')}`,
+        statusCode: 302,
+      });
     });
 
     it('clears the LINK_INTENT_COOKIE before handling link callback', async () => {

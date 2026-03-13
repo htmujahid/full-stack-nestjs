@@ -116,7 +116,11 @@ export class PasswordService {
   }
 
   // Random opaque token stored in DB for password reset
-  async forgotPassword(email: string, callbackURL?: string): Promise<void> {
+  async forgotPassword(
+    email: string,
+    callbackURL?: string,
+    errorURL?: string,
+  ): Promise<void> {
     const normalizedEmail = email.toLowerCase().trim();
     const user = await this.dataSource
       .getRepository(User)
@@ -144,8 +148,11 @@ export class PasswordService {
     );
 
     const encodedCallback = encodeURIComponent(callbackURL ?? '/');
+    const encodedError = errorURL
+      ? encodeURIComponent(errorURL)
+      : encodeURIComponent('/auth/error');
     const baseURL = this.configService.getOrThrow<string>('app.url');
-    const url = `${baseURL}/api/auth/reset-password/${token}?callbackURL=${encodedCallback}`;
+    const url = `${baseURL}/api/auth/reset-password/${token}?callbackURL=${encodedCallback}&errorURL=${encodedError}`;
 
     await this.mailerService.sendMail({
       to: normalizedEmail,

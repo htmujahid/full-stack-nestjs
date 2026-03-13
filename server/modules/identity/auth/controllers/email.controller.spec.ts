@@ -105,6 +105,7 @@ describe('EmailController', () => {
       expect(emailService.sendSignInLink).toHaveBeenCalledWith(
         'test@example.com',
         '/dashboard',
+        undefined,
       );
       expect(result).toEqual({ ok: true });
     });
@@ -116,6 +117,7 @@ describe('EmailController', () => {
 
       expect(emailService.sendSignInLink).toHaveBeenCalledWith(
         'test@example.com',
+        undefined,
         undefined,
       );
     });
@@ -138,11 +140,16 @@ describe('EmailController', () => {
         '/dashboard',
         undefined,
         undefined,
+        undefined,
         res,
         req,
       );
 
-      expect(result).toEqual({ ok: false, error: 'INVALID_TOKEN', url: '/dashboard' });
+      expect(result).toEqual({
+        ok: false,
+        error: 'INVALID_TOKEN',
+        url: '/auth/error?error=INVALID_TOKEN',
+      });
       expect(res.cookie).not.toHaveBeenCalled();
     });
 
@@ -160,11 +167,16 @@ describe('EmailController', () => {
         undefined,
         undefined,
         undefined,
+        undefined,
         res,
         req,
       );
 
-      expect(result).toEqual({ ok: false, error: 'EXPIRED', url: null });
+      expect(result).toEqual({
+        ok: false,
+        error: 'EXPIRED',
+        url: '/auth/error?error=EXPIRED',
+      });
     });
 
     it('returns { twoFactorRedirect: true } when 2FA gate is pending', async () => {
@@ -180,6 +192,7 @@ describe('EmailController', () => {
       const result = await controller.verifySignInLink(
         'valid-token',
         '/dashboard',
+        undefined,
         undefined,
         undefined,
         res,
@@ -201,6 +214,7 @@ describe('EmailController', () => {
       const result = await controller.verifySignInLink(
         'valid-token',
         '/dashboard',
+        undefined,
         undefined,
         undefined,
         res,
@@ -227,6 +241,7 @@ describe('EmailController', () => {
 
       await controller.verifySignInLink(
         'valid-token',
+        undefined,
         undefined,
         '10.0.0.1, 172.16.0.1',
         'jest-agent',
@@ -255,6 +270,7 @@ describe('EmailController', () => {
       expect(emailService.resendVerificationEmail).toHaveBeenCalledWith(
         'test@example.com',
         '/verify',
+        undefined,
       );
       expect(result).toEqual({ ok: true });
     });
@@ -263,7 +279,7 @@ describe('EmailController', () => {
   // ─── verifyEmail ─────────────────────────────────────────────────────────────
 
   describe('verifyEmail', () => {
-    it('returns { ok: false, error, url } when service returns !ok', async () => {
+    it('returns redirect to errorURL when service returns !ok', async () => {
       emailService.verifyEmail.mockResolvedValue({
         ok: false,
         error: 'TOKEN_EXPIRED',
@@ -276,16 +292,21 @@ describe('EmailController', () => {
         '/verify',
         undefined,
         undefined,
+        undefined,
         res,
       );
 
-      expect(result).toEqual({ ok: false, error: 'TOKEN_EXPIRED' });
+      expect(result).toEqual({
+        url: '/auth/error?error=TOKEN_EXPIRED',
+        statusCode: 302,
+      });
       expect(res.cookie).not.toHaveBeenCalled();
     });
 
     it('sets token cookies and returns { url } on success (Redirect)', async () => {
+      const user = makeUser();
       const tokens = makeTokens();
-      emailService.verifyEmail.mockResolvedValue({ ok: true, tokens });
+      emailService.verifyEmail.mockResolvedValue({ ok: true, user, tokens });
 
       const res = makeMockResponse();
 
@@ -294,16 +315,18 @@ describe('EmailController', () => {
         undefined,
         undefined,
         undefined,
+        undefined,
         res,
       );
 
       expect(res.cookie).toHaveBeenCalledTimes(2);
-      expect(result).toEqual({ url: '/' });
+      expect(result).toEqual({ url: '/', statusCode: 302 });
     });
 
     it('returns { url: callbackURL } when callbackURL provided', async () => {
+      const user = makeUser();
       const tokens = makeTokens();
-      emailService.verifyEmail.mockResolvedValue({ ok: true, tokens });
+      emailService.verifyEmail.mockResolvedValue({ ok: true, user, tokens });
 
       const res = makeMockResponse();
 
@@ -312,11 +335,12 @@ describe('EmailController', () => {
         '/dashboard',
         undefined,
         undefined,
+        undefined,
         res,
       );
 
       expect(res.cookie).toHaveBeenCalledTimes(2);
-      expect(result).toEqual({ url: '/dashboard' });
+      expect(result).toEqual({ url: '/dashboard', statusCode: 302 });
     });
   });
 
@@ -335,6 +359,8 @@ describe('EmailController', () => {
       expect(emailService.initiateEmailChange).toHaveBeenCalledWith(
         'user-uuid',
         'new@example.com',
+        undefined,
+        undefined,
       );
       expect(result).toEqual({ ok: true });
     });
@@ -355,23 +381,38 @@ describe('EmailController', () => {
   // ─── verifyEmailChange ───────────────────────────────────────────────────────
 
   describe('verifyEmailChange', () => {
-    it('returns { ok: false, error } when service returns !ok', async () => {
+    it('returns redirect to errorURL when service returns !ok', async () => {
       emailService.verifyEmailChange.mockResolvedValue({
         ok: false,
         error: 'INVALID_TOKEN',
       });
 
-      const result = await controller.verifyEmailChange('bad-token');
+      const res = makeMockResponse();
+      const result = await controller.verifyEmailChange(
+        'bad-token',
+        undefined,
+        undefined,
+        res,
+      );
 
-      expect(result).toEqual({ ok: false, error: 'INVALID_TOKEN' });
+      expect(result).toEqual({
+        url: '/auth/error?error=INVALID_TOKEN',
+        statusCode: 302,
+      });
     });
 
-    it('returns { ok: true } on success', async () => {
+    it('returns { url, statusCode } redirect on success', async () => {
       emailService.verifyEmailChange.mockResolvedValue({ ok: true });
 
-      const result = await controller.verifyEmailChange('valid-token');
+      const res = makeMockResponse();
+      const result = await controller.verifyEmailChange(
+        'valid-token',
+        undefined,
+        undefined,
+        res,
+      );
 
-      expect(result).toEqual({ ok: true });
+      expect(result).toEqual({ url: '/', statusCode: 302 });
     });
   });
 });
