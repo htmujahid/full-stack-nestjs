@@ -1,1 +1,235 @@
-index page
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/client/style.css" rel="stylesheet" />
+    <title>crude</title>
+  </head>
+  <body class="min-h-screen antialiased">
+    <header class="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div class="container mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
+        <a href="/" class="text-lg font-semibold text-foreground">crude</a>
+        <nav class="flex items-center gap-3" aria-label="Main navigation">
+          <a
+            href="/auth/sign-in"
+            class="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            Sign in
+          </a>
+          <a
+            href="/auth/sign-up"
+            class="inline-flex h-8 items-center justify-center rounded-lg border border-transparent bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            Sign up
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="relative overflow-hidden py-20 sm:py-28 md:py-36" aria-labelledby="hero-heading">
+        <div class="container mx-auto max-w-5xl px-4 sm:px-6">
+          <div class="mx-auto max-w-2xl text-center">
+            <h1 id="hero-heading" class="text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl">
+              Build something <span class="text-primary">crude</span>
+            </h1>
+            <p class="mt-4 text-lg text-muted-foreground sm:text-xl">
+              A minimal full-stack foundation. NestJS, React, Vite — ready to ship.
+            </p>
+            <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <a
+                href="/auth/sign-up"
+                class="inline-flex h-9 items-center justify-center rounded-lg border border-transparent bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                Get started
+              </a>
+              <a
+                href="/about"
+                class="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-background px-4 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                Learn more
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="border-t border-border bg-muted/30 py-16 sm:py-20" aria-labelledby="features-heading">
+        <div class="container mx-auto max-w-5xl px-4 sm:px-6">
+          <h2 id="features-heading" class="sr-only">Features</h2>
+          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <article
+              class="group/card flex flex-col gap-4 overflow-hidden rounded-xl bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10"
+            >
+              <div class="px-4">
+                <h3 class="text-base font-medium leading-snug">Modern stack</h3>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  NestJS 11, React 19, Vite 7. TypeScript end-to-end with strict mode.
+                </p>
+              </div>
+            </article>
+            <article
+              class="group/card flex flex-col gap-4 overflow-hidden rounded-xl bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10"
+            >
+              <div class="px-4">
+                <h3 class="text-base font-medium leading-snug">shadcn UI</h3>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  Accessible components, design tokens, and a clean neutral aesthetic.
+                </p>
+              </div>
+            </article>
+            <article
+              class="group/card flex flex-col gap-4 overflow-hidden rounded-xl bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10 sm:col-span-2 lg:col-span-1"
+            >
+              <div class="px-4">
+                <h3 class="text-base font-medium leading-snug">Developer experience</h3>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  Hot reload, path aliases, and a single dev server for API and frontend.
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="py-16 sm:py-20" aria-labelledby="how-it-works-heading">
+        <div class="container mx-auto max-w-5xl px-4 sm:px-6">
+          <h2 id="how-it-works-heading" class="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            How it works
+          </h2>
+          <p class="mx-auto mt-2 max-w-xl text-center text-muted-foreground">
+            Get from zero to deployed in three steps.
+          </p>
+          <div class="mt-12 grid gap-8 sm:grid-cols-3">
+            <div class="relative flex flex-col items-center text-center">
+              <span class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">1</span>
+              <h3 class="mt-4 text-base font-medium">Clone & run</h3>
+              <p class="mt-1 text-sm text-muted-foreground">
+                One command to start. API and frontend run together.
+              </p>
+            </div>
+            <div class="relative flex flex-col items-center text-center">
+              <span class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">2</span>
+              <h3 class="mt-4 text-base font-medium">Customize</h3>
+              <p class="mt-1 text-sm text-muted-foreground">
+                Add your features. Auth, DB, and UI components are ready.
+              </p>
+            </div>
+            <div class="relative flex flex-col items-center text-center">
+              <span class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">3</span>
+              <h3 class="mt-4 text-base font-medium">Ship</h3>
+              <p class="mt-1 text-sm text-muted-foreground">
+                Deploy anywhere. Docker or your own infra.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="border-t border-border bg-muted/30 py-16 sm:py-20" aria-labelledby="stats-heading">
+        <div class="container mx-auto max-w-5xl px-4 sm:px-6">
+          <h2 id="stats-heading" class="sr-only">By the numbers</h2>
+          <div class="grid gap-8 sm:grid-cols-3">
+            <div class="text-center">
+              <p class="text-3xl font-bold text-primary sm:text-4xl">1</p>
+              <p class="mt-1 text-sm text-muted-foreground">Dev server for full stack</p>
+            </div>
+            <div class="text-center">
+              <p class="text-3xl font-bold text-primary sm:text-4xl">0</p>
+              <p class="mt-1 text-sm text-muted-foreground">Config needed to start</p>
+            </div>
+            <div class="text-center">
+              <p class="text-3xl font-bold text-primary sm:text-4xl">∞</p>
+              <p class="mt-1 text-sm text-muted-foreground">Ways to extend</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="py-16 sm:py-20" aria-labelledby="testimonials-heading">
+        <div class="container mx-auto max-w-5xl px-4 sm:px-6">
+          <h2 id="testimonials-heading" class="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            Built for builders
+          </h2>
+          <div class="mt-12 grid gap-6 sm:grid-cols-2">
+            <blockquote class="rounded-xl border border-border bg-card px-6 py-5 ring-1 ring-foreground/10">
+              <p class="text-sm text-card-foreground">
+                "Finally, a stack that doesn't fight you. I had a working API and dashboard in an afternoon."
+              </p>
+              <footer class="mt-3 text-xs text-muted-foreground">— Developer, startup</footer>
+            </blockquote>
+            <blockquote class="rounded-xl border border-border bg-card px-6 py-5 ring-1 ring-foreground/10">
+              <p class="text-sm text-card-foreground">
+                "The auth and 2FA setup saved us weeks. We just wired it up and shipped."
+              </p>
+              <footer class="mt-3 text-xs text-muted-foreground">— CTO, SaaS</footer>
+            </blockquote>
+          </div>
+        </div>
+      </section>
+
+      <section class="border-t border-border bg-muted/30 py-16 sm:py-20" aria-labelledby="faq-heading">
+        <div class="container mx-auto max-w-3xl px-4 sm:px-6">
+          <h2 id="faq-heading" class="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            FAQ
+          </h2>
+          <dl class="mt-12 space-y-6">
+            <div class="rounded-xl border border-border bg-card px-6 py-4 ring-1 ring-foreground/10">
+              <dt class="font-medium text-card-foreground">Do I need to know NestJS?</dt>
+              <dd class="mt-2 text-sm text-muted-foreground">
+                Helpful, but not required. The structure is clear and you can follow the patterns.
+              </dd>
+            </div>
+            <div class="rounded-xl border border-border bg-card px-6 py-4 ring-1 ring-foreground/10">
+              <dt class="font-medium text-card-foreground">Can I use a different database?</dt>
+              <dd class="mt-2 text-sm text-muted-foreground">
+                Yes. TypeORM supports PostgreSQL, MySQL, SQLite, and more. Swap the driver and go.
+              </dd>
+            </div>
+            <div class="rounded-xl border border-border bg-card px-6 py-4 ring-1 ring-foreground/10">
+              <dt class="font-medium text-card-foreground">Is it free?</dt>
+              <dd class="mt-2 text-sm text-muted-foreground">
+                The stack is open source. Host it wherever you want — no vendor lock-in.
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="py-16 sm:py-20" aria-labelledby="cta-heading">
+        <div class="container mx-auto max-w-5xl px-4 sm:px-6">
+          <div
+            class="flex flex-col items-center gap-6 rounded-xl border border-border bg-card px-6 py-12 text-center ring-1 ring-foreground/10 sm:px-12"
+          >
+            <h2 id="cta-heading" class="text-2xl font-semibold tracking-tight text-card-foreground sm:text-3xl">
+              Ready to build?
+            </h2>
+            <p class="max-w-xl text-muted-foreground">
+              Start with a solid foundation. Customize, extend, and ship.
+            </p>
+            <a
+              href="/contact"
+              class="inline-flex h-9 items-center justify-center rounded-lg border border-transparent bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              Get in touch
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-border bg-muted/30 py-8">
+      <div class="container mx-auto max-w-5xl px-4 sm:px-6">
+        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <p class="text-sm text-muted-foreground">© crude</p>
+          <nav class="flex items-center gap-6" aria-label="Footer navigation">
+            <a href="/about" class="text-sm text-muted-foreground transition-colors hover:text-foreground">About</a>
+            <a href="/contact" class="text-sm text-muted-foreground transition-colors hover:text-foreground">Contact</a>
+          </nav>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

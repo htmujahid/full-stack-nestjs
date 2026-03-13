@@ -5,7 +5,7 @@ export function RootProviders({ children }: { children: React.ReactNode }) {
   return (
     <TooltipProvider>
       {children}
-      <Toaster />
+      <Toaster theme="light" />
     </TooltipProvider>
   )
 }
