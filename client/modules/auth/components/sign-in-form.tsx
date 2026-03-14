@@ -62,7 +62,6 @@ export function SignInForm() {
             return;
           }
           void queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY });
-          navigate('/home', { replace: true });
         },
         onError: (e) => setError('root', { message: getAuthErrorMessage(e) }),
       },

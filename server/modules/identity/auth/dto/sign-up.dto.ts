@@ -43,6 +43,14 @@ export class SignUpDto {
   @IsString()
   image?: string;
 
+  @ApiPropertyOptional({ description: 'Phone number in E.164 format, e.g. +12345678900' })
+  @IsOptional()
+  @IsString()
+  @Matches(/^\+[1-9]\d{6,14}$/, {
+    message: 'Phone must be in E.164 format (e.g. +12345678900)',
+  })
+  phone?: string;
+
   @ApiPropertyOptional({ description: 'Callback URL after email verification' })
   @IsOptional()
   @IsString()

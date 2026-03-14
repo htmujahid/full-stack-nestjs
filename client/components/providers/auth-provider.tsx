@@ -89,7 +89,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     retry: false,
     staleTime: 5 * 60 * 1000,
   });
-  console.log(session);
 
   const refetchUser = useMemo(
     () => () => void queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY }),

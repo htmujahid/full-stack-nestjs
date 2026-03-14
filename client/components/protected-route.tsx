@@ -25,7 +25,9 @@ export function ProtectedRoute({ redirectTo = '/auth/sign-in' }: ProtectedRouteP
   }
 
   if (!isAuthenticated) {
-    return <Navigate to={redirectTo} state={{ from: location }} replace />;
+    const from = location.pathname + location.search + location.hash;
+    const search = new URLSearchParams({ redirectTo: from }).toString();
+    return <Navigate to={{ pathname: redirectTo, search: search ? `?${search}` : '' }} replace />;
   }
 
   return <Outlet />;

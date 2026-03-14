@@ -61,11 +61,21 @@ export class PasswordService {
         }
       }
 
+      const normalizedPhone = dto.phone?.trim() ?? null;
+      if (normalizedPhone) {
+        const existingPhone = await userRepo.findOne({
+          where: { phone: normalizedPhone },
+        });
+        if (existingPhone) {
+          throw new ConflictException('Phone number is already in use.');
+        }
+      }
 
       const user = userRepo.create({
         name: dto.name,
         email: normalizedEmail,
         username: dto.username ? dto.username.toLowerCase().trim() : null,
+        phone: normalizedPhone,
         image: dto.image ?? null,
         emailVerified: false,
       });

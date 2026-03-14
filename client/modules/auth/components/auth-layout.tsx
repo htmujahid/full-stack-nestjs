@@ -1,11 +1,13 @@
 import { Suspense } from 'react';
 import { GalleryVerticalEnd } from 'lucide-react';
-import { Link, Navigate, Outlet } from 'react-router';
+import { Link, Navigate, Outlet, useSearchParams } from 'react-router';
 import { useUser } from '@/components/providers/auth-provider';
 import { Spinner } from '@/components/ui/spinner';
 
 export default function AuthLayout() {
+  const [searchParams] = useSearchParams();
   const { isAuthenticated, isLoading } = useUser();
+  const redirectTo = searchParams.get('redirectTo') ?? '/home';
 
   if (isLoading) {
     return (
@@ -16,7 +18,7 @@ export default function AuthLayout() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
   return (
