@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Spinner } from '@/components/ui/spinner';
+import { paths } from '@/config/paths.config';
 
 type OAuthAction = 'sign-in' | 'sign-up';
 
@@ -27,12 +29,16 @@ type OAuthProvidersProps = {
 };
 
 export function OAuthProviders({ action, disabled }: OAuthProvidersProps) {
+  const [searchParams] = useSearchParams();
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const label = action === 'sign-in' ? 'Sign in' : 'Sign up';
+  const redirectUri = searchParams.get('redirectTo') ?? paths.home;
 
   const handleClick = (providerId: string) => {
     setLoadingProvider(providerId);
-    window.location.href = `/api/oauth/${providerId}`;
+    const url = new URL(`/api/oauth/${providerId}`, window.location.origin);
+    url.searchParams.set('redirectUri', redirectUri);
+    window.location.href = url.toString();
   };
 
   return (
