@@ -9,7 +9,6 @@ import { AppService } from './app.service';
 import { ViteMiddleware } from './common/middlewares/vite.middleware';
 import { AppConfigModule } from './config.module';
 import { DatabaseModule } from './database/database.module';
-import { HealthModule } from './modules/health/health.module';
 import { CoreModule } from './modules/core/core.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { DeskModule } from './modules/desk/desk.module';
@@ -19,7 +18,6 @@ import { UploadModule } from './modules/upload/upload.module';
   imports: [
     AppConfigModule,
     DatabaseModule,
-    HealthModule,
     CoreModule,
     IdentityModule,
     DeskModule,
