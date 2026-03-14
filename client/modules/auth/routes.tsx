@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import { Navigate, Route } from 'react-router';
+import { paths } from '@/config/paths.config';
 
 const AuthLayout = lazy(() => import('./components/auth-layout'));
 const SignInPage = lazy(() => import('./pages/sign-in'));
@@ -23,7 +24,7 @@ export const authRoutes = (
     <Route path="reset-password" element={<ResetPasswordPage />} />
     <Route path="magic-link" element={<MagicLinkPage />} />
     <Route path="one-time">
-      <Route index element={<Navigate to="/auth/magic-link" replace />} />
+      <Route index element={<Navigate to={paths.auth.magicLink} replace />} />
       <Route path="phone" element={<OneTimePhonePage />} />
       <Route path="verify" element={<OneTimeVerifyPage />} />
     </Route>

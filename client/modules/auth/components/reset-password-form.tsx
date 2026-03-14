@@ -18,6 +18,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from '@/components/ui/input-group';
+import { paths } from '@/config/paths.config';
 import { Spinner } from '@/components/ui/spinner';
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -59,7 +60,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       {
         onSuccess: () => {
           toast.success('Password reset successful');
-          navigate('/auth/sign-in', { replace: true });
+          navigate(paths.auth.signIn, { replace: true });
         },
         onError: (e) => setError('root', { message: getAuthErrorMessage(e) }),
       },
@@ -72,7 +73,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         <p className="text-sm text-muted-foreground">
           Invalid or expired reset link. Please request a new one.
         </p>
-        <Link to="/auth/forgot-password" className={buttonVariants()}>
+        <Link to={paths.auth.forgotPassword} className={buttonVariants()}>
           Request new link
         </Link>
       </div>
@@ -164,7 +165,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           </Button>
           <FieldDescription className="text-center">
             Remember your password?{' '}
-            <Link to="/auth/sign-in">Sign in</Link>
+            <Link to={paths.auth.signIn}>Sign in</Link>
           </FieldDescription>
         </Field>
       </FieldGroup>

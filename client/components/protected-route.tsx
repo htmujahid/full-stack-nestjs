@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
+import { paths } from '@/config/paths.config';
 import { useUser } from '@/components/providers/auth-provider';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -7,7 +8,7 @@ type ProtectedRouteProps = {
   redirectTo?: string;
 };
 
-export function ProtectedRoute({ redirectTo = '/auth/sign-in' }: ProtectedRouteProps) {
+export function ProtectedRoute({ redirectTo = paths.auth.signIn }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useUser();
   const location = useLocation();
 

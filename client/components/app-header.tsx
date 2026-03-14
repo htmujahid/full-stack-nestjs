@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router';
+import { paths } from '@/config/paths.config';
 import { useQueryClient } from '@tanstack/react-query';
 import { BadgeCheck, Home, LogOut, Shield, User } from 'lucide-react';
 import { ME_QUERY_KEY, useUser } from '@/components/providers/auth-provider';
@@ -29,7 +30,7 @@ export function AppHeader({ children }: AppHeaderProps) {
     signOut.mutate(undefined, {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY });
-        navigate('/auth/sign-in', { replace: true });
+        navigate(paths.auth.signIn, { replace: true });
       },
     });
   };
@@ -37,7 +38,7 @@ export function AppHeader({ children }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b bg-background">
       <div className="container mx-auto flex h-14 max-w-7xl items-center gap-4 px-4">
-        <Link to="/home" className="font-semibold">
+        <Link to={paths.home} className="font-semibold">
           crude
         </Link>
         <nav className="flex flex-1 items-center gap-4">{children}</nav>
@@ -82,19 +83,19 @@ export function AppHeader({ children }: AppHeaderProps) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => navigate('/home')}>
+              <DropdownMenuItem onClick={() => navigate(paths.home)}>
                 <Home className="size-4" />
                 Home
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/account/profile')}>
+              <DropdownMenuItem onClick={() => navigate(paths.account.profile)}>
                 <User className="size-4" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/account/verification')}>
+              <DropdownMenuItem onClick={() => navigate(paths.account.verification)}>
                 <BadgeCheck className="size-4" />
                 Verification
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/account/security')}>
+              <DropdownMenuItem onClick={() => navigate(paths.account.security)}>
                 <Shield className="size-4" />
                 Security
               </DropdownMenuItem>

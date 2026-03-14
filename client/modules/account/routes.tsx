@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import { Navigate, Route } from 'react-router';
+import { paths } from '@/config/paths.config';
 import { FreshJwtRoute } from '@/components/fresh-jwt-route';
 import { ProtectedRoute } from '@/components/protected-route';
 
@@ -11,7 +12,7 @@ const SecurityPage = lazy(() => import('./pages/security'));
 export const accountRoutes = (
   <Route path="account" element={<ProtectedRoute />}>
     <Route element={<AccountLayout />}>
-      <Route index element={<Navigate to="/account/profile" replace />} />
+      <Route index element={<Navigate to={paths.account.profile} replace />} />
       <Route path="profile" element={<ProfilePage />} />
       <Route path="verification" element={<FreshJwtRoute />}>
         <Route index element={<VerificationPage />} />

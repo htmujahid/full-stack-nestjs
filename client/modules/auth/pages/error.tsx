@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from 'react-router';
+import { paths } from '@/config/paths.config';
 import {
   Card,
   CardContent,
@@ -34,13 +35,13 @@ export default function AuthErrorPage() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <Link
-            to="/auth/sign-in"
+            to={paths.auth.signIn}
             className={cn(buttonVariants({ variant: 'default' }))}
           >
             Sign in
           </Link>
           <FieldDescription className="text-center">
-            <Link to="/auth/forgot-password" className="underline hover:no-underline">
+            <Link to={paths.auth.forgotPassword} className="underline hover:no-underline">
               Forgot password?
             </Link>
           </FieldDescription>

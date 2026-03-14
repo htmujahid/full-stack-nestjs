@@ -11,6 +11,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { paths } from '@/config/paths.config';
 import { Spinner } from '@/components/ui/spinner';
 
 type OneTimePhoneFormData = { phone: string };
@@ -35,7 +36,7 @@ export function OneTimePhoneForm() {
     signInPhone.mutate(
       {
         phone: data.phone,
-        callbackURL: `${window.location.origin}/home`,
+        callbackURL: `${window.location.origin}${paths.home}`,
       },
       {
         onSuccess: () => {
@@ -43,7 +44,7 @@ export function OneTimePhoneForm() {
             description: "If an account exists, you'll receive an OTP code.",
           });
           navigate(
-            `/auth/one-time/verify?phone=${encodeURIComponent(data.phone)}`,
+            `${paths.auth.oneTimeVerify}?phone=${encodeURIComponent(data.phone)}`,
             {
               replace: true,
             },
@@ -94,10 +95,10 @@ export function OneTimePhoneForm() {
     </form>
     <div className="mt-4 flex flex-col gap-3">
       <FieldDescription className="text-center">
-        Prefer magic link? <Link to="/auth/magic-link">Sign in with email</Link>
+        Prefer magic link? <Link to={paths.auth.magicLink}>Sign in with email</Link>
       </FieldDescription>
       <FieldDescription className="text-center">
-        <Link to="/auth/sign-in">Back to sign in</Link>
+        <Link to={paths.auth.signIn}>Back to sign in</Link>
       </FieldDescription>
     </div>
   </>

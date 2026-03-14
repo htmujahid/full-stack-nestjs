@@ -1,13 +1,14 @@
 import { Suspense } from 'react';
 import { GalleryVerticalEnd } from 'lucide-react';
 import { Link, Navigate, Outlet, useSearchParams } from 'react-router';
+import { paths } from '@/config/paths.config';
 import { useUser } from '@/components/providers/auth-provider';
 import { Spinner } from '@/components/ui/spinner';
 
 export default function AuthLayout() {
   const [searchParams] = useSearchParams();
   const { isAuthenticated, isLoading } = useUser();
-  const redirectTo = searchParams.get('redirectTo') ?? '/home';
+  const redirectTo = searchParams.get('redirectTo') ?? paths.home;
 
   if (isLoading) {
     return (
@@ -24,7 +25,7 @@ export default function AuthLayout() {
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-8 bg-muted p-6 transition-colors md:p-10">
       <div className="flex items-center w-full max-w-sm flex-col gap-6">
-        <Link to="/home" className="flex items-center gap-2 self-center font-medium">
+        <Link to={paths.home} className="flex items-center gap-2 self-center font-medium">
           <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <GalleryVerticalEnd className="size-4" />
           </div>

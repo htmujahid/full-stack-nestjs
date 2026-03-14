@@ -21,6 +21,7 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group';
 import { OAuthProviders } from './oauth-providers';
+import { paths } from '@/config/paths.config';
 import { Spinner } from '@/components/ui/spinner';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -59,14 +60,14 @@ export function SignUpForm() {
         username: data.username,
         email: data.email,
         password: data.password,
-        callbackURL: '/home'
+        callbackURL: paths.home
       },
       {
         onSuccess: () => {
           toast.success('Verification email sent', {
             description: 'Check your inbox and verify your email address.',
           });
-          navigate('/auth/sign-in', { replace: true });
+          navigate(paths.auth.signIn, { replace: true });
         },
         onError: (e) => setError('root', { message: getAuthErrorMessage(e) }),
       },
@@ -163,7 +164,7 @@ export function SignUpForm() {
           </Button>
           <FieldDescription className="text-center">
             Already have an account?{' '}
-            <Link to="/auth/sign-in">
+            <Link to={paths.auth.signIn}>
               Sign in
             </Link>
           </FieldDescription>

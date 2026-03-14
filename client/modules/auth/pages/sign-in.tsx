@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { paths } from '@/config/paths.config';
 import {
   Card,
   CardContent,
@@ -25,8 +26,8 @@ export default function SignInPage() {
       </Card>
       <FieldDescription className="px-6 text-center">
         By clicking continue, you agree to our{' '}
-        <Link to="/terms">Terms of Service</Link> and{' '}
-        <Link to="/privacy">Privacy Policy</Link>
+        <Link to={paths.terms}>Terms of Service</Link> and{' '}
+        <Link to={paths.privacy}>Privacy Policy</Link>
         .
       </FieldDescription>
     </div>

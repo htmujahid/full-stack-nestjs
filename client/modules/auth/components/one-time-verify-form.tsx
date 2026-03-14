@@ -15,6 +15,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp';
+import { paths } from '@/config/paths.config';
 import { Spinner } from '@/components/ui/spinner';
 
 const OTP_LENGTH = 6;
@@ -42,16 +43,16 @@ export function OneTimeVerifyForm() {
         phone,
         code: otp,
         rememberMe: true,
-        callbackURL: `${window.location.origin}/home`,
+        callbackURL: `${window.location.origin}${paths.home}`,
       },
       {
         onSuccess: (res) => {
           if ('twoFactorRedirect' in res) {
-            navigate('/auth/two-factor', { replace: true });
+            navigate(paths.auth.twoFactor, { replace: true });
             return;
           }
           void queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY });
-          navigate('/home', { replace: true });
+          navigate(paths.home, { replace: true });
         },
         onError: (e) => setError(getAuthErrorMessage(e)),
       },
@@ -66,7 +67,7 @@ export function OneTimeVerifyForm() {
           phone number.
         </p>
         <Button variant="outline">
-          <Link to="/auth/one-time/phone">Back to OTP</Link>
+          <Link to={paths.auth.oneTimePhone}>Back to OTP</Link>
         </Button>
       </FieldGroup>
     );
@@ -115,10 +116,10 @@ export function OneTimeVerifyForm() {
     </form>
     <div className="mt-4 flex flex-col gap-3">
       <FieldDescription className="text-center">
-        <Link to="/auth/one-time/phone">Use a different number</Link>
+        <Link to={paths.auth.oneTimePhone}>Use a different number</Link>
       </FieldDescription>
       <FieldDescription className="text-center">
-        <Link to="/auth/sign-in">Back to sign in</Link>
+        <Link to={paths.auth.signIn}>Back to sign in</Link>
       </FieldDescription>
     </div>
   </>

@@ -7,6 +7,7 @@ import {
   useSession,
   useUser,
 } from '@/components/providers/auth-provider';
+import { paths } from '@/config/paths.config';
 import { useSignOutMutation } from '@/modules/auth/lib/query';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -14,7 +15,7 @@ type FreshJwtRouteProps = {
   redirectTo?: string;
 };
 
-export function FreshJwtRoute({ redirectTo = '/auth/sign-in' }: FreshJwtRouteProps) {
+export function FreshJwtRoute({ redirectTo = paths.auth.signIn }: FreshJwtRouteProps) {
   const { isAuthenticated, isLoading } = useUser();
   const { isFreshJwt, isLoading: isSessionLoading } = useSession();
   const [sessionVerified, setSessionVerified] = useState(false);

@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from 'react-router';
+import { paths } from '@/config/paths.config';
 import {
   Card,
   CardContent,
@@ -19,7 +20,7 @@ export default function OneTimeVerifyPage() {
           <CardContent>
             <p className="text-center text-sm text-muted-foreground">
               Missing phone number. Please{' '}
-              <Link to="/auth/one-time/phone">request a new code</Link>.
+              <Link to={paths.auth.oneTimePhone}>request a new code</Link>.
             </p>
           </CardContent>
         </Card>

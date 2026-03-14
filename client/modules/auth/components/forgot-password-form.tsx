@@ -11,6 +11,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { paths } from '@/config/paths.config';
 import { Spinner } from '@/components/ui/spinner';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -38,8 +39,8 @@ export function ForgotPasswordForm() {
     forgotPassword.mutate(
       {
         email: data.email,
-        callbackURL: `${window.location.origin}/auth/reset-password`,
-        errorURL: `${window.location.origin}/auth/error`,
+        callbackURL: `${window.location.origin}${paths.auth.resetPassword}`,
+        errorURL: `${window.location.origin}${paths.auth.error}`,
       },
       {
         onSuccess: () => toast.success('Check your email', {
@@ -87,7 +88,7 @@ export function ForgotPasswordForm() {
           </Button>
           <FieldDescription className="text-center">
             Remember your password?{' '}
-            <Link to="/auth/sign-in">Sign in</Link>
+            <Link to={paths.auth.signIn}>Sign in</Link>
           </FieldDescription>
         </Field>
       </FieldGroup>

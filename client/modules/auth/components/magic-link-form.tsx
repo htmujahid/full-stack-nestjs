@@ -11,6 +11,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { paths } from '@/config/paths.config';
 import { Spinner } from '@/components/ui/spinner';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -36,8 +37,8 @@ export function MagicLinkForm() {
     signInEmail.mutate(
       {
         email: data.email,
-        callbackURL: `${origin}/home`,
-        errorURL: `${origin}/auth/error`,
+        callbackURL: `${origin}${paths.home}`,
+        errorURL: `${origin}${paths.auth.error}`,
       },
       {
         onSuccess: () =>
@@ -95,10 +96,10 @@ export function MagicLinkForm() {
       </form>
       <div className="mt-4 flex flex-col gap-3">
         <FieldDescription className="text-center">
-          Prefer OTP? <Link to="/auth/one-time/phone">Sign in with phone</Link>
+          Prefer OTP? <Link to={paths.auth.oneTimePhone}>Sign in with phone</Link>
         </FieldDescription>
         <FieldDescription className="text-center">
-          <Link to="/auth/sign-in">Back to sign in</Link>
+          <Link to={paths.auth.signIn}>Back to sign in</Link>
         </FieldDescription>
       </div>
     </>

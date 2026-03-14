@@ -26,6 +26,7 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { Spinner } from '@/components/ui/spinner';
+import { paths } from '@/config/paths.config';
 import { cn } from '@/lib/utils';
 
 const TOTP_LENGTH = 6;
@@ -48,12 +49,12 @@ export function TwoFactorForm() {
 
   const onSuccess = () => {
     void queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY });
-    navigate('/home', { replace: true });
+    navigate(paths.home, { replace: true });
   };
 
   const onError = (e: unknown) => {
     if (isUnauthorized(e)) {
-      navigate('/auth/sign-in', { replace: true });
+      navigate(paths.auth.signIn, { replace: true });
       return;
     }
     setError(getAuthErrorMessage(e));
@@ -91,7 +92,7 @@ export function TwoFactorForm() {
         toast.success('Code sent', {
           description: 'Check your email for the verification code.',
         });
-        navigate('/auth/two-factor-otp', { replace: true });
+        navigate(paths.auth.twoFactorOtp, { replace: true });
       },
       onError,
     });
@@ -235,7 +236,7 @@ export function TwoFactorForm() {
           </button>
         </FieldDescription>
         <FieldDescription className="text-center">
-          <Link to="/auth/sign-in">Back to sign in</Link>
+          <Link to={paths.auth.signIn}>Back to sign in</Link>
         </FieldDescription>
       </div>
     </>

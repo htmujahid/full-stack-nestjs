@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { User as AuthUser } from '@/components/providers/auth-provider';
 import { useUpdateEmailMutation } from '../lib/query';
+import { paths } from '@/config/paths.config';
 import { getAuthErrorMessage } from '@/modules/auth/lib/query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,8 +64,8 @@ export function ProfileEmailCard({ user }: { user: AuthUser }) {
             updateEmail.mutate(
               {
                 newEmail: data.newEmail,
-                callbackURL: `${window.location.origin}/account/verification`,
-                errorURL: `${window.location.origin}/account/verification?error=email`,
+                callbackURL: `${window.location.origin}${paths.account.verification}`,
+                errorURL: `${window.location.origin}${paths.account.verification}?error=email`,
               },
               {
                 onSuccess: () => {

@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/input-group';
 import { OAuthProviders } from './oauth-providers';
 import { Spinner } from '@/components/ui/spinner';
+import { paths } from '@/config/paths.config';
 import { cn } from '@/lib/utils';
 
 type SignInFormData = {
@@ -58,7 +59,7 @@ export function SignInForm() {
       {
         onSuccess: (res) => {
           if ('twoFactorRedirect' in res) {
-            navigate('/auth/two-factor', { replace: true });
+            navigate(paths.auth.twoFactor, { replace: true });
             return;
           }
           void queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY });
@@ -100,7 +101,7 @@ export function SignInForm() {
               Password
             </FieldLabel>
             <Link
-              to="/auth/forgot-password"
+              to={paths.auth.forgotPassword}
               className="ml-auto text-sm underline-offset-4 hover:underline"
             >
               Forgot password?
@@ -145,14 +146,14 @@ export function SignInForm() {
     </form>
     <div className="mt-4 flex flex-col gap-3">
       <Link
-        to="/auth/magic-link"
+        to={paths.auth.magicLink}
         className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}
       >
         Sign in with magic link or OTP
       </Link>
       <FieldDescription className="text-center">
         Don&apos;t have an account?{' '}
-        <Link to="/auth/sign-up">Sign up</Link>
+        <Link to={paths.auth.signUp}>Sign up</Link>
       </FieldDescription>
     </div>
     </>

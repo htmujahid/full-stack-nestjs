@@ -1,4 +1,5 @@
 import { Link2, Trash2 } from 'lucide-react';
+import { paths } from '@/config/paths.config';
 import { toast } from 'sonner';
 import {
   useAccountsQuery,
@@ -105,7 +106,7 @@ export function SecurityAccountLinkingCard() {
                   onClick={() => {
                     window.location.href = getLinkAccountUrl(
                       provider.providerId,
-                      '/account/security',
+                      paths.account.security,
                     );
                   }}
                 >

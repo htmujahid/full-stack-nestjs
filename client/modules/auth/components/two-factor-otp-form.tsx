@@ -22,6 +22,7 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { Spinner } from '@/components/ui/spinner';
+import { paths } from '@/config/paths.config';
 import { toast } from 'sonner';
 
 const OTP_LENGTH = 6;
@@ -45,11 +46,11 @@ export function TwoFactorOtpForm() {
       {
         onSuccess: () => {
           void queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY });
-          navigate('/home', { replace: true });
+          navigate(paths.home, { replace: true });
         },
         onError: (e) => {
           if (isUnauthorized(e)) {
-            navigate('/auth/sign-in', { replace: true });
+            navigate(paths.auth.signIn, { replace: true });
             return;
           }
           setError(getAuthErrorMessage(e));
@@ -68,7 +69,7 @@ export function TwoFactorOtpForm() {
         }),
       onError: (e) => {
         if (isUnauthorized(e)) {
-          navigate('/auth/sign-in', { replace: true });
+          navigate(paths.auth.signIn, { replace: true });
           return;
         }
         setError(getAuthErrorMessage(e));
@@ -154,10 +155,10 @@ export function TwoFactorOtpForm() {
           </button>
         </FieldDescription>
         <FieldDescription className="text-center">
-          <Link to="/auth/two-factor">Use authenticator or backup code</Link>
+          <Link to={paths.auth.twoFactor}>Use authenticator or backup code</Link>
         </FieldDescription>
         <FieldDescription className="text-center">
-          <Link to="/auth/sign-in">Back to sign in</Link>
+          <Link to={paths.auth.signIn}>Back to sign in</Link>
         </FieldDescription>
       </div>
     </>
