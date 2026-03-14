@@ -72,6 +72,11 @@ export type VerifyPhoneOtpInput = {
   callbackURL?: string;
 };
 
+export type VerifyTotpInput = { code: string; trustDevice?: boolean };
+export type VerifyOtpInput = { code: string; trustDevice?: boolean };
+export type VerifyBackupCodeInput = { code: string; trustDevice?: boolean };
+export type TwoFactorVerifyResponse = { ok: true; accessToken: string; refreshToken: string };
+
 // ─── Mutations ───────────────────────────────────────────────────────────────
 
 const AUTH_OPTIONS = { skipAuthRetry: true as const };
@@ -200,6 +205,54 @@ export function useVerifyPhoneOtpMutation() {
   });
 }
 
+export function useVerifyTotpMutation() {
+  return useMutation({
+    mutationFn: async (input: VerifyTotpInput) => {
+      const { data } = await fetcher<TwoFactorVerifyResponse>(
+        '/api/two-factor/verify-totp',
+        { method: 'POST', body: JSON.stringify(input), ...AUTH_OPTIONS },
+      );
+      return data;
+    },
+  });
+}
+
+export function useVerifyOtpMutation() {
+  return useMutation({
+    mutationFn: async (input: VerifyOtpInput) => {
+      const { data } = await fetcher<TwoFactorVerifyResponse>(
+        '/api/two-factor/verify-otp',
+        { method: 'POST', body: JSON.stringify(input), ...AUTH_OPTIONS },
+      );
+      return data;
+    },
+  });
+}
+
+export function useVerifyBackupCodeMutation() {
+  return useMutation({
+    mutationFn: async (input: VerifyBackupCodeInput) => {
+      const { data } = await fetcher<TwoFactorVerifyResponse>(
+        '/api/two-factor/verify-backup-code',
+        { method: 'POST', body: JSON.stringify(input), ...AUTH_OPTIONS },
+      );
+      return data;
+    },
+  });
+}
+
+export function useSendTwoFactorOtpMutation() {
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await fetcher<{ ok: boolean }>(
+        '/api/two-factor/send-otp',
+        { method: 'POST', ...AUTH_OPTIONS },
+      );
+      return data;
+    },
+  });
+}
+
 // ─── Error helpers ────────────────────────────────────────────────────────────
 
 export function getAuthErrorMessage(error: unknown): string {
@@ -210,4 +263,8 @@ export function getAuthErrorMessage(error: unknown): string {
   }
   if (error instanceof FetcherError) return error.message;
   return 'Something went wrong';
+}
+
+export function isUnauthorized(error: unknown): boolean {
+  return error instanceof FetcherError && error.status === 401;
 }
