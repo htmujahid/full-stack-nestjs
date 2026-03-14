@@ -63,8 +63,8 @@ export function ProfileEmailCard({ user }: { user: AuthUser }) {
             updateEmail.mutate(
               {
                 newEmail: data.newEmail,
-                callbackURL: `${window.location.origin}/account/profile`,
-                errorURL: `${window.location.origin}/account/profile?error=email`,
+                callbackURL: `${window.location.origin}/account/verification`,
+                errorURL: `${window.location.origin}/account/verification?error=email`,
               },
               {
                 onSuccess: () => {
