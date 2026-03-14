@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Headers,
   HttpCode,
   HttpStatus,
@@ -27,6 +28,12 @@ interface RefreshUser {
   rawRefreshToken: string;
 }
 
+interface AccessUser {
+  userId: string;
+  role: UserRole;
+  authMethod: 'password' | 'phone' | 'google' | 'refresh';
+}
+
 @ApiTags('Auth')
 @Controller('api/auth')
 @UseGuards(ThrottlerGuard)
@@ -36,6 +43,13 @@ export class AuthController extends BaseAuthController {
     twoFactorGate: TwoFactorGateService,
   ) {
     super(twoFactorGate);
+  }
+
+  @Get('session')
+  @ApiOperation({ summary: 'Get current session token info' })
+  @ApiOkResponse({ description: 'Returns userId, role, authMethod from access token' })
+  session(@Request() req: ExpressRequest & { user: AccessUser }) {
+    return { ...req.user };
   }
 
   @Public()

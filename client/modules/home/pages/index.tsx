@@ -1,6 +1,6 @@
 import { Mail, Phone, Shield, User } from 'lucide-react';
 import { format } from 'date-fns';
-import { useAuth } from '@/components/providers/auth-provider';
+import { useUser } from '@/components/providers/auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card';
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user } = useUser();
 
   if (!user) return null;
 

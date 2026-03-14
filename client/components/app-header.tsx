@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { BadgeCheck, Home, LogOut, Shield, User } from 'lucide-react';
-import { useAuth, ME_QUERY_KEY } from '@/components/providers/auth-provider';
+import { ME_QUERY_KEY, useUser } from '@/components/providers/auth-provider';
 import { useSignOutMutation } from '@/modules/auth/lib/query';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ children }: AppHeaderProps) {
-  const { user } = useAuth();
+  const { user } = useUser();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const signOut = useSignOutMutation();

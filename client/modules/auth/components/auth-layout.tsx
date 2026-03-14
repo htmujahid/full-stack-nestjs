@@ -1,11 +1,11 @@
 import { Suspense } from 'react';
 import { GalleryVerticalEnd } from 'lucide-react';
 import { Link, Navigate, Outlet } from 'react-router';
-import { useAuth } from '@/components/providers/auth-provider';
+import { useUser } from '@/components/providers/auth-provider';
 import { Spinner } from '@/components/ui/spinner';
 
 export default function AuthLayout() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useUser();
 
   if (isLoading) {
     return (

@@ -1,10 +1,10 @@
-import { useAuth } from '@/components/providers/auth-provider';
+import { useUser } from '@/components/providers/auth-provider';
 import { SecurityPasswordCard } from '../components/security-password-card';
 import { SecurityTwoFactorCard } from '../components/security-two-factor-card';
 import { SecurityAccountLinkingCard } from '../components/security-account-linking-card';
 
 export default function SecurityPage() {
-  const { user } = useAuth();
+  const { user } = useUser();
 
   if (!user) return null;
 

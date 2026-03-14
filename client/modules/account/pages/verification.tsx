@@ -1,9 +1,9 @@
-import { useAuth } from '@/components/providers/auth-provider';
+import { useUser } from '@/components/providers/auth-provider';
 import { ProfileEmailCard } from '../components/profile-email-card';
 import { ProfilePhoneCard } from '../components/profile-phone-card';
 
 export default function VerificationPage() {
-  const { user } = useAuth();
+  const { user } = useUser();
 
   if (!user) return null;
 

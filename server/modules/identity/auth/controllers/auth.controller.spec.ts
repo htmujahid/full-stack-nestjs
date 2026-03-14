@@ -90,6 +90,24 @@ describe('AuthController', () => {
 
   afterEach(() => jest.clearAllMocks());
 
+  // ─── session ─────────────────────────────────────────────────────────────────
+
+  describe('session', () => {
+    it('returns all properties from request user', () => {
+      const req = {
+        user: {
+          userId: 'user-uuid',
+          role: UserRole.Member,
+          authMethod: 'password' as const,
+        },
+      } as ExpressRequest & { user: { userId: string; role: UserRole; authMethod: 'password' | 'google' | 'refresh' } };
+
+      const result = controller.session(req);
+
+      expect(result).toEqual({ userId: 'user-uuid', role: UserRole.Member, authMethod: 'password' });
+    });
+  });
+
   // ─── refresh ────────────────────────────────────────────────────────────────
 
   describe('refresh', () => {

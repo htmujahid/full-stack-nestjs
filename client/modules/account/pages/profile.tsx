@@ -1,9 +1,9 @@
-import { useAuth } from '@/components/providers/auth-provider';
+import { useUser } from '@/components/providers/auth-provider';
 import { ProfileInfoCard } from '../components/profile-info-card';
 import { ProfileRoleCard } from '../components/profile-role-card';
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user } = useUser();
 
   if (!user) return null;
 

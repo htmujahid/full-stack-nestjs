@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
-import { useAuth } from '@/components/providers/auth-provider';
+import { useUser } from '@/components/providers/auth-provider';
 import { Spinner } from '@/components/ui/spinner';
 
 type ProtectedRouteProps = {
@@ -8,7 +8,7 @@ type ProtectedRouteProps = {
 };
 
 export function ProtectedRoute({ redirectTo = '/auth/sign-in' }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useUser();
   const location = useLocation();
 
   if (isLoading) {
