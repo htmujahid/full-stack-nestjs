@@ -54,9 +54,9 @@ describe('Accounts (e2e)', () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  // ─── GET /api/accounts ─────────────────────────────────────────────────────
+  // ─── GET /api/account ─────────────────────────────────────────────────────
 
-  describe('GET /api/accounts', () => {
+  describe('GET /api/account', () => {
     it('returns 200 with list of accounts', async () => {
       const accounts = [
         makeAccount(),
@@ -69,7 +69,7 @@ describe('Accounts (e2e)', () => {
       accountRepo.find.mockResolvedValue(accounts);
 
       const { body } = await request(app.getHttpServer())
-        .get('/api/accounts')
+        .get('/api/account')
         .expect(200);
 
       expect(body).toHaveLength(2);
@@ -80,7 +80,7 @@ describe('Accounts (e2e)', () => {
       accountRepo.find.mockResolvedValue([]);
 
       const { body } = await request(app.getHttpServer())
-        .get('/api/accounts')
+        .get('/api/account')
         .expect(200);
 
       expect(body).toEqual([]);

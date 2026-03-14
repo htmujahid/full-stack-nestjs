@@ -80,7 +80,7 @@ export function useAccountsQuery() {
   return useQuery({
     queryKey: ACCOUNTS_QUERY_KEY,
     queryFn: async () => {
-      const { data } = await fetcher<LinkedAccount[]>('/api/accounts');
+      const { data } = await fetcher<LinkedAccount[]>('/api/account');
       return data;
     },
   });

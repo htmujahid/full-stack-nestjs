@@ -5,7 +5,7 @@ import { AccountService } from './account.service';
 
 @ApiTags('Accounts')
 @ApiBearerAuth()
-@Controller('api/accounts')
+@Controller('api/account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
