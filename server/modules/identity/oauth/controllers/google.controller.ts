@@ -18,7 +18,6 @@ import { AuthService } from '../../auth/services/auth.service';
 import { TwoFactorGateService } from '../../auth/services/two-factor-gate.service';
 import type { GoogleProfile } from '../strategies/google.strategy';
 import { BaseOAuthController } from './base-oauth.controller';
-import { LINK_INTENT_COOKIE } from '../../auth/auth.constants';
 import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Auth')
@@ -37,7 +36,7 @@ export class GoogleController extends BaseOAuthController {
   @Public()
   @UseGuards(GoogleAuthGuard)
   @Get()
-  @ApiOperation({ summary: 'Initiate Google OAuth2 login or account link' })
+  @ApiOperation({ summary: 'Initiate Google OAuth2 login' })
   initiate() {
     // Passport handles the redirect to Google
   }
@@ -53,13 +52,6 @@ export class GoogleController extends BaseOAuthController {
     @Headers('user-agent') userAgent: string | undefined,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const cookies = req.cookies as Record<string, string>;
-
-    if (cookies?.[LINK_INTENT_COOKIE]) {
-      res.clearCookie(LINK_INTENT_COOKIE, { path: '/' });
-      return this.handleOAuthLink(req, res, req.user);
-    }
-
     const ip = forwardedFor?.split(',')[0]?.trim() ?? null;
     const ctx = { ip, userAgent: userAgent ?? null };
     const user = await this.findOrCreateUser(req.user);

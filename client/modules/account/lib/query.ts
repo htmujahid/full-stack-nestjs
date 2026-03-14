@@ -72,16 +72,6 @@ export type UploadResult = {
   name: string;
 };
 
-// ─── Helpers ───────────────────────────────────────────────────────────────────
-
-export function getLinkAccountUrl(providerId: string, redirectUri?: string): string {
-  const base = `/api/accounts/${providerId}`;
-  if (redirectUri && redirectUri.startsWith('/')) {
-    return `${base}?redirectUri=${encodeURIComponent(redirectUri)}`;
-  }
-  return base;
-}
-
 // ─── Query ─────────────────────────────────────────────────────────────────────
 
 const ACCOUNTS_QUERY_KEY = ['accounts'] as const;
@@ -176,15 +166,15 @@ export function useUpdatePasswordMutation() {
   });
 }
 
-export function useUnlinkAccountMutation() {
+export function useAddPasswordMutation() {
   const invalidateMe = useInvalidateMe();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { data } = await fetcher<{ success: boolean }>(
-        `/api/accounts/${id}`,
-        { method: 'DELETE' },
-      );
+    mutationFn: async (input: UpdatePasswordInput) => {
+      const { data } = await fetcher<{ ok: boolean }>('/api/auth/add-password', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      });
       return data;
     },
     onSuccess: () => {

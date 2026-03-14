@@ -1,25 +1,7 @@
-import {
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Query,
-  Redirect,
-  Request,
-  Res,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import type { Request as ExpressRequest, Response } from 'express';
+import { Controller, Get, Request } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import type { Request as ExpressRequest } from 'express';
 import { AccountService } from './account.service';
-import { LINK_INTENT_COOKIE, LINK_INTENT_EXPIRES_MS } from '../auth/auth.constants';
 
 @ApiTags('Accounts')
 @ApiBearerAuth()
@@ -32,43 +14,5 @@ export class AccountController {
   @ApiResponse({ status: 200, description: 'Returns the list of linked accounts' })
   listAccounts(@Request() req: ExpressRequest & { user: { userId: string } }) {
     return this.accountService.listAccounts(req.user.userId);
-  }
-
-  @Patch(':providerId')
-  @Redirect()
-  @HttpCode(HttpStatus.FOUND)
-  @ApiOperation({ summary: 'Initiate account link for a given provider' })
-  @ApiResponse({ status: 302, description: 'Redirects to the provider OAuth flow' })
-  linkAccount(
-    @Param('providerId') providerId: string,
-    @Query('redirectUri') redirectUri: string | undefined,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const secure = process.env.NODE_ENV === 'production';
-    res.cookie(LINK_INTENT_COOKIE, providerId, {
-      httpOnly: true,
-      secure,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: LINK_INTENT_EXPIRES_MS,
-    });
-    const base = `/api/auth/${providerId}`;
-    const url =
-      redirectUri && redirectUri.startsWith('/')
-        ? `${base}?redirectUri=${encodeURIComponent(redirectUri)}`
-        : base;
-    return { url, statusCode: HttpStatus.FOUND };
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Unlink an account by ID' })
-  @ApiResponse({ status: 200, description: 'Account unlinked successfully' })
-  async unlinkAccount(
-    @Request() req: ExpressRequest & { user: { userId: string } },
-    @Param('id') id: string,
-  ) {
-    await this.accountService.unlinkAccount(req.user.userId, id);
-    return { success: true };
   }
 }

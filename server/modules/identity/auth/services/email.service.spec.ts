@@ -609,7 +609,7 @@ describe('EmailService', () => {
         .mockReturnValueOnce('my-secret')
         .mockReturnValueOnce('http://localhost:3000');
 
-      await service.sendVerificationEmail('test@example.com');
+      await service.sendVerificationEmail('user-uuid', 'test@example.com');
 
       expect(mailerService.sendMail).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -624,10 +624,10 @@ describe('EmailService', () => {
         .mockReturnValueOnce('my-secret')
         .mockReturnValueOnce('http://localhost:3000');
 
-      await service.sendVerificationEmail('test@example.com');
+      await service.sendVerificationEmail('user-uuid', 'test@example.com');
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
-        { email: 'test@example.com', type: EMAIL_VERIFICATION_TYPE },
+        { sub: 'user-uuid', email: 'test@example.com', type: EMAIL_VERIFICATION_TYPE },
         expect.objectContaining({ secret: 'my-secret' }),
       );
     });
@@ -637,7 +637,11 @@ describe('EmailService', () => {
         .mockReturnValueOnce('my-secret')
         .mockReturnValueOnce('http://localhost:3000');
 
-      await service.sendVerificationEmail('test@example.com', 'https://app.example.com/callback');
+      await service.sendVerificationEmail(
+        'user-uuid',
+        'test@example.com',
+        'https://app.example.com/callback',
+      );
 
       const sentMail = mailerService.sendMail.mock.calls[0][0] as { html: string };
       expect(sentMail.html).toContain('http://localhost:3000/api/auth/verify-email');
@@ -649,7 +653,7 @@ describe('EmailService', () => {
         .mockReturnValueOnce('my-secret')
         .mockReturnValueOnce('http://localhost:3000');
 
-      await service.sendVerificationEmail('test@example.com');
+      await service.sendVerificationEmail('user-uuid', 'test@example.com');
 
       const sentMail = mailerService.sendMail.mock.calls[0][0] as { html: string };
       expect(sentMail.html).toContain(`callbackURL=${encodeURIComponent('/')}`);

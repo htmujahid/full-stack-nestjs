@@ -1,22 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { AccountController } from './account.controller';
 import { AccountService } from './account.service';
-import { LINK_INTENT_COOKIE, LINK_INTENT_EXPIRES_MS } from '../auth/auth.constants';
-import type { Request as ExpressRequest, Response } from 'express';
+import type { Request as ExpressRequest } from 'express';
 
 const mockAccountService = () => ({
   listAccounts: jest.fn(),
-  linkAccount: jest.fn(),
-  unlinkAccount: jest.fn(),
 });
-
-const makeMockResponse = () =>
-  ({
-    cookie: jest.fn(),
-    clearCookie: jest.fn(),
-    redirect: jest.fn(),
-  }) as unknown as Response;
 
 const makeMockRequest = (
   overrides: Partial<{ userId: string }> = {},
@@ -58,116 +47,6 @@ describe('AccountController', () => {
 
       expect(accountService.listAccounts).toHaveBeenCalledWith('user-uuid');
       expect(result).toBe(accounts);
-    });
-  });
-
-  // ─── linkAccount ─────────────────────────────────────────────────────────────
-
-  describe('linkAccount', () => {
-    it('sets LINK_INTENT_COOKIE with the providerId', () => {
-      const res = makeMockResponse();
-
-      controller.linkAccount('google', undefined, res);
-
-      expect(res.cookie).toHaveBeenCalledWith(
-        LINK_INTENT_COOKIE,
-        'google',
-        expect.objectContaining({
-          httpOnly: true,
-          sameSite: 'lax',
-          path: '/',
-          maxAge: LINK_INTENT_EXPIRES_MS,
-        }),
-      );
-    });
-
-    it('returns redirect to /api/auth/:providerId when redirectUri is undefined', () => {
-      const res = makeMockResponse();
-
-      const result = controller.linkAccount('google', undefined, res);
-
-      expect(result).toEqual({ url: '/api/auth/google', statusCode: 302 });
-    });
-
-    it('sets secure: false when NODE_ENV is not production', () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
-
-      const res = makeMockResponse();
-      controller.linkAccount('google', undefined, res);
-
-      expect(res.cookie).toHaveBeenCalledWith(
-        LINK_INTENT_COOKIE,
-        'google',
-        expect.objectContaining({ secure: false }),
-      );
-
-      process.env.NODE_ENV = originalEnv;
-    });
-
-    it('sets secure: true when NODE_ENV is production', () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
-
-      const res = makeMockResponse();
-      controller.linkAccount('google', undefined, res);
-
-      expect(res.cookie).toHaveBeenCalledWith(
-        LINK_INTENT_COOKIE,
-        'google',
-        expect.objectContaining({ secure: true }),
-      );
-
-      process.env.NODE_ENV = originalEnv;
-    });
-
-    it('appends redirectUri as query param when it starts with "/"', () => {
-      const res = makeMockResponse();
-
-      const result = controller.linkAccount('google', '/dashboard', res);
-
-      expect(result).toEqual({
-        url: '/api/auth/google?redirectUri=%2Fdashboard',
-        statusCode: 302,
-      });
-    });
-
-    it('ignores redirectUri and returns base URL when redirectUri does not start with "/"', () => {
-      const res = makeMockResponse();
-
-      const result = controller.linkAccount('google', 'https://evil.com', res);
-
-      expect(result).toEqual({ url: '/api/auth/google', statusCode: 302 });
-    });
-  });
-
-  // ─── unlinkAccount ───────────────────────────────────────────────────────────
-
-  describe('unlinkAccount', () => {
-    it('calls accountService.unlinkAccount with userId and id; returns { success: true }', async () => {
-      accountService.unlinkAccount.mockResolvedValue(undefined);
-
-      const req = makeMockRequest({ userId: 'user-uuid' });
-
-      const result = await controller.unlinkAccount(req, 'account-uuid');
-
-      expect(accountService.unlinkAccount).toHaveBeenCalledWith(
-        'user-uuid',
-        'account-uuid',
-      );
-      expect(result).toEqual({ success: true });
-    });
-
-    it('propagates NotFoundException when service throws', async () => {
-      accountService.unlinkAccount.mockRejectedValue(
-        new NotFoundException('Account not found'),
-      );
-
-      const req = makeMockRequest({ userId: 'user-uuid' });
-
-      await expect(
-        controller.unlinkAccount(req, 'missing-uuid'),
-      ).rejects.toThrow(NotFoundException);
     });
   });
 });

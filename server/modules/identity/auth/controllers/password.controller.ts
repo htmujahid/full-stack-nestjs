@@ -165,4 +165,24 @@ export class PasswordController extends BaseAuthController {
     await this.passwordService.updatePassword(req.user.userId, dto.newPassword);
     return { ok: true };
   }
+
+  @UseGuards(JwtFreshGuard)
+  @Post('add-password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({
+    default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
+  })
+  @ApiOperation({
+    summary: 'Add password account (requires recent re-authentication)',
+  })
+  @ApiOkResponse({
+    description: 'Password account added; user can now sign in with email and password',
+  })
+  async addPassword(
+    @Request() req: ExpressRequest & { user: { userId: string } },
+    @Body() dto: UpdatePasswordDto,
+  ) {
+    await this.passwordService.addPassword(req.user.userId, dto.newPassword);
+    return { ok: true };
+  }
 }

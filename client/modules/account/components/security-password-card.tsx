@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
-import { useUpdatePasswordMutation } from '../lib/query';
+import { useAccountsQuery, useUpdatePasswordMutation } from '../lib/query';
 import { getAuthErrorMessage } from '@/modules/auth/lib/query';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,13 +36,16 @@ export function SecurityPasswordCard() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  const { data: accounts = [] } = useAccountsQuery();
+  const hasCredential = accounts.some((a) => a.providerId === 'credential');
   const updatePassword = useUpdatePasswordMutation();
   const form = useForm<PasswordFormData>({
     mode: 'onBlur',
     defaultValues: { newPassword: '', confirmPassword: '' },
   });
-
   const password = form.watch('newPassword');
+
+  if (!hasCredential) return null;
 
   return (
     <Card>

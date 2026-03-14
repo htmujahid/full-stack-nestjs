@@ -89,7 +89,7 @@ export class PasswordService {
       });
       await accountRepo.save(account);
 
-      await this.emailService.sendVerificationEmail(normalizedEmail, dto.callbackURL);
+      await this.emailService.sendVerificationEmail(savedUser.id, normalizedEmail, dto.callbackURL);
 
       return { user: savedUser };
     });
@@ -212,6 +212,30 @@ export class PasswordService {
 
       // Invalidate all refresh sessions to force re-login on other devices
       await tx.getRepository(RefreshSession).delete({ userId });
+    });
+  }
+
+  async addPassword(userId: string, password: string): Promise<void> {
+    await this.dataSource.transaction(async (tx) => {
+      const accountRepo = tx.getRepository(Account);
+
+      const existing = await accountRepo.findOne({
+        where: { userId, providerId: CREDENTIAL_PROVIDER },
+        select: { id: true },
+      });
+      if (existing) {
+        throw new ConflictException('Password account already exists');
+      }
+
+      const hashed = await bcrypt.hash(password, SALT_ROUNDS);
+      await accountRepo.save(
+        accountRepo.create({
+          userId,
+          providerId: CREDENTIAL_PROVIDER,
+          accountId: userId,
+          password: hashed,
+        }),
+      );
     });
   }
 }

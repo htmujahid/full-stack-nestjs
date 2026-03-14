@@ -211,6 +211,7 @@ describe('PasswordService', () => {
       await service.signUp(dto);
 
       expect(emailService.sendVerificationEmail).toHaveBeenCalledWith(
+        'user-uuid',
         'test@example.com',
         'https://app.example.com/verify',
       );
@@ -753,6 +754,52 @@ describe('PasswordService', () => {
         expect.objectContaining({
           where: { userId: 'user-uuid', providerId: CREDENTIAL_PROVIDER },
         }),
+      );
+    });
+  });
+
+  // ─── addPassword ───────────────────────────────────────────────────────────
+
+  describe('addPassword', () => {
+    it('creates credential account when user has none', async () => {
+      const txAccountRepo = mockRepository();
+      txAccountRepo.findOne.mockResolvedValue(null);
+      txAccountRepo.create.mockImplementation((dto) => dto);
+      txAccountRepo.save.mockResolvedValue({});
+
+      dataSource.transaction.mockImplementation(async (cb) => {
+        const tx = { getRepository: jest.fn().mockReturnValue(txAccountRepo) };
+        return cb(tx);
+      });
+
+      await service.addPassword('user-uuid', 'new-secure-pass');
+
+      expect(txAccountRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId: 'user-uuid', providerId: CREDENTIAL_PROVIDER },
+        }),
+      );
+      expect(txAccountRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-uuid',
+          providerId: CREDENTIAL_PROVIDER,
+          accountId: 'user-uuid',
+        }),
+      );
+      expect(txAccountRepo.save).toHaveBeenCalled();
+    });
+
+    it('throws ConflictException when credential account already exists', async () => {
+      const txAccountRepo = mockRepository();
+      txAccountRepo.findOne.mockResolvedValue(makeAccount());
+
+      dataSource.transaction.mockImplementation(async (cb) => {
+        const tx = { getRepository: jest.fn().mockReturnValue(txAccountRepo) };
+        return cb(tx);
+      });
+
+      await expect(service.addPassword('user-uuid', 'newpass')).rejects.toThrow(
+        ConflictException,
       );
     });
   });

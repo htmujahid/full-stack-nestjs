@@ -63,6 +63,7 @@ export class AccountService {
         `You already have a ${data.providerId} account linked`,
       );
     }
+    console.log(userProviderAccount);
 
     await this.accountRepo.save(
       this.accountRepo.create({

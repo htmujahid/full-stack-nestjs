@@ -112,7 +112,7 @@ export abstract class BaseOAuthController extends BaseAuthController {
     account: OAuthAccount,
   ): Promise<RedirectResult> {
     const cookies = req.cookies as Record<string, string>;
-    const redirectBase = cookies?.[OAUTH_REDIRECT_COOKIE] ?? '/settings/accounts';
+    const redirectBase = cookies?.[OAUTH_REDIRECT_COOKIE] ?? '/account/security';
     res.clearCookie(OAUTH_REDIRECT_COOKIE, { path: '/' });
 
     const accessToken = cookies?.[ACCESS_TOKEN_COOKIE];

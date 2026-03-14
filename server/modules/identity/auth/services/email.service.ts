@@ -110,7 +110,7 @@ export class EmailService {
   > {
     const secret = this.configService.getOrThrow<string>('auth.accessSecret');
 
-    let payload: { email?: string; type?: string };
+    let payload: { sub?: string; email?: string; type?: string };
     try {
       payload = await this.jwtService.verifyAsync(token, { secret });
     } catch {
@@ -151,7 +151,7 @@ export class EmailService {
       .findOne({ where: { email: normalizedEmail } });
 
     if (!user || user.emailVerified) return; // prevent enumeration
-    await this.sendVerificationEmail(normalizedEmail, callbackURL, errorURL);
+    await this.sendVerificationEmail(user.id, normalizedEmail, callbackURL, errorURL);
   }
 
   async initiateEmailChange(
@@ -229,13 +229,14 @@ export class EmailService {
   }
 
   async sendVerificationEmail(
+    id: string,
     email: string,
     callbackURL?: string,
     errorURL?: string,
   ): Promise<void> {
     const secret = this.configService.getOrThrow<string>('auth.accessSecret');
     const token = await this.jwtService.signAsync(
-      { email, type: EMAIL_VERIFICATION_TYPE },
+      { sub: id, email, type: EMAIL_VERIFICATION_TYPE },
       { secret, expiresIn: VERIFICATION_EXPIRES_MS / 1000 },
     );
 

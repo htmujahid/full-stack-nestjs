@@ -6,11 +6,7 @@ import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
 import { getDataSourceToken } from '@nestjs/typeorm';
-import {
-  ACCESS_TOKEN_COOKIE,
-  LINK_INTENT_COOKIE,
-  OAUTH_REDIRECT_COOKIE,
-} from '../server/modules/identity/auth/auth.constants';
+import { OAUTH_REDIRECT_COOKIE } from '../server/modules/identity/auth/auth.constants';
 import { GoogleController } from '../server/modules/identity/oauth/controllers/google.controller';
 import { AccountService } from '../server/modules/identity/account/account.service';
 import { AuthService } from '../server/modules/identity/auth/services/auth.service';
@@ -139,32 +135,6 @@ describe('Identity Google (e2e)', () => {
       expect(res.headers.location).toBe('/');
     });
 
-    it('redirects to /settings/accounts?linked=google when link intent', async () => {
-      jwtService.verify.mockImplementation(() => ({ sub: 'test-user-id' }));
-      accountService.linkAccount.mockResolvedValue(undefined);
-
-      const res = await request(app.getHttpServer())
-        .get('/api/oauth/google/callback')
-        .set(
-          'Cookie',
-          [`${LINK_INTENT_COOKIE}=google`, `${ACCESS_TOKEN_COOKIE}=valid-token`].join('; '),
-        )
-        .expect(302);
-
-      expect(res.headers.location).toBe('/settings/accounts?linked=google');
-    });
-
-    it('redirects to error when link intent but no access token', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/oauth/google/callback')
-        .set('Cookie', `${LINK_INTENT_COOKIE}=google`)
-        .expect(302);
-
-      expect(res.headers.location).toBe(
-        '/settings/accounts?error=not_authenticated',
-      );
-    });
-
     it('redirects to OAUTH_REDIRECT_COOKIE path on successful sign-in', async () => {
       const user = makeUser();
       jest.spyOn(controller, 'findOrCreateUser').mockResolvedValue(user);
@@ -200,25 +170,6 @@ describe('Identity Google (e2e)', () => {
         res.headers['set-cookie'] ?? [],
       );
       expect(setCookieHeader.some((c) => c.startsWith(`${OAUTH_REDIRECT_COOKIE}=;`))).toBe(true);
-    });
-
-    it('uses OAUTH_REDIRECT_COOKIE as base URL for link redirect', async () => {
-      jwtService.verify.mockImplementation(() => ({ sub: 'test-user-id' }));
-      accountService.linkAccount.mockResolvedValue(undefined);
-
-      const res = await request(app.getHttpServer())
-        .get('/api/oauth/google/callback')
-        .set(
-          'Cookie',
-          [
-            `${LINK_INTENT_COOKIE}=google`,
-            `${ACCESS_TOKEN_COOKIE}=valid-token`,
-            `${OAUTH_REDIRECT_COOKIE}=/settings/accounts`,
-          ].join('; '),
-        )
-        .expect(302);
-
-      expect(res.headers.location).toBe('/settings/accounts?linked=google');
     });
   });
 });
