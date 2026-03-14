@@ -14,6 +14,7 @@ import type { Request as ExpressRequest, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { TwoFactorGateService } from '../services/two-factor-gate.service';
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '../auth.constants';
+import { Public } from '../decorators/public.decorator';
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
 import { BaseAuthController } from './base-auth.controller';
 import { UserRole } from '../../user/user-role.enum';
@@ -37,6 +38,7 @@ export class AuthController extends BaseAuthController {
     super(twoFactorGate);
   }
 
+  @Public()
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
@@ -69,6 +71,7 @@ export class AuthController extends BaseAuthController {
     };
   }
 
+  @Public()
   @UseGuards(JwtRefreshGuard)
   @Post('sign-out')
   @HttpCode(HttpStatus.OK)
