@@ -116,7 +116,6 @@ const makeTokenPair = (): TokenPair => ({
 const makeCtx = (): RequestContext => ({ ip: '127.0.0.1', userAgent: 'jest' });
 
 const makeEnableDto = (overrides: Partial<EnableTwoFactorDto> = {}): EnableTwoFactorDto => ({
-  password: 'my-password',
   ...overrides,
 });
 
@@ -166,10 +165,6 @@ describe('TwoFactorService', () => {
 
   describe('enable', () => {
     it('returns totpURI and backupCodes on first-time setup (no existing record)', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(true);
-
       const tfRepo = mockRepository();
       tfRepo.findOne.mockResolvedValue(null);
       tfRepo.create.mockReturnValue(makeTwoFactor());
@@ -179,7 +174,6 @@ describe('TwoFactorService', () => {
       userRepo.findOneOrFail.mockResolvedValue(makeUser());
 
       dataSource.getRepository.mockImplementation((entity) => {
-        if (entity === Account) return accountRepo;
         if (entity === TwoFactor) return tfRepo;
         if (entity === User) return userRepo;
         return mockRepository();
@@ -195,10 +189,6 @@ describe('TwoFactorService', () => {
     });
 
     it('creates a new TwoFactor record when none exists', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(true);
-
       const tfRepo = mockRepository();
       tfRepo.findOne.mockResolvedValue(null);
       tfRepo.create.mockReturnValue(makeTwoFactor());
@@ -208,7 +198,6 @@ describe('TwoFactorService', () => {
       userRepo.findOneOrFail.mockResolvedValue(makeUser());
 
       dataSource.getRepository.mockImplementation((entity) => {
-        if (entity === Account) return accountRepo;
         if (entity === TwoFactor) return tfRepo;
         if (entity === User) return userRepo;
         return mockRepository();
@@ -223,10 +212,6 @@ describe('TwoFactorService', () => {
     });
 
     it('updates existing TwoFactor record and resets twoFactorEnabled via transaction', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(true);
-
       const tfRepo = mockRepository();
       tfRepo.findOne.mockResolvedValue(makeTwoFactor());
 
@@ -250,7 +235,6 @@ describe('TwoFactorService', () => {
       });
 
       dataSource.getRepository.mockImplementation((entity) => {
-        if (entity === Account) return accountRepo;
         if (entity === TwoFactor) return tfRepo;
         if (entity === User) return userRepo;
         return mockRepository();
@@ -265,34 +249,7 @@ describe('TwoFactorService', () => {
       expect(txUserRepo.update).toHaveBeenCalledWith('user-uuid', { twoFactorEnabled: false });
     });
 
-    it('throws ForbiddenException when no credential account is found', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(null);
-
-      dataSource.getRepository.mockReturnValue(accountRepo);
-
-      await expect(service.enable('user-uuid', makeEnableDto())).rejects.toThrow(
-        ForbiddenException,
-      );
-    });
-
-    it('throws UnauthorizedException when password is incorrect', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(false);
-
-      dataSource.getRepository.mockReturnValue(accountRepo);
-
-      await expect(service.enable('user-uuid', makeEnableDto())).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
     it('uses custom issuer from dto when provided', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(true);
-
       const tfRepo = mockRepository();
       tfRepo.findOne.mockResolvedValue(null);
       tfRepo.create.mockReturnValue(makeTwoFactor());
@@ -302,7 +259,6 @@ describe('TwoFactorService', () => {
       userRepo.findOneOrFail.mockResolvedValue(makeUser());
 
       dataSource.getRepository.mockImplementation((entity) => {
-        if (entity === Account) return accountRepo;
         if (entity === TwoFactor) return tfRepo;
         if (entity === User) return userRepo;
         return mockRepository();
@@ -392,10 +348,6 @@ describe('TwoFactorService', () => {
 
   describe('disable', () => {
     it('deletes TwoFactor, resets twoFactorEnabled, removes trust verifications in transaction', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(true);
-
       const txTfRepo = mockRepository();
       txTfRepo.delete.mockResolvedValue({ affected: 1, raw: [] });
 
@@ -407,7 +359,6 @@ describe('TwoFactorService', () => {
       const txVerRemove = jest.fn().mockResolvedValue(undefined);
       (txVerRepo as typeof txVerRepo & { remove: jest.Mock }).remove = txVerRemove;
 
-      dataSource.getRepository.mockReturnValue(accountRepo);
       dataSource.transaction.mockImplementation(async (cb) => {
         const tx = {
           getRepository: jest.fn().mockImplementation((entity) => {
@@ -420,43 +371,19 @@ describe('TwoFactorService', () => {
         return cb(tx);
       });
 
-      await service.disable('user-uuid', 'password');
+      await service.disable('user-uuid');
 
       expect(txTfRepo.delete).toHaveBeenCalledWith({ userId: 'user-uuid' });
       expect(txUserRepo.update).toHaveBeenCalledWith('user-uuid', { twoFactorEnabled: false });
       expect(txVerRemove).toHaveBeenCalled();
     });
 
-    it('throws ForbiddenException when no credential account is found', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(null);
-      dataSource.getRepository.mockReturnValue(accountRepo);
-
-      await expect(service.disable('user-uuid', 'password')).rejects.toThrow(ForbiddenException);
-    });
-
-    it('throws UnauthorizedException when password is wrong', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(false);
-      dataSource.getRepository.mockReturnValue(accountRepo);
-
-      await expect(service.disable('user-uuid', 'wrong-password')).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
     it('filters trust-device verifications by value=userId inside transaction', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(true);
-
       const txVerRepo = mockRepository();
       txVerRepo.find.mockResolvedValue([]);
       const txVerRemove = jest.fn().mockResolvedValue(undefined);
       (txVerRepo as typeof txVerRepo & { remove: jest.Mock }).remove = txVerRemove;
 
-      dataSource.getRepository.mockReturnValue(accountRepo);
       dataSource.transaction.mockImplementation(async (cb) => {
         const tx = {
           getRepository: jest.fn().mockImplementation((entity) => {
@@ -467,7 +394,7 @@ describe('TwoFactorService', () => {
         return cb(tx);
       });
 
-      await service.disable('user-uuid', 'password');
+      await service.disable('user-uuid');
 
       expect(txVerRepo.find).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -480,11 +407,7 @@ describe('TwoFactorService', () => {
   // ─── getTotpUri ──────────────────────────────────────────────────────────────
 
   describe('getTotpUri', () => {
-    it('returns the TOTP URI after verifying password', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(true);
-
+    it('returns the TOTP URI', async () => {
       const tfRepo = mockRepository();
       tfRepo.findOne.mockResolvedValue(makeTwoFactor());
 
@@ -492,7 +415,6 @@ describe('TwoFactorService', () => {
       userRepo.findOneOrFail.mockResolvedValue(makeUser());
 
       dataSource.getRepository.mockImplementation((entity) => {
-        if (entity === Account) return accountRepo;
         if (entity === TwoFactor) return tfRepo;
         if (entity === User) return userRepo;
         return mockRepository();
@@ -500,16 +422,12 @@ describe('TwoFactorService', () => {
 
       mockGenerateURI.mockReturnValue('otpauth://totp/label');
 
-      const result = await service.getTotpUri('user-uuid', 'password');
+      const result = await service.getTotpUri('user-uuid');
 
       expect(result).toBe('otpauth://totp/label');
     });
 
     it('decrypts the secret before generating the URI', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(true);
-
       const tfRepo = mockRepository();
       tfRepo.findOne.mockResolvedValue(makeTwoFactor({ secret: 'encrypted-secret' }));
 
@@ -517,7 +435,6 @@ describe('TwoFactorService', () => {
       userRepo.findOneOrFail.mockResolvedValue(makeUser());
 
       dataSource.getRepository.mockImplementation((entity) => {
-        if (entity === Account) return accountRepo;
         if (entity === TwoFactor) return tfRepo;
         if (entity === User) return userRepo;
         return mockRepository();
@@ -525,35 +442,21 @@ describe('TwoFactorService', () => {
 
       mockDecrypt.mockReturnValue('PLAINTEXT-SECRET');
 
-      await service.getTotpUri('user-uuid', 'password');
+      await service.getTotpUri('user-uuid');
 
       expect(mockDecrypt).toHaveBeenCalledWith('encrypted-secret', 'enc-secret');
     });
 
-    it('throws UnauthorizedException when password is wrong', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(false);
-      dataSource.getRepository.mockReturnValue(accountRepo);
-
-      await expect(service.getTotpUri('user-uuid', 'wrong')).rejects.toThrow(UnauthorizedException);
-    });
-
     it('throws ForbiddenException when no TwoFactor record exists', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(true);
-
       const tfRepo = mockRepository();
       tfRepo.findOne.mockResolvedValue(null);
 
       dataSource.getRepository.mockImplementation((entity) => {
-        if (entity === Account) return accountRepo;
         if (entity === TwoFactor) return tfRepo;
         return mockRepository();
       });
 
-      await expect(service.getTotpUri('user-uuid', 'password')).rejects.toThrow(ForbiddenException);
+      await expect(service.getTotpUri('user-uuid')).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -832,21 +735,16 @@ describe('TwoFactorService', () => {
   // ─── generateBackupCodes ─────────────────────────────────────────────────────
 
   describe('generateBackupCodes', () => {
-    it('returns new backup codes and updates TwoFactor record after password verification', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(true);
-
+    it('returns new backup codes and updates TwoFactor record', async () => {
       const tfRepo = mockRepository();
       tfRepo.update.mockResolvedValue({ affected: 1, raw: [] });
 
       dataSource.getRepository.mockImplementation((entity) => {
-        if (entity === Account) return accountRepo;
         if (entity === TwoFactor) return tfRepo;
         return mockRepository();
       });
 
-      const result = await service.generateBackupCodes('user-uuid', 'password');
+      const result = await service.generateBackupCodes('user-uuid');
 
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
@@ -856,42 +754,16 @@ describe('TwoFactorService', () => {
       );
     });
 
-    it('throws ForbiddenException when no credential account is found', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(null);
-      dataSource.getRepository.mockReturnValue(accountRepo);
-
-      await expect(service.generateBackupCodes('user-uuid', 'password')).rejects.toThrow(
-        ForbiddenException,
-      );
-    });
-
-    it('throws UnauthorizedException when password is incorrect', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(false);
-      dataSource.getRepository.mockReturnValue(accountRepo);
-
-      await expect(service.generateBackupCodes('user-uuid', 'wrong')).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
     it('saves backup codes as a JSON array string', async () => {
-      const accountRepo = mockRepository();
-      accountRepo.findOne.mockResolvedValue(makeAccount());
-      mockBcryptCompare.mockResolvedValue(true);
-
       const tfRepo = mockRepository();
       tfRepo.update.mockResolvedValue({ affected: 1, raw: [] });
 
       dataSource.getRepository.mockImplementation((entity) => {
-        if (entity === Account) return accountRepo;
         if (entity === TwoFactor) return tfRepo;
         return mockRepository();
       });
 
-      await service.generateBackupCodes('user-uuid', 'password');
+      await service.generateBackupCodes('user-uuid');
 
       const updateArg = tfRepo.update.mock.calls[0][1] as { backupCodes: string };
       const parsed: unknown = JSON.parse(updateArg.backupCodes);

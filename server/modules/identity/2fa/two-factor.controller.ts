@@ -12,9 +12,9 @@ import {
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import type { Request as ExpressRequest, Response } from 'express';
+import { Public } from '../auth/decorators/public.decorator';
 import { TwoFactorService } from './two-factor.service';
 import { TwoFactorPendingGuard } from './guards/two-factor-pending.guard';
-import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { JwtFreshGuard } from '../auth/guards/jwt-fresh.guard';
 import { BaseAuthController } from '../auth/controllers/base-auth.controller';
 import { TwoFactorGateService } from '../auth/services/two-factor-gate.service';
@@ -45,7 +45,7 @@ export class TwoFactorController extends BaseAuthController {
     super(twoFactorGate);
   }
 
-  @UseGuards(JwtAccessGuard)
+  @UseGuards(JwtFreshGuard)
   @Post('enable')
   @HttpCode(HttpStatus.OK)
   @Throttle(TFA_THROTTLE)
@@ -73,37 +73,35 @@ export class TwoFactorController extends BaseAuthController {
     return { ok: true };
   }
 
-  @UseGuards(JwtAccessGuard)
+  @UseGuards(JwtFreshGuard)
   @Post('disable')
   @HttpCode(HttpStatus.OK)
   @Throttle(TFA_THROTTLE)
-  @ApiOperation({ summary: 'Disable 2FA — requires password confirmation' })
+  @ApiOperation({ summary: 'Disable 2FA' })
   async disable(
     @Request() req: ExpressRequest & { user: { userId: string } },
-    @Body() dto: DisableTwoFactorDto,
+    @Body() _dto: DisableTwoFactorDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    await this.twoFactorService.disable(req.user.userId, dto.password);
+    await this.twoFactorService.disable(req.user.userId);
     res.clearCookie(TRUST_DEVICE_COOKIE);
     return { ok: true };
   }
 
-  @UseGuards(JwtAccessGuard)
+  @UseGuards(JwtFreshGuard)
   @Post('get-totp-uri')
   @HttpCode(HttpStatus.OK)
   @Throttle(TFA_THROTTLE)
-  @ApiOperation({ summary: 'Get TOTP URI — requires password confirmation' })
+  @ApiOperation({ summary: 'Get TOTP URI' })
   async getTotpUri(
     @Request() req: ExpressRequest & { user: { userId: string } },
-    @Body() dto: GetTotpUriDto,
+    @Body() _dto: GetTotpUriDto,
   ) {
-    const totpURI = await this.twoFactorService.getTotpUri(
-      req.user.userId,
-      dto.password,
-    );
+    const totpURI = await this.twoFactorService.getTotpUri(req.user.userId);
     return { totpURI };
   }
 
+  @Public()
   @UseGuards(TwoFactorPendingGuard)
   @Post('verify-totp')
   @HttpCode(HttpStatus.OK)
@@ -136,6 +134,7 @@ export class TwoFactorController extends BaseAuthController {
     };
   }
 
+  @Public()
   @UseGuards(TwoFactorPendingGuard)
   @Post('send-otp')
   @HttpCode(HttpStatus.OK)
@@ -146,6 +145,7 @@ export class TwoFactorController extends BaseAuthController {
     return { ok: true };
   }
 
+  @Public()
   @UseGuards(TwoFactorPendingGuard)
   @Post('verify-otp')
   @HttpCode(HttpStatus.OK)
@@ -178,6 +178,7 @@ export class TwoFactorController extends BaseAuthController {
     };
   }
 
+  @Public()
   @UseGuards(TwoFactorPendingGuard)
   @Post('verify-backup-code')
   @HttpCode(HttpStatus.OK)
@@ -211,19 +212,17 @@ export class TwoFactorController extends BaseAuthController {
     };
   }
 
-  @UseGuards(JwtAccessGuard)
+  @UseGuards(JwtFreshGuard)
   @Post('generate-backup-codes')
   @HttpCode(HttpStatus.OK)
   @Throttle(TFA_THROTTLE)
   @ApiOperation({ summary: 'Regenerate backup codes — invalidates old ones' })
   async generateBackupCodes(
     @Request() req: ExpressRequest & { user: { userId: string } },
-    @Body() dto: GenerateBackupCodesDto,
+    @Body() _dto: GenerateBackupCodesDto,
   ) {
-    const backupCodes = await this.twoFactorService.generateBackupCodes(
-      req.user.userId,
-      dto.password,
-    );
+    const backupCodes =
+      await this.twoFactorService.generateBackupCodes(req.user.userId);
     return { backupCodes };
   }
 }

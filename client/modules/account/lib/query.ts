@@ -40,7 +40,6 @@ export type LinkedAccount = {
 };
 
 export type Enable2FAInput = {
-  password: string;
   issuer?: string;
 };
 
@@ -53,17 +52,11 @@ export type VerifyEnableTotpInput = {
   code: string;
 };
 
-export type Disable2FAInput = {
-  password: string;
-};
+export type Disable2FAInput = Record<string, never>;
 
-export type GetTotpUriInput = {
-  password: string;
-};
+export type GetTotpUriInput = Record<string, never>;
 
-export type GenerateBackupCodesInput = {
-  password: string;
-};
+export type GenerateBackupCodesInput = Record<string, never>;
 
 export type UploadResult = {
   url: string;

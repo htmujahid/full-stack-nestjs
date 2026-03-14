@@ -106,7 +106,7 @@ describe('TwoFactorController', () => {
       twoFactorService.enable.mockResolvedValue(result);
 
       const req = makeRequest();
-      const dto = { password: 'secret' };
+      const dto = {};
 
       const response = await controller.enable(req, dto as never);
 
@@ -137,9 +137,9 @@ describe('TwoFactorController', () => {
       const req = makeRequest();
       const res = makeMockResponse();
 
-      const result = await controller.disable(req, { password: 'secret' }, res);
+      const result = await controller.disable(req, {}, res);
 
-      expect(twoFactorService.disable).toHaveBeenCalledWith('user-uuid', 'secret');
+      expect(twoFactorService.disable).toHaveBeenCalledWith('user-uuid');
       expect(res.clearCookie).toHaveBeenCalledWith(TRUST_DEVICE_COOKIE);
       expect(result).toEqual({ ok: true });
     });
@@ -152,9 +152,9 @@ describe('TwoFactorController', () => {
       twoFactorService.getTotpUri.mockResolvedValue('otpauth://totp/...');
 
       const req = makeRequest();
-      const result = await controller.getTotpUri(req, { password: 'secret' });
+      const result = await controller.getTotpUri(req, {});
 
-      expect(twoFactorService.getTotpUri).toHaveBeenCalledWith('user-uuid', 'secret');
+      expect(twoFactorService.getTotpUri).toHaveBeenCalledWith('user-uuid');
       expect(result).toEqual({ totpURI: 'otpauth://totp/...' });
     });
   });
@@ -415,12 +415,9 @@ describe('TwoFactorController', () => {
       twoFactorService.generateBackupCodes.mockResolvedValue(backupCodes);
       const req = makeRequest();
 
-      const result = await controller.generateBackupCodes(req, { password: 'secret' });
+      const result = await controller.generateBackupCodes(req, {});
 
-      expect(twoFactorService.generateBackupCodes).toHaveBeenCalledWith(
-        'user-uuid',
-        'secret',
-      );
+      expect(twoFactorService.generateBackupCodes).toHaveBeenCalledWith('user-uuid');
       expect(result).toEqual({ backupCodes });
     });
   });

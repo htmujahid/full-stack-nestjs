@@ -67,8 +67,6 @@ export class TwoFactorService {
     userId: string,
     dto: EnableTwoFactorDto,
   ): Promise<{ totpURI: string; backupCodes: string[] }> {
-    await this.requireCredentialAccount(userId, dto.password);
-
     const encKey = this.configService.getOrThrow<string>('auth.accessSecret');
     const appName = this.configService.get<string>('app.name') ?? 'crude';
     const issuer = dto.issuer ?? appName;
@@ -133,9 +131,7 @@ export class TwoFactorService {
     });
   }
 
-  async disable(userId: string, password: string): Promise<void> {
-    await this.requireCredentialAccount(userId, password);
-
+  async disable(userId: string): Promise<void> {
     await this.dataSource.transaction(async (tx) => {
       await tx.getRepository(TwoFactor).delete({ userId });
       await tx.getRepository(User).update(userId, { twoFactorEnabled: false });
@@ -149,8 +145,7 @@ export class TwoFactorService {
     });
   }
 
-  async getTotpUri(userId: string, password: string): Promise<string> {
-    await this.requireCredentialAccount(userId, password);
+  async getTotpUri(userId: string): Promise<string> {
     const { secret } = await this.getTwoFactorRecord(userId);
     const appName = this.configService.get<string>('app.name') ?? 'crude';
     const user = await this.dataSource
@@ -281,11 +276,7 @@ export class TwoFactorService {
     return { tokens, trustCookieValue };
   }
 
-  async generateBackupCodes(
-    userId: string,
-    password: string,
-  ): Promise<string[]> {
-    await this.requireCredentialAccount(userId, password);
+  async generateBackupCodes(userId: string): Promise<string[]> {
     const { plainCodes, hashedCodesJson } = this.generateBackupCodeSet();
     await this.dataSource
       .getRepository(TwoFactor)

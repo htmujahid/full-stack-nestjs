@@ -100,18 +100,11 @@ describe('Two-Factor (e2e)', () => {
 
       const { body } = await request(app.getHttpServer())
         .post('/api/two-factor/enable')
-        .send({ password: 'password123' })
+        .send({})
         .expect(200);
 
       expect(body.totpURI).toBeDefined();
       expect(body.backupCodes).toBeDefined();
-    });
-
-    it('returns 400 when password missing', async () => {
-      await request(app.getHttpServer())
-        .post('/api/two-factor/enable')
-        .send({})
-        .expect(400);
     });
   });
 
@@ -145,7 +138,7 @@ describe('Two-Factor (e2e)', () => {
 
       const { body } = await request(app.getHttpServer())
         .post('/api/two-factor/disable')
-        .send({ password: 'password123' })
+        .send({})
         .expect(200);
 
       expect(body.ok).toBe(true);
@@ -160,7 +153,7 @@ describe('Two-Factor (e2e)', () => {
 
       const { body } = await request(app.getHttpServer())
         .post('/api/two-factor/get-totp-uri')
-        .send({ password: 'password123' })
+        .send({})
         .expect(200);
 
       expect(body.totpURI).toBe('otpauth://totp/...');
@@ -263,7 +256,7 @@ describe('Two-Factor (e2e)', () => {
 
       const { body } = await request(app.getHttpServer())
         .post('/api/two-factor/generate-backup-codes')
-        .send({ password: 'password123' })
+        .send({})
         .expect(200);
 
       expect(body.backupCodes).toEqual(['a1b2c-d3e4f']);
