@@ -15,9 +15,16 @@ export class UpdateMeDto {
   @MaxLength(255)
   name?: string;
 
+  @ApiPropertyOptional({ description: 'Username (unique)' })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(64)
+  username?: string;
+
   @ApiPropertyOptional({ description: 'Avatar image URL' })
   @IsOptional()
-  @IsUrl()
+  @IsUrl({ require_tld: false, protocols: ['http', 'https'] })
   @MaxLength(512)
   image?: string;
 }

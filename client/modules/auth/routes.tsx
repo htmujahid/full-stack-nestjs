@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 import { Navigate, Route } from 'react-router';
 
-const AuthLayout = lazy(() => import('./layouts/auth-layout'));
+const AuthLayout = lazy(() => import('./components/auth-layout'));
 const SignInPage = lazy(() => import('./pages/sign-in'));
 const SignUpPage = lazy(() => import('./pages/sign-up'));
 const ForgotPasswordPage = lazy(() => import('./pages/forgot-password'));

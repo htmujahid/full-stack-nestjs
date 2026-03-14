@@ -1,6 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { fetcher, FetcherError } from '@/lib/fetcher';
 
+export { fetcher, FetcherError };
+
 // ─── Types (mirror server DTOs) ───────────────────────────────────────────────
 
 export type SignInInput = {
