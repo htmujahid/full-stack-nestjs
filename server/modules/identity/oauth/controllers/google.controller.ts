@@ -8,11 +8,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import type { Request as ExpressRequest, Response } from 'express';
 import { Public } from '../../auth/decorators/public.decorator';
-import { GoogleService } from '../services/google.service';
 import { AccountService } from '../../account/account.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { TwoFactorGateService } from '../../auth/services/two-factor-gate.service';
 import type { GoogleProfile } from '../strategies/google.strategy';
 import { BaseOAuthController } from './base-oauth.controller';
@@ -23,12 +25,13 @@ import { JwtService } from '@nestjs/jwt';
 @Controller('api/oauth/google')
 export class GoogleController extends BaseOAuthController {
   constructor(
-    private readonly googleService: GoogleService,
+    twoFactorGate: TwoFactorGateService,
     accountService: AccountService,
     jwtService: JwtService,
-    twoFactorGate: TwoFactorGateService,
+    @InjectDataSource() dataSource: DataSource,
+    authService: AuthService,
   ) {
-    super(twoFactorGate, accountService, jwtService);
+    super(twoFactorGate, accountService, jwtService, dataSource, authService);
   }
 
   @Public()
@@ -59,9 +62,9 @@ export class GoogleController extends BaseOAuthController {
 
     const ip = forwardedFor?.split(',')[0]?.trim() ?? null;
     const ctx = { ip, userAgent: userAgent ?? null };
-    const user = await this.googleService.findOrCreateUser(req.user);
+    const user = await this.findOrCreateUser(req.user);
     return this.handleOAuthSignIn(req, res, user, () =>
-      this.googleService.createSession(user.id, user.role, ctx),
+      this.authService.createAuthSession(user.id, user.role, true, ctx, 'google'),
     );
   }
 }

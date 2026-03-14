@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CanActivate } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { getDataSourceToken } from '@nestjs/typeorm';
 import { GoogleController } from './google.controller';
-import { GoogleService } from '../services/google.service';
 import { AccountService } from '../../account/account.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { TwoFactorGateService } from '../../auth/services/two-factor-gate.service';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import {
@@ -52,10 +53,8 @@ const makeTokens = () => ({
   refreshExpiresAt: new Date(),
 });
 
-const mockGoogleService = () => ({
-  findOrCreateUser: jest.fn(),
-  createSession: jest.fn(),
-});
+const mockDataSource = () => ({ transaction: jest.fn() });
+const mockAuthService = () => ({ createAuthSession: jest.fn() });
 
 const mockAccountService = () => ({
   listAccounts: jest.fn(),
@@ -92,13 +91,13 @@ const makeMockRequest = (
 
 describe('GoogleController', () => {
   let controller: GoogleController;
-  let googleService: ReturnType<typeof mockGoogleService>;
+  let authService: ReturnType<typeof mockAuthService>;
   let accountService: ReturnType<typeof mockAccountService>;
   let twoFactorGate: ReturnType<typeof mockTwoFactorGateService>;
   let jwtService: ReturnType<typeof mockJwtService>;
 
   beforeEach(async () => {
-    googleService = mockGoogleService();
+    authService = mockAuthService();
     accountService = mockAccountService();
     twoFactorGate = mockTwoFactorGateService();
     jwtService = mockJwtService();
@@ -106,7 +105,8 @@ describe('GoogleController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GoogleController],
       providers: [
-        { provide: GoogleService, useValue: googleService },
+        { provide: getDataSourceToken(), useValue: mockDataSource() },
+        { provide: AuthService, useValue: authService },
         { provide: AccountService, useValue: accountService },
         { provide: TwoFactorGateService, useValue: twoFactorGate },
         { provide: JwtService, useValue: jwtService },
@@ -127,8 +127,8 @@ describe('GoogleController', () => {
     it('calls findOrCreateUser, creates session lazily, sets cookies, and redirects to "/"', async () => {
       const user = makeUser({ twoFactorEnabled: false });
       const tokens = makeTokens();
-      googleService.findOrCreateUser.mockResolvedValue(user);
-      googleService.createSession.mockResolvedValue(tokens);
+      jest.spyOn(controller, 'findOrCreateUser').mockResolvedValue(user);
+      authService.createAuthSession.mockResolvedValue(tokens);
 
       const profile = makeGoogleProfile();
       const req = makeMockRequest(profile, {});
@@ -136,38 +136,42 @@ describe('GoogleController', () => {
 
       const result = await controller.callback(req, undefined, undefined, res);
 
-      expect(googleService.findOrCreateUser).toHaveBeenCalledWith(profile);
-      expect(googleService.createSession).toHaveBeenCalledWith(
+      expect(controller.findOrCreateUser).toHaveBeenCalledWith(profile);
+      expect(authService.createAuthSession).toHaveBeenCalledWith(
         user.id,
         user.role,
+        true,
         expect.objectContaining({ ip: null, userAgent: null }),
+        'google',
       );
       expect(res.cookie).toHaveBeenCalledTimes(2);
       expect(result).toEqual({ url: '/', statusCode: 302 });
     });
 
-    it('passes extracted IP and userAgent to createSession', async () => {
+    it('passes extracted IP and userAgent to createAuthSession', async () => {
       const user = makeUser({ twoFactorEnabled: false });
       const tokens = makeTokens();
-      googleService.findOrCreateUser.mockResolvedValue(user);
-      googleService.createSession.mockResolvedValue(tokens);
+      jest.spyOn(controller, 'findOrCreateUser').mockResolvedValue(user);
+      authService.createAuthSession.mockResolvedValue(tokens);
 
       const req = makeMockRequest(makeGoogleProfile(), {});
       const res = makeMockResponse();
 
       await controller.callback(req, '10.0.0.1, 172.16.0.1', 'jest-agent', res);
 
-      expect(googleService.createSession).toHaveBeenCalledWith(
+      expect(authService.createAuthSession).toHaveBeenCalledWith(
         user.id,
         user.role,
+        true,
         { ip: '10.0.0.1', userAgent: 'jest-agent' },
+        'google',
       );
     });
 
     it('redirects to the OAUTH_REDIRECT_COOKIE path when present', async () => {
       const user = makeUser({ twoFactorEnabled: false });
-      googleService.findOrCreateUser.mockResolvedValue(user);
-      googleService.createSession.mockResolvedValue(makeTokens());
+      jest.spyOn(controller, 'findOrCreateUser').mockResolvedValue(user);
+      authService.createAuthSession.mockResolvedValue(makeTokens());
 
       const req = makeMockRequest(makeGoogleProfile(), {
         [OAUTH_REDIRECT_COOKIE]: '/dashboard',
@@ -181,8 +185,8 @@ describe('GoogleController', () => {
 
     it('clears OAUTH_REDIRECT_COOKIE after sign-in', async () => {
       const user = makeUser({ twoFactorEnabled: false });
-      googleService.findOrCreateUser.mockResolvedValue(user);
-      googleService.createSession.mockResolvedValue(makeTokens());
+      jest.spyOn(controller, 'findOrCreateUser').mockResolvedValue(user);
+      authService.createAuthSession.mockResolvedValue(makeTokens());
 
       const req = makeMockRequest(makeGoogleProfile(), {
         [OAUTH_REDIRECT_COOKIE]: '/dashboard',
@@ -196,7 +200,7 @@ describe('GoogleController', () => {
 
     it('redirects to "/auth/two-factor" and does NOT create a session when 2FA gate is pending', async () => {
       const user = makeUser({ twoFactorEnabled: true });
-      googleService.findOrCreateUser.mockResolvedValue(user);
+      jest.spyOn(controller, 'findOrCreateUser').mockResolvedValue(user);
       twoFactorGate.checkTrustDevice.mockResolvedValue(false);
       twoFactorGate.createPendingToken.mockResolvedValue('pending-jwt');
 
@@ -206,7 +210,7 @@ describe('GoogleController', () => {
       const result = await controller.callback(req, undefined, undefined, res);
 
       expect(result).toEqual({ url: '/auth/two-factor', statusCode: 302 });
-      expect(googleService.createSession).not.toHaveBeenCalled();
+      expect(authService.createAuthSession).not.toHaveBeenCalled();
     });
   });
 

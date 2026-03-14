@@ -8,7 +8,7 @@ import {
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
 import request from 'supertest';
-import { HealthController } from '../server/modules/health/health.controller';
+import { HealthController } from '../server/modules/core/health/health.controller';
 
 const up = (key: string) => ({ [key]: { status: 'up' } });
 

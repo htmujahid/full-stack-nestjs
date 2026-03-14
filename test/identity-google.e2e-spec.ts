@@ -5,14 +5,15 @@ import {
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
+import { getDataSourceToken } from '@nestjs/typeorm';
 import {
   ACCESS_TOKEN_COOKIE,
   LINK_INTENT_COOKIE,
   OAUTH_REDIRECT_COOKIE,
 } from '../server/modules/identity/auth/auth.constants';
 import { GoogleController } from '../server/modules/identity/oauth/controllers/google.controller';
-import { GoogleService } from '../server/modules/identity/oauth/services/google.service';
 import { AccountService } from '../server/modules/identity/account/account.service';
+import { AuthService } from '../server/modules/identity/auth/services/auth.service';
 import { TwoFactorGateService } from '../server/modules/identity/auth/services/two-factor-gate.service';
 import { GoogleAuthGuard } from '../server/modules/identity/oauth/guards/google-auth.guard';
 import { User } from '../server/modules/identity/user/user.entity';
@@ -56,16 +57,11 @@ const makeUser = (overrides: Partial<User> = {}): User =>
 
 describe('Identity Google (e2e)', () => {
   let app: INestApplication;
-  let googleService: ReturnType<typeof mockGoogleService>;
+  let controller: GoogleController;
+  let authService: { createAuthSession: jest.Mock };
   let accountService: ReturnType<typeof mockAccountService>;
   let jwtService: ReturnType<typeof mockJwtService>;
 
-  function mockGoogleService() {
-    return {
-      findOrCreateUser: jest.fn(),
-      createSession: jest.fn(),
-    };
-  }
   function mockAccountService() {
     return {
       linkAccount: jest.fn(),
@@ -78,14 +74,15 @@ describe('Identity Google (e2e)', () => {
   }
 
   beforeAll(async () => {
-    googleService = mockGoogleService();
+    authService = { createAuthSession: jest.fn() };
     accountService = mockAccountService();
     jwtService = mockJwtService();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GoogleController],
       providers: [
-        { provide: GoogleService, useValue: googleService },
+        { provide: getDataSourceToken(), useValue: { transaction: jest.fn() } },
+        { provide: AuthService, useValue: authService },
         { provide: AccountService, useValue: accountService },
         { provide: JwtService, useValue: jwtService },
         {
@@ -105,6 +102,7 @@ describe('Identity Google (e2e)', () => {
     app = module.createNestApplication();
     app.use(cookieParser());
     await app.init();
+    controller = module.get(GoogleController);
   });
 
   afterAll(() => app.close());
@@ -127,8 +125,8 @@ describe('Identity Google (e2e)', () => {
   describe('GET /api/oauth/google/callback', () => {
     it('redirects to / on successful sign-in', async () => {
       const user = makeUser();
-      googleService.findOrCreateUser.mockResolvedValue(user);
-      googleService.createSession.mockResolvedValue({
+      jest.spyOn(controller, 'findOrCreateUser').mockResolvedValue(user);
+      authService.createAuthSession.mockResolvedValue({
         accessToken: 'at',
         refreshToken: 'rt',
         refreshExpiresAt: new Date(),
@@ -169,8 +167,8 @@ describe('Identity Google (e2e)', () => {
 
     it('redirects to OAUTH_REDIRECT_COOKIE path on successful sign-in', async () => {
       const user = makeUser();
-      googleService.findOrCreateUser.mockResolvedValue(user);
-      googleService.createSession.mockResolvedValue({
+      jest.spyOn(controller, 'findOrCreateUser').mockResolvedValue(user);
+      authService.createAuthSession.mockResolvedValue({
         accessToken: 'at',
         refreshToken: 'rt',
         refreshExpiresAt: new Date(),
@@ -186,8 +184,8 @@ describe('Identity Google (e2e)', () => {
 
     it('clears oauth_redirect cookie after sign-in', async () => {
       const user = makeUser();
-      googleService.findOrCreateUser.mockResolvedValue(user);
-      googleService.createSession.mockResolvedValue({
+      jest.spyOn(controller, 'findOrCreateUser').mockResolvedValue(user);
+      authService.createAuthSession.mockResolvedValue({
         accessToken: 'at',
         refreshToken: 'rt',
         refreshExpiresAt: new Date(),
