@@ -10,6 +10,12 @@ import { REQUIRE_PERMISSIONS_KEY } from './require-permissions.decorator';
 import { UserRole } from '../user/user-role.enum';
 
 const ROLE_PERMISSIONS: Partial<Record<UserRole, string[]>> = {
+  [UserRole.SuperAdmin]: [
+    'project:read',
+    'project:create',
+    'project:update',
+    'project:delete',
+  ],
   [UserRole.Member]: [
     'project:read',
     'project:create',
@@ -35,7 +41,7 @@ export class PermissionsGuard implements CanActivate {
 
     if (!user?.role) throw new ForbiddenException();
 
-    if (user.role === UserRole.Admin) return true;
+    if (user.role === UserRole.SuperAdmin) return true;
 
     const allowed = ROLE_PERMISSIONS[user.role] ?? [];
     const hasAll = required.every((p) => allowed.includes(p));

@@ -59,9 +59,9 @@ describe('PermissionsGuard', () => {
       expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
     });
 
-    it('returns true when user is Admin (bypasses permission check)', () => {
+    it('returns true when user is SuperAdmin (bypasses permission check)', () => {
       reflector.getAllAndOverride.mockReturnValue(['project:delete', 'project:update']);
-      const context = makeContext({ userId: 'u1', role: UserRole.Admin });
+      const context = makeContext({ userId: 'u1', role: UserRole.SuperAdmin });
 
       const result = guard.canActivate(context);
 
