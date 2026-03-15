@@ -1,7 +1,11 @@
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { User as AuthUser } from '@/components/providers/auth-provider';
-import { useUpdateMeMutation, useUploadMutation } from '../lib/query';
+import {
+  useDeleteUploadMutation,
+  useUpdateMeMutation,
+  useUploadMutation,
+} from '../lib/query';
 import { getAuthErrorMessage } from '@/modules/auth/lib/query';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,6 +33,7 @@ type ProfileFormData = {
 export function ProfileInfoCard({ user }: { user: AuthUser }) {
   const updateMe = useUpdateMeMutation();
   const upload = useUploadMutation();
+  const deleteUpload = useDeleteUploadMutation();
   const form = useForm<ProfileFormData>({
     mode: 'onBlur',
     defaultValues: {
@@ -42,7 +47,11 @@ export function ProfileInfoCard({ user }: { user: AuthUser }) {
     file: { file: File | { url: string }; id: string } | null
   ) => {
     if (!file) {
+      const currentUrl = form.getValues('image');
       form.setValue('image', '', { shouldDirty: true });
+      if (currentUrl) {
+        deleteUpload.mutate({ url: currentUrl });
+      }
       return;
     }
     const f = file.file;
@@ -101,7 +110,7 @@ export function ProfileInfoCard({ user }: { user: AuthUser }) {
             )}
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
               <AvatarUpload
-                defaultAvatar={user.image ?? undefined}
+                defaultAvatar={form.watch('image') || undefined}
                 onFileChange={handleAvatarChange}
                 maxSize={2 * 1024 * 1024}
               />
@@ -155,10 +164,11 @@ export function ProfileInfoCard({ user }: { user: AuthUser }) {
               disabled={
                 updateMe.isPending ||
                 upload.isPending ||
+                deleteUpload.isPending ||
                 !form.formState.isDirty
               }
             >
-              {updateMe.isPending || upload.isPending
+              {updateMe.isPending || upload.isPending || deleteUpload.isPending
                 ? 'Saving…'
                 : 'Save changes'}
             </Button>

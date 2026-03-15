@@ -273,3 +273,14 @@ export function useUploadMutation() {
     },
   });
 }
+
+export function useDeleteUploadMutation() {
+  return useMutation({
+    mutationFn: async ({ key, url }: { key?: string; url?: string }) => {
+      await fetcher('/api/upload', {
+        method: 'DELETE',
+        body: JSON.stringify({ key, url }),
+      });
+    },
+  });
+}

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   HttpCode,
   HttpStatus,
   ParseFilePipeBuilder,
@@ -66,5 +67,23 @@ export class UploadController {
     @Body('prefix') prefix?: string,
   ) {
     return this.upload.upload(file, prefix ?? 'uploads');
+  }
+
+  @Delete()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a file from S3 by key or URL' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        key: { type: 'string', description: 'S3 object key' },
+        url: { type: 'string', description: 'Full file URL (alternative to key)' },
+      },
+    },
+  })
+  async deleteFile(@Body('key') key?: string, @Body('url') url?: string) {
+    const target = key ?? url;
+    if (!target) return;
+    await this.upload.delete(target);
   }
 }

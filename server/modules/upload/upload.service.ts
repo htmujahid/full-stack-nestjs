@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
+  DeleteObjectCommand,
   PutObjectCommand,
   S3Client,
   type PutObjectCommandInput,
@@ -54,5 +55,24 @@ export class UploadService {
       size: file.size,
       name: file.originalname,
     };
+  }
+
+  async delete(keyOrUrl: string): Promise<void> {
+    let key: string;
+    if (keyOrUrl.startsWith('http')) {
+      if (!keyOrUrl.startsWith(this.publicUrl)) return; // external URL, skip
+      key = keyOrUrl.replace(
+        new RegExp(
+          `^${this.publicUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/?`,
+        ),
+        '',
+      );
+    } else {
+      key = keyOrUrl;
+    }
+    if (!key) return;
+    await this.s3.send(
+      new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
+    );
   }
 }

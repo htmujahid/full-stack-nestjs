@@ -15,6 +15,8 @@ interface AvatarUploadProps {
   className?: string;
   onFileChange?: (file: FileWithPreview | null) => void;
   defaultAvatar?: string;
+  /** Whether the remove button can clear the default avatar (default: true) */
+  canRemoveDefault?: boolean;
 }
 
 export function AvatarUpload({
@@ -22,6 +24,7 @@ export function AvatarUpload({
   className,
   onFileChange,
   defaultAvatar,
+  canRemoveDefault = true,
 }: AvatarUploadProps) {
   const [
     { files, isDragging, errors },
@@ -50,8 +53,12 @@ export function AvatarUpload({
   const handleRemove = () => {
     if (currentFile) {
       removeFile(currentFile.id);
+    } else if (defaultAvatar && canRemoveDefault) {
+      onFileChange?.(null);
     }
   };
+
+  const showRemoveButton = currentFile || (defaultAvatar && canRemoveDefault);
 
   return (
     <div className={cn('flex flex-col items-center gap-4', className)}>
@@ -85,7 +92,7 @@ export function AvatarUpload({
           )}
         </div>
 
-        {currentFile && (
+        {showRemoveButton && (
           <Button
             type="button"
             size="icon"
