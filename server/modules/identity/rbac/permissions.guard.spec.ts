@@ -83,5 +83,21 @@ describe('PermissionsGuard', () => {
 
       expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
     });
+
+    it('returns true when Admin has user permissions', () => {
+      reflector.getAllAndOverride.mockReturnValue(['user:read', 'user:create']);
+      const context = makeContext({ userId: 'u1', role: UserRole.Admin });
+
+      const result = guard.canActivate(context);
+
+      expect(result).toBe(true);
+    });
+
+    it('throws ForbiddenException when Admin lacks project permission', () => {
+      reflector.getAllAndOverride.mockReturnValue(['project:read']);
+      const context = makeContext({ userId: 'u1', role: UserRole.Admin });
+
+      expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+    });
   });
 });

@@ -15,6 +15,16 @@ const ROLE_PERMISSIONS: Partial<Record<UserRole, string[]>> = {
     'project:create',
     'project:update',
     'project:delete',
+    'user:read',
+    'user:create',
+    'user:update',
+    'user:delete',
+  ],
+  [UserRole.Admin]: [
+    'user:read',
+    'user:create',
+    'user:update',
+    'user:delete',
   ],
   [UserRole.Member]: [
     'project:read',

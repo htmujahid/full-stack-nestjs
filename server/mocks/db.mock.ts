@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 export const mockRepository = () => ({
   find: jest.fn(),
   findOne: jest.fn(),
+  findOneBy: jest.fn(),
   findOneOrFail: jest.fn(),
   save: jest.fn(),
   create: jest.fn(),
