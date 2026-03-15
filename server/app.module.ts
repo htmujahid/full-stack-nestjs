@@ -12,7 +12,7 @@ import { DatabaseModule } from './database/database.module';
 import { CoreModule } from './modules/core/core.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { DeskModule } from './modules/desk/desk.module';
-import { UploadModule } from './modules/upload/upload.module';
+import { UploadModule } from './modules/misc/upload/upload.module';
 
 @Module({
   imports: [
