@@ -13,6 +13,7 @@ import { CoreModule } from './modules/core/core.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { DeskModule } from './modules/desk/desk.module';
 import { UploadModule } from './modules/misc/upload/upload.module';
+import { NotificationModule } from './modules/misc/notification/notification.module';
 import { DataModule } from './modules/data/data.module';
 
 @Module({
@@ -23,6 +24,7 @@ import { DataModule } from './modules/data/data.module';
     IdentityModule,
     DeskModule,
     UploadModule,
+    NotificationModule,
     DataModule,
   ],
   controllers: [AppController],

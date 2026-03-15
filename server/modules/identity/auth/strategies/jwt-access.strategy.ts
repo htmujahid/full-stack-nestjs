@@ -25,6 +25,7 @@ export class JwtAccessStrategy extends PassportStrategy(
           (req?.cookies as Record<string, string>)?.[ACCESS_TOKEN_COOKIE] ??
           null,
         ExtractJwt.fromAuthHeaderAsBearerToken(),
+        ExtractJwt.fromUrlQueryParameter('token'),
       ]),
       ignoreExpiration: false,
       secretOrKey: configService.getOrThrow<string>('auth.accessSecret'),
