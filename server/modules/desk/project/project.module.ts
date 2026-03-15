@@ -10,5 +10,6 @@ import { UserModule } from '../../identity/user/user.module';
   imports: [TypeOrmModule.forFeature([Project]), RbacModule, UserModule],
   controllers: [ProjectController],
   providers: [ProjectService],
+  exports: [ProjectService],
 })
 export class ProjectModule {}

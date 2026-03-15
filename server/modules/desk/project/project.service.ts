@@ -7,10 +7,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from './project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { FindProjectsDto } from './dto/find-projects.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { UserRole } from '../../identity/user/user-role.enum';
 
 export type AuthContext = { userId: string; role: UserRole };
+
+export type ProjectsPage = {
+  data: Project[];
+  total: number;
+  page: number;
+  limit: number;
+};
 
 @Injectable()
 export class ProjectService {
@@ -19,8 +27,30 @@ export class ProjectService {
     private readonly projectRepository: Repository<Project>,
   ) {}
 
-  findAll(): Promise<Project[]> {
-    return this.projectRepository.find();
+  async findAll(dto: FindProjectsDto): Promise<ProjectsPage> {
+    const page = dto.page ?? 1;
+    const limit = dto.limit ?? 20;
+    const qb = this.projectRepository.createQueryBuilder('project');
+
+    if (dto.search) {
+      qb.andWhere(
+        '(project.name LIKE :search OR project.description LIKE :search)',
+        { search: `%${dto.search}%` },
+      );
+    }
+
+    if (dto.userId) {
+      qb.andWhere('project.userId = :userId', { userId: dto.userId });
+    }
+
+    const sortBy = dto.sortBy ?? 'name';
+    const sortOrder = (dto.sortOrder ?? 'asc').toUpperCase() as 'ASC' | 'DESC';
+    qb.orderBy(`project.${sortBy}`, sortOrder);
+
+    qb.skip((page - 1) * limit).take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total, page, limit };
   }
 
   async findOne(id: string): Promise<Project> {

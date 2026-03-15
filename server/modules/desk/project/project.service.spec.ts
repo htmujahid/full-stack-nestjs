@@ -4,6 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { ProjectService } from './project.service';
 import { Project } from './project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { FindProjectsDto } from './dto/find-projects.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { UserRole } from '../../identity/user/user-role.enum';
 import { mockRepository } from '../../../mocks/db.mock';
@@ -19,12 +20,30 @@ const makeProject = (overrides: Partial<Project> = {}): Project =>
     ...overrides,
   }) as Project;
 
+const mockQueryBuilder = () => ({
+  andWhere: jest.fn().mockReturnThis(),
+  orderBy: jest.fn().mockReturnThis(),
+  skip: jest.fn().mockReturnThis(),
+  take: jest.fn().mockReturnThis(),
+  getManyAndCount: jest.fn(),
+});
+
 describe('ProjectService', () => {
   let service: ProjectService;
-  let projectRepo: ReturnType<typeof mockRepository> & { findOneBy: jest.Mock };
+  let projectRepo: ReturnType<typeof mockRepository> & {
+    findOneBy: jest.Mock;
+    createQueryBuilder: jest.Mock;
+  };
+  let qb: ReturnType<typeof mockQueryBuilder>;
 
   beforeEach(async () => {
-    projectRepo = { ...mockRepository(), findOneBy: jest.fn() };
+    projectRepo = {
+      ...mockRepository(),
+      findOneBy: jest.fn(),
+      createQueryBuilder: jest.fn(),
+    };
+    qb = mockQueryBuilder();
+    projectRepo.createQueryBuilder.mockReturnValue(qb);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -39,22 +58,67 @@ describe('ProjectService', () => {
   afterEach(() => jest.clearAllMocks());
 
   describe('findAll', () => {
-    it('returns all projects from repository', async () => {
-      const projects = [makeProject(), makeProject({ id: 'project-2', name: 'Second' })];
-      projectRepo.find.mockResolvedValue(projects);
+    it('returns ProjectsPage with data, total, page, limit', async () => {
+      const projects = [
+        makeProject(),
+        makeProject({ id: 'project-2', name: 'Second' }),
+      ];
+      qb.getManyAndCount.mockResolvedValue([projects, 2]);
 
-      const result = await service.findAll();
+      const dto: FindProjectsDto = {};
+      const result = await service.findAll(dto);
 
-      expect(projectRepo.find).toHaveBeenCalledTimes(1);
-      expect(result).toBe(projects);
+      expect(projectRepo.createQueryBuilder).toHaveBeenCalledWith('project');
+      expect(qb.orderBy).toHaveBeenCalledWith('project.name', 'ASC');
+      expect(qb.skip).toHaveBeenCalledWith(0);
+      expect(qb.take).toHaveBeenCalledWith(20);
+      expect(result).toEqual({ data: projects, total: 2, page: 1, limit: 20 });
     });
 
-    it('returns an empty array when no projects exist', async () => {
-      projectRepo.find.mockResolvedValue([]);
+    it('adds andWhere for search when provided', async () => {
+      qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      const result = await service.findAll();
+      await service.findAll({ search: 'acme' });
 
-      expect(result).toEqual([]);
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        '(project.name LIKE :search OR project.description LIKE :search)',
+        { search: '%acme%' },
+      );
+    });
+
+    it('adds andWhere for userId when provided', async () => {
+      qb.getManyAndCount.mockResolvedValue([[], 0]);
+
+      await service.findAll({ userId: 'user-123' });
+
+      expect(qb.andWhere).toHaveBeenCalledWith('project.userId = :userId', {
+        userId: 'user-123',
+      });
+    });
+
+    it('applies pagination with custom page and limit', async () => {
+      qb.getManyAndCount.mockResolvedValue([[], 0]);
+
+      await service.findAll({ page: 3, limit: 10 });
+
+      expect(qb.skip).toHaveBeenCalledWith(20);
+      expect(qb.take).toHaveBeenCalledWith(10);
+    });
+
+    it('applies sortBy and sortOrder', async () => {
+      qb.getManyAndCount.mockResolvedValue([[], 0]);
+
+      await service.findAll({ sortBy: 'createdAt', sortOrder: 'desc' });
+
+      expect(qb.orderBy).toHaveBeenCalledWith('project.createdAt', 'DESC');
+    });
+
+    it('returns empty ProjectsPage when no projects', async () => {
+      qb.getManyAndCount.mockResolvedValue([[], 0]);
+
+      const result = await service.findAll({});
+
+      expect(result).toEqual({ data: [], total: 0, page: 1, limit: 20 });
     });
   });
 

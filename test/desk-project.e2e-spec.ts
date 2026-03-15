@@ -32,14 +32,31 @@ const makeProject = (overrides: Partial<Project> = {}): Project =>
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
+function createQueryBuilderMock() {
+  return {
+    andWhere: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    skip: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+  };
+}
+
 describe('Projects (e2e)', () => {
   let app: INestApplication;
   let projectRepo: ReturnType<typeof mockRepository> & {
     findOneBy: jest.Mock;
+    createQueryBuilder: jest.Mock;
   };
+  let qbMock: ReturnType<typeof createQueryBuilderMock>;
 
   beforeAll(async () => {
-    projectRepo = Object.assign(mockRepository(), { findOneBy: jest.fn() });
+    projectRepo = Object.assign(mockRepository(), {
+      findOneBy: jest.fn(),
+      createQueryBuilder: jest.fn(),
+    });
+    qbMock = createQueryBuilderMock();
+    projectRepo.createQueryBuilder.mockReturnValue(qbMock);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProjectController],
@@ -53,7 +70,9 @@ describe('Projects (e2e)', () => {
     }).compile();
 
     app = module.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     app.use((req: { user?: { userId: string; role: UserRole } }, _res: unknown, next: () => void) => {
       req.user = { userId: TEST_USER_ID, role: UserRole.Member };
       next();
@@ -63,31 +82,77 @@ describe('Projects (e2e)', () => {
 
   afterAll(() => app.close());
 
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    qbMock.getManyAndCount.mockResolvedValue([[], 0]);
+  });
 
   // ─── GET /api/projects ────────────────────────────────────────────────────
 
   describe('GET /api/projects', () => {
-    it('returns 200 with an array of projects', async () => {
-      projectRepo.find.mockResolvedValue([makeProject()]);
+    it('returns 200 with paginated shape { data, total, page, limit }', async () => {
+      const projects = [makeProject()];
+      qbMock.getManyAndCount.mockResolvedValue([projects, 1]);
 
       const { body } = await request(app.getHttpServer())
         .get('/api/projects')
         .expect(200);
 
-      expect(body).toHaveLength(1);
-      expect(body[0].id).toBe(PROJECT_ID);
-      expect(body[0].name).toBe('My Project');
+      expect(body).toMatchObject({
+        data: expect.any(Array),
+        total: 1,
+        page: 1,
+        limit: 20,
+      });
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].id).toBe(PROJECT_ID);
+      expect(body.data[0].name).toBe('My Project');
     });
 
-    it('returns 200 with an empty array when no projects exist', async () => {
-      projectRepo.find.mockResolvedValue([]);
+    it('returns 200 with empty data when no projects exist', async () => {
+      qbMock.getManyAndCount.mockResolvedValue([[], 0]);
 
       const { body } = await request(app.getHttpServer())
         .get('/api/projects')
         .expect(200);
 
-      expect(body).toHaveLength(0);
+      expect(body.data).toEqual([]);
+      expect(body.total).toBe(0);
+    });
+
+    it('accepts userId filter with valid UUID', async () => {
+      const validUserId = '550e8400-e29b-41d4-a716-446655440000';
+      const projects = [makeProject({ userId: validUserId })];
+      qbMock.getManyAndCount.mockResolvedValue([projects, 1]);
+
+      const { body } = await request(app.getHttpServer())
+        .get(`/api/projects?userId=${validUserId}`)
+        .expect(200);
+
+      expect(body.data).toHaveLength(1);
+      expect(qbMock.andWhere).toHaveBeenCalledWith(
+        'project.userId = :userId',
+        expect.objectContaining({ userId: validUserId }),
+      );
+    });
+
+    it('accepts search, sortBy, sortOrder, page, limit query params', async () => {
+      const projects = [makeProject()];
+      qbMock.getManyAndCount.mockResolvedValue([projects, 1]);
+
+      const { body } = await request(app.getHttpServer())
+        .get(
+          '/api/projects?search=acme&sortBy=createdAt&sortOrder=desc&page=2&limit=10',
+        )
+        .expect(200);
+
+      expect(body.data).toHaveLength(1);
+      expect(body.page).toBe(2);
+      expect(body.limit).toBe(10);
+      expect(qbMock.andWhere).toHaveBeenCalled();
+      expect(qbMock.orderBy).toHaveBeenCalledWith('project.createdAt', 'DESC');
+      expect(qbMock.skip).toHaveBeenCalledWith(10);
+      expect(qbMock.take).toHaveBeenCalledWith(10);
     });
   });
 

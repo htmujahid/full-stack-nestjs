@@ -14,10 +14,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { ProjectService } from './project.service';
-import { CreateProjectDto } from './dto/create-project.dto';
-import { FindProjectsDto } from './dto/find-projects.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
+import { NoteService } from './note.service';
+import { CreateNoteDto } from './dto/create-note.dto';
+import { FindNotesDto } from './dto/find-notes.dto';
+import { UpdateNoteDto } from './dto/update-note.dto';
 import { RolesGuard } from '../../identity/rbac/roles.guard';
 import { PermissionsGuard } from '../../identity/rbac/permissions.guard';
 import { Roles } from '../../identity/rbac/roles.decorator';
@@ -26,40 +26,47 @@ import { UserRole } from '../../identity/user/user-role.enum';
 
 type AuthUser = { userId: string; role: UserRole };
 
-@Controller('api/projects')
+@Controller('api/notes')
 @UseGuards(RolesGuard, PermissionsGuard)
 @Roles(UserRole.Admin, UserRole.Member)
-export class ProjectController {
-  constructor(private readonly projectService: ProjectService) {}
+export class NoteController {
+  constructor(private readonly noteService: NoteService) {}
 
   @Get()
   @RequirePermissions('project:read')
-  findAll(@Query() dto: FindProjectsDto) {
-    return this.projectService.findAll(dto);
+  findAll(@Query() dto: FindNotesDto, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.noteService.findAll(dto, {
+      userId: user.userId,
+      role: user.role,
+    });
   }
 
   @Get(':id')
   @RequirePermissions('project:read')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.projectService.findOne(id);
+    return this.noteService.findOne(id);
   }
 
   @Post()
   @RequirePermissions('project:create')
-  create(@Body() dto: CreateProjectDto, @Req() req: Request) {
+  create(@Body() dto: CreateNoteDto, @Req() req: Request) {
     const user = req.user as AuthUser;
-    return this.projectService.create(dto, user.userId);
+    return this.noteService.create(dto, {
+      userId: user.userId,
+      role: user.role,
+    });
   }
 
   @Patch(':id')
   @RequirePermissions('project:update')
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateProjectDto,
+    @Body() dto: UpdateNoteDto,
     @Req() req: Request,
   ) {
     const user = req.user as AuthUser;
-    return this.projectService.update(id, dto, {
+    return this.noteService.update(id, dto, {
       userId: user.userId,
       role: user.role,
     });
@@ -70,7 +77,7 @@ export class ProjectController {
   @RequirePermissions('project:delete')
   remove(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
     const user = req.user as AuthUser;
-    return this.projectService.remove(id, {
+    return this.noteService.remove(id, {
       userId: user.userId,
       role: user.role,
     });

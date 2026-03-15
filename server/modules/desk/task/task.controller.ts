@@ -14,10 +14,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { ProjectService } from './project.service';
-import { CreateProjectDto } from './dto/create-project.dto';
-import { FindProjectsDto } from './dto/find-projects.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
+import { TaskService } from './task.service';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { FindTasksDto } from './dto/find-tasks.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { RolesGuard } from '../../identity/rbac/roles.guard';
 import { PermissionsGuard } from '../../identity/rbac/permissions.guard';
 import { Roles } from '../../identity/rbac/roles.decorator';
@@ -26,40 +26,47 @@ import { UserRole } from '../../identity/user/user-role.enum';
 
 type AuthUser = { userId: string; role: UserRole };
 
-@Controller('api/projects')
+@Controller('api/tasks')
 @UseGuards(RolesGuard, PermissionsGuard)
 @Roles(UserRole.Admin, UserRole.Member)
-export class ProjectController {
-  constructor(private readonly projectService: ProjectService) {}
+export class TaskController {
+  constructor(private readonly taskService: TaskService) {}
 
   @Get()
   @RequirePermissions('project:read')
-  findAll(@Query() dto: FindProjectsDto) {
-    return this.projectService.findAll(dto);
+  findAll(@Query() dto: FindTasksDto, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.taskService.findAll(dto, {
+      userId: user.userId,
+      role: user.role,
+    });
   }
 
   @Get(':id')
   @RequirePermissions('project:read')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.projectService.findOne(id);
+    return this.taskService.findOne(id);
   }
 
   @Post()
   @RequirePermissions('project:create')
-  create(@Body() dto: CreateProjectDto, @Req() req: Request) {
+  create(@Body() dto: CreateTaskDto, @Req() req: Request) {
     const user = req.user as AuthUser;
-    return this.projectService.create(dto, user.userId);
+    return this.taskService.create(dto, {
+      userId: user.userId,
+      role: user.role,
+    });
   }
 
   @Patch(':id')
   @RequirePermissions('project:update')
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateProjectDto,
+    @Body() dto: UpdateTaskDto,
     @Req() req: Request,
   ) {
     const user = req.user as AuthUser;
-    return this.projectService.update(id, dto, {
+    return this.taskService.update(id, dto, {
       userId: user.userId,
       role: user.role,
     });
@@ -70,7 +77,7 @@ export class ProjectController {
   @RequirePermissions('project:delete')
   remove(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
     const user = req.user as AuthUser;
-    return this.projectService.remove(id, {
+    return this.taskService.remove(id, {
       userId: user.userId,
       role: user.role,
     });

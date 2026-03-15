@@ -4,6 +4,7 @@ import { ProjectController } from './project.controller';
 import { ProjectService } from './project.service';
 import { Project } from './project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { FindProjectsDto } from './dto/find-projects.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { RolesGuard } from '../../identity/rbac/roles.guard';
 import { PermissionsGuard } from '../../identity/rbac/permissions.guard';
@@ -54,22 +55,34 @@ describe('ProjectController', () => {
   afterEach(() => jest.clearAllMocks());
 
   describe('findAll', () => {
-    it('delegates to service.findAll() and returns result', async () => {
-      const projects = [makeProject()];
-      service.findAll.mockResolvedValue(projects);
+    it('delegates to service.findAll(dto) and returns ProjectsPage', async () => {
+      const dto: FindProjectsDto = {};
+      const page = { data: [makeProject()], total: 1, page: 1, limit: 20 };
+      service.findAll.mockResolvedValue(page);
 
-      const result = await controller.findAll();
+      const result = await controller.findAll(dto);
 
+      expect(service.findAll).toHaveBeenCalledWith(dto);
       expect(service.findAll).toHaveBeenCalledTimes(1);
-      expect(result).toBe(projects);
+      expect(result).toBe(page);
     });
 
-    it('returns an empty array when service returns none', async () => {
-      service.findAll.mockResolvedValue([]);
+    it('passes dto with search and userId to service', async () => {
+      const dto: FindProjectsDto = {
+        search: 'acme',
+        userId: 'user-1',
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+        page: 2,
+        limit: 10,
+      };
+      const page = { data: [], total: 0, page: 2, limit: 10 };
+      service.findAll.mockResolvedValue(page);
 
-      const result = await controller.findAll();
+      const result = await controller.findAll(dto);
 
-      expect(result).toEqual([]);
+      expect(service.findAll).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(page);
     });
   });
 
