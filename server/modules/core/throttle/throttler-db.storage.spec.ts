@@ -66,6 +66,23 @@ describe('ThrottlerDbStorage', () => {
       expect(result.isBlocked).toBe(false);
       expect(result.timeToBlockExpire).toBe(0);
     });
+
+    it('handles ER_DUP_ENTRY race (concurrent inserts) by retrying findOne', async () => {
+      const fresh = makeRecord({ count: 0 });
+      const existing = makeRecord({ count: 1, lastRequest: NOW });
+      repo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(existing);
+      repo.create.mockReturnValue(fresh);
+      repo.save
+        .mockRejectedValueOnce(Object.assign(new Error('dup'), { code: 'ER_DUP_ENTRY' }))
+        .mockResolvedValueOnce(existing);
+
+      const result = await call(storage);
+
+      expect(repo.findOne).toHaveBeenCalledTimes(2);
+      expect(result.totalHits).toBe(2);
+    });
   });
 
   // ─── Within window, below limit ─────────────────────────────────────────────

@@ -30,7 +30,15 @@ export class ThrottlerDbStorage implements ThrottlerStorage {
         windowStart: now,
         blockExpiresAt: 0,
       });
-      await this.repo.save(record);
+      try {
+        await this.repo.save(record);
+      } catch (err: unknown) {
+        if ((err as { code?: string })?.code === 'ER_DUP_ENTRY') {
+          record = (await this.repo.findOne({ where: { key } }))!;
+        } else {
+          throw err;
+        }
+      }
     }
 
     const rec = record;
