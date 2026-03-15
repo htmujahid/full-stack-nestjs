@@ -17,6 +17,14 @@ export const paths = {
     error: '/auth/error',
   },
   home: '/home',
+  core: {
+    index: '/core',
+    settings: '/core/settings',
+    users: '/core/users',
+    userNew: '/core/users/new',
+    user: (id: string) => `/core/users/${id}`,
+    userEdit: (id: string) => `/core/users/${id}/edit`,
+  },
   account: {
     profile: '/account/profile',
     verification: '/account/verification',

@@ -4,11 +4,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { FindUsersDto } from './dto/find-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from './user-role.enum';
+
+export type UsersPage = {
+  data: User[];
+  total: number;
+  page: number;
+  limit: number;
+};
 
 @Injectable()
 export class UserService {
@@ -17,10 +25,34 @@ export class UserService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find({
-      order: { createdAt: 'DESC' },
+  async findAll(dto: FindUsersDto): Promise<UsersPage> {
+    const page = dto.page ?? 1;
+    const limit = dto.limit ?? 20;
+    const roleFilter =
+      dto.roles && dto.roles.length > 0 ? { role: In(dto.roles) } : {};
+
+    const where = dto.search
+      ? [
+          { name: ILike(`%${dto.search}%`), ...roleFilter },
+          { email: ILike(`%${dto.search}%`), ...roleFilter },
+          { username: ILike(`%${dto.search}%`), ...roleFilter },
+        ]
+      : dto.roles && dto.roles.length > 0
+        ? { role: In(dto.roles) }
+        : undefined;
+
+    const order = dto.sortBy
+      ? { [dto.sortBy]: (dto.sortOrder ?? 'asc').toUpperCase() as 'ASC' | 'DESC' }
+      : undefined;
+
+    const [data, total] = await this.userRepository.findAndCount({
+      where,
+      order,
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    return { data, total, page, limit };
   }
 
   async findOne(id: string): Promise<User> {

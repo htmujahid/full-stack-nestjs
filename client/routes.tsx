@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { Routes } from 'react-router';
 import { Spinner } from '@/components/ui/spinner';
 import { homeRoutes } from '@/modules/home/routes';
+import { coreRoutes } from '@/modules/core/routes';
 import { authRoutes } from '@/modules/auth/routes';
 import { accountRoutes } from '@/modules/account/routes';
 
@@ -23,6 +24,7 @@ export function AppRoutes() {
     <Suspense fallback={<FullPageFallback />}>
       <Routes>
         {homeRoutes}
+        {coreRoutes}
         {accountRoutes}
         {authRoutes}
       </Routes>

@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router';
 import { paths } from '@/config/paths.config';
 import { useQueryClient } from '@tanstack/react-query';
-import { BadgeCheck, Home, LogOut, Shield, User } from 'lucide-react';
+import { BadgeCheck, Home, LogOut, Shield, Users, User } from 'lucide-react';
 import { ME_QUERY_KEY, useUser } from '@/components/providers/auth-provider';
 import { useSignOutMutation } from '@/modules/auth/lib/query';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -86,6 +86,10 @@ export function AppHeader({ children }: AppHeaderProps) {
               <DropdownMenuItem onClick={() => navigate(paths.home)}>
                 <Home className="size-4" />
                 Home
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(paths.core.index)}>
+                <Users className="size-4" />
+                Admin
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate(paths.account.profile)}>
                 <User className="size-4" />

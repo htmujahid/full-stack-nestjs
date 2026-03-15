@@ -9,10 +9,12 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { FindUsersDto } from './dto/find-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { RolesGuard } from '../rbac/roles.guard';
 import { PermissionsGuard } from '../rbac/permissions.guard';
@@ -28,8 +30,8 @@ export class UserController {
 
   @Get()
   @RequirePermissions('user:read')
-  findAll() {
-    return this.userService.findAll();
+  findAll(@Query() dto: FindUsersDto) {
+    return this.userService.findAll(dto);
   }
 
   @Get(':id')
