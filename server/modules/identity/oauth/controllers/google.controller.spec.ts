@@ -32,7 +32,9 @@ const makeUser = (overrides: Partial<User> = {}): User =>
     ...overrides,
   }) as User;
 
-const makeGoogleProfile = (overrides: Partial<GoogleProfile> = {}): GoogleProfile => ({
+const makeGoogleProfile = (
+  overrides: Partial<GoogleProfile> = {},
+): GoogleProfile => ({
   providerId: 'google',
   accountId: 'google-account-id',
   email: 'test@example.com',
@@ -191,7 +193,9 @@ describe('GoogleController', () => {
 
       await controller.callback(req, undefined, undefined, res);
 
-      expect(res.clearCookie).toHaveBeenCalledWith(OAUTH_REDIRECT_COOKIE, { path: '/' });
+      expect(res.clearCookie).toHaveBeenCalledWith(OAUTH_REDIRECT_COOKIE, {
+        path: '/',
+      });
     });
 
     it('redirects to "/auth/two-factor" and does NOT create a session when 2FA gate is pending', async () => {

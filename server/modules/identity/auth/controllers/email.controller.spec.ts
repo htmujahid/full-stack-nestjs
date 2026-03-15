@@ -180,7 +180,11 @@ describe('EmailController', () => {
     it('returns redirect to /auth/two-factor when 2FA gate is pending', async () => {
       const user = makeUser({ twoFactorEnabled: true });
       const tokens = makeTokens();
-      emailService.verifySignInLink.mockResolvedValue({ ok: true, user, tokens });
+      emailService.verifySignInLink.mockResolvedValue({
+        ok: true,
+        user,
+        tokens,
+      });
       twoFactorGate.checkTrustDevice.mockResolvedValue(false);
       twoFactorGate.createPendingToken.mockResolvedValue('pending-jwt');
 
@@ -204,7 +208,11 @@ describe('EmailController', () => {
     it('sets token cookies and returns redirect to callbackURL on success', async () => {
       const user = makeUser({ twoFactorEnabled: false });
       const tokens = makeTokens();
-      emailService.verifySignInLink.mockResolvedValue({ ok: true, user, tokens });
+      emailService.verifySignInLink.mockResolvedValue({
+        ok: true,
+        user,
+        tokens,
+      });
 
       const req = makeMockRequest({ cookies: {} });
       const res = makeMockResponse();
@@ -229,7 +237,11 @@ describe('EmailController', () => {
     it('extracts first IP from x-forwarded-for header', async () => {
       const user = makeUser({ twoFactorEnabled: false });
       const tokens = makeTokens();
-      emailService.verifySignInLink.mockResolvedValue({ ok: true, user, tokens });
+      emailService.verifySignInLink.mockResolvedValue({
+        ok: true,
+        user,
+        tokens,
+      });
 
       const req = makeMockRequest({ cookies: {} });
       const res = makeMockResponse();

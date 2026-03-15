@@ -60,47 +60,50 @@ export function OneTimePhoneForm() {
       <form onSubmit={handleSubmit(onSendOtp)} noValidate>
         <FieldGroup>
           {errors.root?.message && (
-          <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {errors.root.message}
-          </div>
-        )}
-        <Field data-invalid={!!errors.phone}>
-          <FieldLabel htmlFor="one-time-phone">Phone number</FieldLabel>
-          <Input
-            id="one-time-phone"
-            type="tel"
-            placeholder="+12345678900"
-            autoComplete="tel"
-            aria-invalid={!!errors.phone}
-            aria-describedby={errors.phone ? 'one-time-phone-error' : undefined}
-            {...register('phone', {
-              required: 'Phone number is required',
-            })}
-          />
-          <FieldError id="one-time-phone-error">
-            {errors.phone?.message}
-          </FieldError>
-        </Field>
-        <Button type="submit" disabled={signInPhone.isPending}>
-          {signInPhone.isPending ? (
-            <>
-              <Spinner aria-hidden />
-              Sending code…
-            </>
-          ) : (
-            'Send OTP'
+            <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {errors.root.message}
+            </div>
           )}
-        </Button>
-      </FieldGroup>
-    </form>
-    <div className="mt-4 flex flex-col gap-3">
-      <FieldDescription className="text-center">
-        Prefer magic link? <Link to={paths.auth.magicLink}>Sign in with email</Link>
-      </FieldDescription>
-      <FieldDescription className="text-center">
-        <Link to={paths.auth.signIn}>Back to sign in</Link>
-      </FieldDescription>
-    </div>
-  </>
+          <Field data-invalid={!!errors.phone}>
+            <FieldLabel htmlFor="one-time-phone">Phone number</FieldLabel>
+            <Input
+              id="one-time-phone"
+              type="tel"
+              placeholder="+12345678900"
+              autoComplete="tel"
+              aria-invalid={!!errors.phone}
+              aria-describedby={
+                errors.phone ? 'one-time-phone-error' : undefined
+              }
+              {...register('phone', {
+                required: 'Phone number is required',
+              })}
+            />
+            <FieldError id="one-time-phone-error">
+              {errors.phone?.message}
+            </FieldError>
+          </Field>
+          <Button type="submit" disabled={signInPhone.isPending}>
+            {signInPhone.isPending ? (
+              <>
+                <Spinner aria-hidden />
+                Sending code…
+              </>
+            ) : (
+              'Send OTP'
+            )}
+          </Button>
+        </FieldGroup>
+      </form>
+      <div className="mt-4 flex flex-col gap-3">
+        <FieldDescription className="text-center">
+          Prefer magic link?{' '}
+          <Link to={paths.auth.magicLink}>Sign in with email</Link>
+        </FieldDescription>
+        <FieldDescription className="text-center">
+          <Link to={paths.auth.signIn}>Back to sign in</Link>
+        </FieldDescription>
+      </div>
+    </>
   );
 }

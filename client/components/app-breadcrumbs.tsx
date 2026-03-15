@@ -45,18 +45,18 @@ export function AppBreadcrumbs(props: {
           return (
             <Fragment key={index}>
               <BreadcrumbItem className={'capitalize lg:text-xs'}>
-                {
-                  index < (visiblePaths.length - 1) ?
-                    <BreadcrumbLink
-                      href={
-                        '/' +
-                        splitPath.slice(0, splitPath.indexOf(path) + 1).join('/')
-                      }
-                    >
-                      {label}
-                    </BreadcrumbLink> :
-                    label
-                }
+                {index < visiblePaths.length - 1 ? (
+                  <BreadcrumbLink
+                    href={
+                      '/' +
+                      splitPath.slice(0, splitPath.indexOf(path) + 1).join('/')
+                    }
+                  >
+                    {label}
+                  </BreadcrumbLink>
+                ) : (
+                  label
+                )}
               </BreadcrumbItem>
 
               {index === 0 && showEllipsis && (
@@ -66,11 +66,7 @@ export function AppBreadcrumbs(props: {
                 </>
               )}
 
-              {
-                index !== (visiblePaths.length - 1) &&
-                <BreadcrumbSeparator />
-              }
-
+              {index !== visiblePaths.length - 1 && <BreadcrumbSeparator />}
             </Fragment>
           );
         })}

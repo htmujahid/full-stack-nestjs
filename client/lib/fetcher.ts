@@ -44,7 +44,9 @@ export async function fetcher<T = unknown>(
   options: FetcherOptions = {},
 ): Promise<{ data: T; res: Response }> {
   const { skipAuthRetry = false, ...init } = options;
-  const headers: Record<string, string> = { ...(init.headers as Record<string, string>) };
+  const headers: Record<string, string> = {
+    ...(init.headers as Record<string, string>),
+  };
   if (init.body !== undefined && !(init.body instanceof FormData)) {
     headers['Content-Type'] ??= 'application/json';
   }
@@ -76,10 +78,9 @@ export async function fetcher<T = unknown>(
   }
 
   const contentType = res.headers.get('content-type');
-  const data =
-    contentType?.includes('application/json')
-      ? ((await res.json()) as T)
-      : (await res.text()) as unknown as T;
+  const data = contentType?.includes('application/json')
+    ? ((await res.json()) as T)
+    : ((await res.text()) as unknown as T);
 
   return { data, res };
 }

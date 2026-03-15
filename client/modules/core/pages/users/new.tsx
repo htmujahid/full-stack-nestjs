@@ -2,8 +2,15 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { paths } from '@/config/paths.config';
-import { useCreateUserMutation, getUserErrorMessage, type CreateUserInput } from '../../lib/query';
-import { UserFormFields, type UserFormData } from '../../components/user-form-fields';
+import {
+  useCreateUserMutation,
+  getUserErrorMessage,
+  type CreateUserInput,
+} from '../../lib/query';
+import {
+  UserFormFields,
+  type UserFormData,
+} from '../../components/user-form-fields';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Card,
@@ -20,7 +27,13 @@ export default function UserNewPage() {
 
   const form = useForm<UserFormData>({
     mode: 'onBlur',
-    defaultValues: { name: '', email: '', username: '', phone: '', role: 'member' },
+    defaultValues: {
+      name: '',
+      email: '',
+      username: '',
+      phone: '',
+      role: 'member',
+    },
   });
 
   const onSubmit = (data: UserFormData) => {
@@ -44,7 +57,9 @@ export default function UserNewPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Add user</h1>
-        <p className="text-sm text-muted-foreground">Create a new user account</p>
+        <p className="text-sm text-muted-foreground">
+          Create a new user account
+        </p>
       </div>
 
       <Card>

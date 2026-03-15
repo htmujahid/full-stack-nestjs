@@ -3,8 +3,15 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { paths } from '@/config/paths.config';
-import { useUserQuery, useUpdateUserMutation, getUserErrorMessage } from '../../lib/query';
-import { UserFormFields, type UserFormData } from '../../components/user-form-fields';
+import {
+  useUserQuery,
+  useUpdateUserMutation,
+  getUserErrorMessage,
+} from '../../lib/query';
+import {
+  UserFormFields,
+  type UserFormData,
+} from '../../components/user-form-fields';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Card,
@@ -25,7 +32,13 @@ export default function UserEditPage() {
 
   const form = useForm<UserFormData>({
     mode: 'onBlur',
-    defaultValues: { name: '', email: '', username: '', phone: '', role: 'member' },
+    defaultValues: {
+      name: '',
+      email: '',
+      username: '',
+      phone: '',
+      role: 'member',
+    },
   });
 
   useEffect(() => {
@@ -102,7 +115,9 @@ export default function UserEditPage() {
       <Card>
         <CardHeader>
           <CardTitle>User details</CardTitle>
-          <CardDescription>Make changes to the user's account below.</CardDescription>
+          <CardDescription>
+            Make changes to the user's account below.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)} noValidate>

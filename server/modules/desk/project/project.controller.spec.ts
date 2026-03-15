@@ -21,8 +21,10 @@ const makeProject = (overrides: Partial<Project> = {}): Project =>
     ...overrides,
   }) as Project;
 
-const makeRequest = (userId: string, role: UserRole = UserRole.Member): Request =>
-  ({ user: { userId, role } }) as unknown as Request;
+const makeRequest = (
+  userId: string,
+  role: UserRole = UserRole.Member,
+): Request => ({ user: { userId, role } }) as unknown as Request;
 
 const mockProjectService = () => ({
   findAll: jest.fn(),
@@ -101,7 +103,10 @@ describe('ProjectController', () => {
 
   describe('create', () => {
     it('extracts userId from req.user and delegates to service.create()', async () => {
-      const dto: CreateProjectDto = { name: 'New Project', description: 'desc' };
+      const dto: CreateProjectDto = {
+        name: 'New Project',
+        description: 'desc',
+      };
       const project = makeProject({ name: 'New Project' });
       const req = makeRequest('user-1');
 

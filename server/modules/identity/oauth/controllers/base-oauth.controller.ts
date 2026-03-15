@@ -5,10 +5,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { AccountService } from '../../account/account.service';
 import { TwoFactorGateService } from '../../auth/services/two-factor-gate.service';
-import {
-  AuthService,
-  type TokenPair,
-} from '../../auth/services/auth.service';
+import { AuthService, type TokenPair } from '../../auth/services/auth.service';
 import { User } from '../../user/user.entity';
 import { Account } from '../../account/account.entity';
 import { UserRole } from '../../user/user-role.enum';
@@ -112,12 +109,16 @@ export abstract class BaseOAuthController extends BaseAuthController {
     account: OAuthAccount,
   ): Promise<RedirectResult> {
     const cookies = req.cookies as Record<string, string>;
-    const redirectBase = cookies?.[OAUTH_REDIRECT_COOKIE] ?? '/account/security';
+    const redirectBase =
+      cookies?.[OAUTH_REDIRECT_COOKIE] ?? '/account/security';
     res.clearCookie(OAUTH_REDIRECT_COOKIE, { path: '/' });
 
     const accessToken = cookies?.[ACCESS_TOKEN_COOKIE];
     if (!accessToken) {
-      return { url: `${redirectBase}?error=not_authenticated`, statusCode: HttpStatus.FOUND };
+      return {
+        url: `${redirectBase}?error=not_authenticated`,
+        statusCode: HttpStatus.FOUND,
+      };
     }
 
     let userId: string;
@@ -125,15 +126,25 @@ export abstract class BaseOAuthController extends BaseAuthController {
       const payload = this.jwtService.verify<{ sub: string }>(accessToken);
       userId = payload.sub;
     } catch {
-      return { url: `${redirectBase}?error=session_expired`, statusCode: HttpStatus.FOUND };
+      return {
+        url: `${redirectBase}?error=session_expired`,
+        statusCode: HttpStatus.FOUND,
+      };
     }
 
     try {
       await this.accountService.linkAccount(userId, account);
-      return { url: `${redirectBase}?linked=${account.providerId}`, statusCode: HttpStatus.FOUND };
+      return {
+        url: `${redirectBase}?linked=${account.providerId}`,
+        statusCode: HttpStatus.FOUND,
+      };
     } catch (err: unknown) {
-      const message = err instanceof Error ? encodeURIComponent(err.message) : 'link_failed';
-      return { url: `${redirectBase}?error=${message}`, statusCode: HttpStatus.FOUND };
+      const message =
+        err instanceof Error ? encodeURIComponent(err.message) : 'link_failed';
+      return {
+        url: `${redirectBase}?error=${message}`,
+        statusCode: HttpStatus.FOUND,
+      };
     }
   }
 
@@ -152,7 +163,8 @@ export abstract class BaseOAuthController extends BaseAuthController {
     res.clearCookie(OAUTH_REDIRECT_COOKIE, { path: '/' });
 
     const gate = await this.checkTwoFactor(user, req, res);
-    if (gate === 'pending') return { url: '/auth/two-factor', statusCode: HttpStatus.FOUND };
+    if (gate === 'pending')
+      return { url: '/auth/two-factor', statusCode: HttpStatus.FOUND };
 
     const tokens = await createTokens();
     this.setTokenCookies(res, tokens, true, 'lax');

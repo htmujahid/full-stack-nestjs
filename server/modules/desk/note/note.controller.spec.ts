@@ -22,8 +22,10 @@ const makeNote = (overrides: Partial<Note> = {}): Note =>
     ...overrides,
   }) as Note;
 
-const makeRequest = (userId: string, role: UserRole = UserRole.Member): Request =>
-  ({ user: { userId, role } }) as unknown as Request;
+const makeRequest = (
+  userId: string,
+  role: UserRole = UserRole.Member,
+): Request => ({ user: { userId, role } }) as unknown as Request;
 
 const mockNoteService = () => ({
   findAll: jest.fn(),
@@ -85,7 +87,9 @@ describe('NoteController', () => {
     });
 
     it('propagates NotFoundException', async () => {
-      service.findOne.mockRejectedValue(new NotFoundException('Note not found'));
+      service.findOne.mockRejectedValue(
+        new NotFoundException('Note not found'),
+      );
 
       await expect(controller.findOne('missing')).rejects.toThrow(
         NotFoundException,

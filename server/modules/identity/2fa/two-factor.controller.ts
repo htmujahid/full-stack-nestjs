@@ -108,7 +108,8 @@ export class TwoFactorController extends BaseAuthController {
   @Throttle(TFA_THROTTLE)
   @ApiOperation({ summary: 'Verify TOTP code to complete sign-in' })
   async verifyTotp(
-    @Request() req: ExpressRequest & { user: { userId: string; role: UserRole } },
+    @Request()
+    req: ExpressRequest & { user: { userId: string; role: UserRole } },
     @Body() dto: VerifyTotpDto,
     @Headers('x-forwarded-for') forwardedFor: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
@@ -152,7 +153,8 @@ export class TwoFactorController extends BaseAuthController {
   @Throttle(TFA_THROTTLE)
   @ApiOperation({ summary: 'Verify email OTP code to complete sign-in' })
   async verifyOtp(
-    @Request() req: ExpressRequest & { user: { userId: string; role: UserRole } },
+    @Request()
+    req: ExpressRequest & { user: { userId: string; role: UserRole } },
     @Body() dto: VerifyOtpDto,
     @Headers('x-forwarded-for') forwardedFor: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
@@ -185,7 +187,8 @@ export class TwoFactorController extends BaseAuthController {
   @Throttle(TFA_THROTTLE)
   @ApiOperation({ summary: 'Verify backup code to complete sign-in' })
   async verifyBackupCode(
-    @Request() req: ExpressRequest & { user: { userId: string; role: UserRole } },
+    @Request()
+    req: ExpressRequest & { user: { userId: string; role: UserRole } },
     @Body() dto: VerifyBackupCodeDto,
     @Headers('x-forwarded-for') forwardedFor: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
@@ -221,8 +224,9 @@ export class TwoFactorController extends BaseAuthController {
     @Request() req: ExpressRequest & { user: { userId: string } },
     @Body() _dto: GenerateBackupCodesDto,
   ) {
-    const backupCodes =
-      await this.twoFactorService.generateBackupCodes(req.user.userId);
+    const backupCodes = await this.twoFactorService.generateBackupCodes(
+      req.user.userId,
+    );
     return { backupCodes };
   }
 }

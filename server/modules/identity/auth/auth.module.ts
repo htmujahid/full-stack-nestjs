@@ -39,7 +39,12 @@ import { JwtAccessGuard } from './guards/jwt-access.guard';
     TypeOrmModule.forFeature([User, Account, RefreshSession, Verification]),
     AccountModule,
   ],
-  controllers: [AuthController, EmailController, PasswordController, PhoneController],
+  controllers: [
+    AuthController,
+    EmailController,
+    PasswordController,
+    PhoneController,
+  ],
   providers: [
     AuthService,
     EmailService,

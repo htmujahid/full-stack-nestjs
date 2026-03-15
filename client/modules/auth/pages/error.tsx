@@ -41,7 +41,10 @@ export default function AuthErrorPage() {
             Sign in
           </Link>
           <FieldDescription className="text-center">
-            <Link to={paths.auth.forgotPassword} className="underline hover:no-underline">
+            <Link
+              to={paths.auth.forgotPassword}
+              className="underline hover:no-underline"
+            >
               Forgot password?
             </Link>
           </FieldDescription>

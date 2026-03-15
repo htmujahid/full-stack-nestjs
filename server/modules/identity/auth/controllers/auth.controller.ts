@@ -47,7 +47,9 @@ export class AuthController extends BaseAuthController {
 
   @Get('session')
   @ApiOperation({ summary: 'Get current session token info' })
-  @ApiOkResponse({ description: 'Returns userId, role, authMethod from access token' })
+  @ApiOkResponse({
+    description: 'Returns userId, role, authMethod from access token',
+  })
   session(@Request() req: ExpressRequest & { user: AccessUser }) {
     return { ...req.user };
   }

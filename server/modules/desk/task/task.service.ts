@@ -83,7 +83,11 @@ export class TaskService {
     return this.taskRepository.save(task);
   }
 
-  async update(id: string, dto: UpdateTaskDto, auth: AuthContext): Promise<Task> {
+  async update(
+    id: string,
+    dto: UpdateTaskDto,
+    auth: AuthContext,
+  ): Promise<Task> {
     const task = await this.findOne(id);
     const project = await this.projectService.findOne(task.projectId);
     if (auth.role !== UserRole.Admin && project.userId !== auth.userId) {

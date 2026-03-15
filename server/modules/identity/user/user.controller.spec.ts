@@ -95,7 +95,9 @@ describe('UserController', () => {
     });
 
     it('propagates NotFoundException from service when user is not found', async () => {
-      service.findOne.mockRejectedValue(new NotFoundException('User not found'));
+      service.findOne.mockRejectedValue(
+        new NotFoundException('User not found'),
+      );
 
       await expect(controller.findOne('missing-id')).rejects.toThrow(
         NotFoundException,
@@ -158,9 +160,9 @@ describe('UserController', () => {
 
       service.update.mockRejectedValue(new NotFoundException('User not found'));
 
-      await expect(
-        controller.update('missing-id', dto),
-      ).rejects.toThrow(NotFoundException);
+      await expect(controller.update('missing-id', dto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('propagates ConflictException from service on uniqueness violation', async () => {
@@ -170,9 +172,9 @@ describe('UserController', () => {
         new ConflictException('Email already in use'),
       );
 
-      await expect(
-        controller.update('user-id', dto),
-      ).rejects.toThrow(ConflictException);
+      await expect(controller.update('user-id', dto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 

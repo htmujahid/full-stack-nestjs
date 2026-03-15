@@ -7,11 +7,7 @@ import { RbacModule } from '../../identity/rbac/rbac.module';
 import { ProjectModule } from '../project/project.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Card]),
-    RbacModule,
-    ProjectModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Card]), RbacModule, ProjectModule],
   controllers: [CardController],
   providers: [CardService],
 })

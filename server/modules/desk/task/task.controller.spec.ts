@@ -24,8 +24,10 @@ const makeTask = (overrides: Partial<Task> = {}): Task =>
     ...overrides,
   }) as Task;
 
-const makeRequest = (userId: string, role: UserRole = UserRole.Member): Request =>
-  ({ user: { userId, role } }) as unknown as Request;
+const makeRequest = (
+  userId: string,
+  role: UserRole = UserRole.Member,
+): Request => ({ user: { userId, role } }) as unknown as Request;
 
 const mockTaskService = () => ({
   findAll: jest.fn(),
@@ -87,7 +89,9 @@ describe('TaskController', () => {
     });
 
     it('propagates NotFoundException', async () => {
-      service.findOne.mockRejectedValue(new NotFoundException('Task not found'));
+      service.findOne.mockRejectedValue(
+        new NotFoundException('Task not found'),
+      );
 
       await expect(controller.findOne('missing')).rejects.toThrow(
         NotFoundException,

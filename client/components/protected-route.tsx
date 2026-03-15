@@ -8,7 +8,9 @@ type ProtectedRouteProps = {
   redirectTo?: string;
 };
 
-export function ProtectedRoute({ redirectTo = paths.auth.signIn }: ProtectedRouteProps) {
+export function ProtectedRoute({
+  redirectTo = paths.auth.signIn,
+}: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useUser();
   const location = useLocation();
 
@@ -28,7 +30,12 @@ export function ProtectedRoute({ redirectTo = paths.auth.signIn }: ProtectedRout
   if (!isAuthenticated) {
     const from = location.pathname + location.search + location.hash;
     const search = new URLSearchParams({ redirectTo: from }).toString();
-    return <Navigate to={{ pathname: redirectTo, search: search ? `?${search}` : '' }} replace />;
+    return (
+      <Navigate
+        to={{ pathname: redirectTo, search: search ? `?${search}` : '' }}
+        replace
+      />
+    );
   }
 
   return <Outlet />;

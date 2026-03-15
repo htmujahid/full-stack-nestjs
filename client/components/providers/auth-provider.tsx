@@ -95,7 +95,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [queryClient],
   );
   const refetchSession = useMemo(
-    () => () => void queryClient.invalidateQueries({ queryKey: SESSION_QUERY_KEY }),
+    () => () =>
+      void queryClient.invalidateQueries({ queryKey: SESSION_QUERY_KEY }),
     [queryClient],
   );
 
@@ -111,9 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user, userLoading, session, sessionLoading, refetchUser, refetchSession],
   );
 
-  return (
-    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 function useAuthContext(): AuthContextValue {
@@ -144,4 +143,3 @@ export function useSession(): SessionContextValue {
     refetch: refetchSession,
   };
 }
-

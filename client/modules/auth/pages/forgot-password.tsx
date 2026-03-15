@@ -27,8 +27,7 @@ export default function ForgotPasswordPage() {
       <FieldDescription className="px-6 text-center">
         By clicking continue, you agree to our{' '}
         <Link to={paths.terms}>Terms of Service</Link> and{' '}
-        <Link to={paths.privacy}>Privacy Policy</Link>
-        .
+        <Link to={paths.privacy}>Privacy Policy</Link>.
       </FieldDescription>
     </div>
   );

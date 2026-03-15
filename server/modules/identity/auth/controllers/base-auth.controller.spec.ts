@@ -45,7 +45,13 @@ class TestController extends BaseAuthController {
 
 // ─── Factories ────────────────────────────────────────────────────────────────
 
-const makeUser = (overrides: Partial<{ id: string; role: UserRole; twoFactorEnabled: boolean }> = {}) => ({
+const makeUser = (
+  overrides: Partial<{
+    id: string;
+    role: UserRole;
+    twoFactorEnabled: boolean;
+  }> = {},
+) => ({
   id: 'user-uuid',
   role: UserRole.Member,
   twoFactorEnabled: false,
@@ -81,7 +87,9 @@ describe('BaseAuthController', () => {
 
   beforeEach(() => {
     twoFactorGate = mockTwoFactorGateService();
-    controller = new TestController(twoFactorGate as unknown as TwoFactorGateService);
+    controller = new TestController(
+      twoFactorGate as unknown as TwoFactorGateService,
+    );
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -113,7 +121,10 @@ describe('BaseAuthController', () => {
 
       expect(result).toBe('pending');
       expect(twoFactorGate.checkTrustDevice).not.toHaveBeenCalled();
-      expect(twoFactorGate.createPendingToken).toHaveBeenCalledWith(user.id, user.role);
+      expect(twoFactorGate.createPendingToken).toHaveBeenCalledWith(
+        user.id,
+        user.role,
+      );
       expect(res.cookie).toHaveBeenCalledWith(
         TFA_PENDING_COOKIE,
         'pending-jwt',
@@ -132,8 +143,14 @@ describe('BaseAuthController', () => {
       const result = await controller.testCheckTwoFactor(user, req, res);
 
       expect(result).toBe('pending');
-      expect(twoFactorGate.checkTrustDevice).toHaveBeenCalledWith('old-trust-value', user.id);
-      expect(twoFactorGate.createPendingToken).toHaveBeenCalledWith(user.id, user.role);
+      expect(twoFactorGate.checkTrustDevice).toHaveBeenCalledWith(
+        'old-trust-value',
+        user.id,
+      );
+      expect(twoFactorGate.createPendingToken).toHaveBeenCalledWith(
+        user.id,
+        user.role,
+      );
     });
 
     it('returns "pass" and rotates trust device when device is trusted', async () => {
@@ -147,7 +164,10 @@ describe('BaseAuthController', () => {
       const result = await controller.testCheckTwoFactor(user, req, res);
 
       expect(result).toBe('pass');
-      expect(twoFactorGate.rotateTrustDevice).toHaveBeenCalledWith('trust-token', user.id);
+      expect(twoFactorGate.rotateTrustDevice).toHaveBeenCalledWith(
+        'trust-token',
+        user.id,
+      );
       expect(twoFactorGate.createPendingToken).not.toHaveBeenCalled();
     });
 

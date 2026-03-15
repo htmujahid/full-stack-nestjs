@@ -51,10 +51,7 @@ export class TeamController {
 
   @Patch(':id')
   @RequirePermissions('team:update')
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateTeamDto,
-  ) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateTeamDto) {
     return this.teamService.update(id, dto);
   }
 
@@ -67,10 +64,7 @@ export class TeamController {
 
   @Post(':id/members')
   @RequirePermissions('team:update')
-  addMember(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: AddMemberDto,
-  ) {
+  addMember(@Param('id', ParseUUIDPipe) id: string, @Body() dto: AddMemberDto) {
     return this.teamService.addMember(
       id,
       dto.userId,

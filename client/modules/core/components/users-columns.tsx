@@ -40,7 +40,9 @@ function ActionsCell({ user }: { user: User }) {
           <DropdownMenuItem onClick={() => navigate(paths.core.user(user.id))}>
             View
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate(paths.core.userEdit(user.id))}>
+          <DropdownMenuItem
+            onClick={() => navigate(paths.core.userEdit(user.id))}
+          >
             Edit
           </DropdownMenuItem>
           <DropdownMenuSeparator />

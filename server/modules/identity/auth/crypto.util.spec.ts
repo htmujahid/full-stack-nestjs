@@ -1,4 +1,11 @@
-import { decrypt, encrypt, hashToken, signHmac, verifyHmac, verifyToken } from './crypto.util';
+import {
+  decrypt,
+  encrypt,
+  hashToken,
+  signHmac,
+  verifyHmac,
+  verifyToken,
+} from './crypto.util';
 
 const SECRET = 'test-secret-key';
 const ALT_SECRET = 'other-secret-key';

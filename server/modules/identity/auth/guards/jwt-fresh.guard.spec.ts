@@ -30,16 +30,22 @@ describe('JwtFreshGuard', () => {
 
     it('throws ForbiddenException when authMethod is "refresh"', () => {
       const user = { userId: 'abc', authMethod: 'refresh' };
-      expect(() => guard.canActivate(createContext(user))).toThrow(ForbiddenException);
+      expect(() => guard.canActivate(createContext(user))).toThrow(
+        ForbiddenException,
+      );
     });
 
     it('throws ForbiddenException with message "Re-authentication required"', () => {
       const user = { userId: 'abc', authMethod: 'refresh' };
-      expect(() => guard.canActivate(createContext(user))).toThrow('Re-authentication required');
+      expect(() => guard.canActivate(createContext(user))).toThrow(
+        'Re-authentication required',
+      );
     });
 
     it('throws UnauthorizedException when user is null', () => {
-      expect(() => guard.canActivate(createContext(undefined))).toThrow(UnauthorizedException);
+      expect(() => guard.canActivate(createContext(undefined))).toThrow(
+        UnauthorizedException,
+      );
     });
   });
 });

@@ -108,7 +108,9 @@ describe('TeamController', () => {
     });
 
     it('propagates NotFoundException from service when team is not found', async () => {
-      service.findOne.mockRejectedValue(new NotFoundException('Team not found'));
+      service.findOne.mockRejectedValue(
+        new NotFoundException('Team not found'),
+      );
 
       await expect(controller.findOne('missing-id')).rejects.toThrow(
         NotFoundException,
@@ -166,9 +168,9 @@ describe('TeamController', () => {
 
       service.update.mockRejectedValue(new NotFoundException('Team not found'));
 
-      await expect(
-        controller.update('missing-id', dto),
-      ).rejects.toThrow(NotFoundException);
+      await expect(controller.update('missing-id', dto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -216,7 +218,9 @@ describe('TeamController', () => {
 
     it('passes TeamMemberRole.Member when dto.role is omitted', async () => {
       const teamId = makeTeam().id;
-      const dto: AddMemberDto = { userId: '770e8400-e29b-41d4-a716-446655440002' };
+      const dto: AddMemberDto = {
+        userId: '770e8400-e29b-41d4-a716-446655440002',
+      };
       const member = makeMember();
       service.addMember.mockResolvedValue(member);
 
@@ -236,9 +240,9 @@ describe('TeamController', () => {
         new NotFoundException('Team not found'),
       );
 
-      await expect(
-        controller.addMember('missing-id', dto),
-      ).rejects.toThrow(NotFoundException);
+      await expect(controller.addMember('missing-id', dto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('propagates ConflictException from service when user already member', async () => {
@@ -248,9 +252,9 @@ describe('TeamController', () => {
         new ConflictException('User is already a member'),
       );
 
-      await expect(
-        controller.addMember('team-id', dto),
-      ).rejects.toThrow(ConflictException);
+      await expect(controller.addMember('team-id', dto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 

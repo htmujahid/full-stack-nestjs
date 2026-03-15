@@ -13,7 +13,10 @@ import { Account } from '../../account/account.entity';
 import { Verification } from '../entities/verification.entity';
 import { RefreshSession } from '../entities/refresh-session.entity';
 import { mockDataSource, mockRepository } from '../../../../mocks/db.mock';
-import { CREDENTIAL_PROVIDER, RESET_PASSWORD_IDENTIFIER_PREFIX } from '../auth.constants';
+import {
+  CREDENTIAL_PROVIDER,
+  RESET_PASSWORD_IDENTIFIER_PREFIX,
+} from '../auth.constants';
 import type { SignUpDto } from '../dto/sign-up.dto';
 
 // A fixed timestamp used as the frozen "current time" across all tests.
@@ -48,7 +51,9 @@ const makeAccount = (overrides: Partial<Account> = {}): Account =>
     ...overrides,
   }) as Account;
 
-const makeVerification = (overrides: Partial<Verification> = {}): Verification =>
+const makeVerification = (
+  overrides: Partial<Verification> = {},
+): Verification =>
   ({
     id: 'ver-uuid',
     identifier: `${RESET_PASSWORD_IDENTIFIER_PREFIX}some-token`,
@@ -80,10 +85,16 @@ describe('PasswordService', () => {
     jest.setSystemTime(NOW);
 
     dataSource = mockDataSource();
-    configService = { getOrThrow: jest.fn().mockReturnValue('http://localhost:3000') };
+    configService = {
+      getOrThrow: jest.fn().mockReturnValue('http://localhost:3000'),
+    };
     mailerService = { sendMail: jest.fn().mockResolvedValue(undefined) };
-    emailService = { sendVerificationEmail: jest.fn().mockResolvedValue(undefined) };
-    phoneService = { sendVerificationOtp: jest.fn().mockResolvedValue(undefined) };
+    emailService = {
+      sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+    };
+    phoneService = {
+      sendVerificationOtp: jest.fn().mockResolvedValue(undefined),
+    };
     authService = { createAuthSession: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -114,7 +125,9 @@ describe('PasswordService', () => {
       const savedUser = makeUser();
       const txRepo = mockRepository();
       txRepo.findOne.mockResolvedValue(null);
-      txRepo.create.mockReturnValueOnce(savedUser).mockReturnValueOnce(makeAccount());
+      txRepo.create
+        .mockReturnValueOnce(savedUser)
+        .mockReturnValueOnce(makeAccount());
       txRepo.save.mockResolvedValue(savedUser);
 
       dataSource.transaction.mockImplementation(async (cb) => {
@@ -197,7 +210,9 @@ describe('PasswordService', () => {
     });
 
     it('sends a verification email after user creation', async () => {
-      const dto = makeSignUpDto({ callbackURL: 'https://app.example.com/verify' });
+      const dto = makeSignUpDto({
+        callbackURL: 'https://app.example.com/verify',
+      });
       const txRepo = mockRepository();
       txRepo.findOne.mockResolvedValue(null);
       txRepo.create.mockReturnValue(makeUser());
@@ -233,7 +248,9 @@ describe('PasswordService', () => {
 
       // Only one findOne call: the email uniqueness check
       expect(txRepo.findOne).toHaveBeenCalledTimes(1);
-      expect(txRepo.findOne).toHaveBeenCalledWith({ where: { email: dto.email } });
+      expect(txRepo.findOne).toHaveBeenCalledWith({
+        where: { email: dto.email },
+      });
     });
 
     it('skips phone uniqueness check when phone is not provided', async () => {
@@ -251,7 +268,9 @@ describe('PasswordService', () => {
       await service.signUp(dto);
 
       expect(txRepo.findOne).not.toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ phone: expect.anything() }) }),
+        expect.objectContaining({
+          where: expect.objectContaining({ phone: expect.anything() }),
+        }),
       );
     });
 
@@ -285,7 +304,9 @@ describe('PasswordService', () => {
         return cb(tx);
       });
 
-      emailService.sendVerificationEmail.mockRejectedValue(new Error('SMTP error'));
+      emailService.sendVerificationEmail.mockRejectedValue(
+        new Error('SMTP error'),
+      );
 
       await expect(service.signUp(dto)).rejects.toThrow('SMTP error');
     });
@@ -358,7 +379,10 @@ describe('PasswordService', () => {
 
       configService.getOrThrow.mockReturnValue('http://localhost:3000');
 
-      await service.forgotPassword('test@example.com', 'https://app.example.com/reset');
+      await service.forgotPassword(
+        'test@example.com',
+        'https://app.example.com/reset',
+      );
 
       expect(verRepo.save).toHaveBeenCalledTimes(1);
       expect(mailerService.sendMail).toHaveBeenCalledWith(
@@ -442,11 +466,20 @@ describe('PasswordService', () => {
 
       configService.getOrThrow.mockReturnValue('http://localhost:3000');
 
-      await service.forgotPassword('test@example.com', 'https://app.example.com/reset');
+      await service.forgotPassword(
+        'test@example.com',
+        'https://app.example.com/reset',
+      );
 
-      const sentMail = mailerService.sendMail.mock.calls[0][0] as { html: string };
-      expect(sentMail.html).toContain('http://localhost:3000/api/auth/reset-password/');
-      expect(sentMail.html).toContain(encodeURIComponent('https://app.example.com/reset'));
+      const sentMail = mailerService.sendMail.mock.calls[0][0] as {
+        html: string;
+      };
+      expect(sentMail.html).toContain(
+        'http://localhost:3000/api/auth/reset-password/',
+      );
+      expect(sentMail.html).toContain(
+        encodeURIComponent('https://app.example.com/reset'),
+      );
     });
 
     it('defaults callbackURL to "/" in the reset URL when not provided', async () => {
@@ -467,7 +500,9 @@ describe('PasswordService', () => {
 
       await service.forgotPassword('test@example.com');
 
-      const sentMail = mailerService.sendMail.mock.calls[0][0] as { html: string };
+      const sentMail = mailerService.sendMail.mock.calls[0][0] as {
+        html: string;
+      };
       expect(sentMail.html).toContain(`callbackURL=${encodeURIComponent('/')}`);
     });
 
@@ -488,7 +523,9 @@ describe('PasswordService', () => {
       configService.getOrThrow.mockReturnValue('http://localhost:3000');
       mailerService.sendMail.mockRejectedValue(new Error('SMTP error'));
 
-      await expect(service.forgotPassword('test@example.com')).rejects.toThrow('SMTP error');
+      await expect(service.forgotPassword('test@example.com')).rejects.toThrow(
+        'SMTP error',
+      );
     });
   });
 
@@ -587,7 +624,9 @@ describe('PasswordService', () => {
         account.id,
         expect.objectContaining({ password: expect.any(String) }),
       );
-      expect(txSessionRepo.delete).toHaveBeenCalledWith({ userId: record.value });
+      expect(txSessionRepo.delete).toHaveBeenCalledWith({
+        userId: record.value,
+      });
     });
 
     it('throws BadRequestException on missing token', async () => {
@@ -595,9 +634,9 @@ describe('PasswordService', () => {
       verRepo.findOne.mockResolvedValue(null);
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      await expect(service.resetPassword('invalid-token', 'newpass')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.resetPassword('invalid-token', 'newpass'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('throws BadRequestException and deletes expired record', async () => {
@@ -607,9 +646,9 @@ describe('PasswordService', () => {
       verRepo.delete.mockResolvedValue({ affected: 1, raw: [] });
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      await expect(service.resetPassword('expired-token', 'newpass')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.resetPassword('expired-token', 'newpass'),
+      ).rejects.toThrow(BadRequestException);
       expect(verRepo.delete).toHaveBeenCalledWith(record.id);
     });
 
@@ -631,9 +670,9 @@ describe('PasswordService', () => {
         return cb(tx);
       });
 
-      await expect(service.resetPassword('valid-token', 'newpass')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.resetPassword('valid-token', 'newpass'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('does not enter the transaction when the token is expired', async () => {
@@ -643,9 +682,9 @@ describe('PasswordService', () => {
       verRepo.delete.mockResolvedValue({ affected: 1, raw: [] });
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      await expect(service.resetPassword('expired-token', 'newpass')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.resetPassword('expired-token', 'newpass'),
+      ).rejects.toThrow(BadRequestException);
       expect(dataSource.transaction).not.toHaveBeenCalled();
     });
 
@@ -710,7 +749,9 @@ describe('PasswordService', () => {
         account.id,
         expect.objectContaining({ password: expect.any(String) }),
       );
-      expect(txSessionRepo.delete).toHaveBeenCalledWith({ userId: 'user-uuid' });
+      expect(txSessionRepo.delete).toHaveBeenCalledWith({
+        userId: 'user-uuid',
+      });
     });
 
     it('throws BadRequestException when the user has no credential account', async () => {
@@ -724,9 +765,9 @@ describe('PasswordService', () => {
         return cb(tx);
       });
 
-      await expect(service.updatePassword('user-uuid', 'newpass')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.updatePassword('user-uuid', 'newpass'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('looks up the account by userId and CREDENTIAL_PROVIDER', async () => {

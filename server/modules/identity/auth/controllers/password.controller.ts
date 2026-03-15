@@ -61,7 +61,9 @@ export class PasswordController extends BaseAuthController {
   @Throttle({
     default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
   })
-  @ApiOperation({ summary: 'Sign in with identifier (email/username/phone) and password' })
+  @ApiOperation({
+    summary: 'Sign in with identifier (email/username/phone) and password',
+  })
   @ApiOkResponse({ description: 'Sets access and refresh token cookies' })
   async signIn(
     @Request() req: ExpressRequest & { user: User },
@@ -120,7 +122,8 @@ export class PasswordController extends BaseAuthController {
     @Query('callbackURL') callbackURL: string | undefined,
     @Query('errorURL') errorURL: string | undefined,
   ) {
-    const isValid = await this.passwordService.validateResetPasswordToken(token);
+    const isValid =
+      await this.passwordService.validateResetPasswordToken(token);
     const successSeparator = callbackURL?.includes('?') ? '&' : '?';
     const errorTarget = errorURL ?? '/auth/error';
     const errorSeparator = errorTarget.includes('?') ? '&' : '?';
@@ -176,7 +179,8 @@ export class PasswordController extends BaseAuthController {
     summary: 'Add password account (requires recent re-authentication)',
   })
   @ApiOkResponse({
-    description: 'Password account added; user can now sign in with email and password',
+    description:
+      'Password account added; user can now sign in with email and password',
   })
   async addPassword(
     @Request() req: ExpressRequest & { user: { userId: string } },

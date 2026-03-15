@@ -228,9 +228,13 @@ describe('PhoneController', () => {
     it('delegates to phoneService.sendVerificationOtp and returns { ok: true }', async () => {
       phoneService.sendVerificationOtp.mockResolvedValue(undefined);
 
-      const result = await controller.sendVerificationOtp({ phone: '+15550001234' });
+      const result = await controller.sendVerificationOtp({
+        phone: '+15550001234',
+      });
 
-      expect(phoneService.sendVerificationOtp).toHaveBeenCalledWith('+15550001234');
+      expect(phoneService.sendVerificationOtp).toHaveBeenCalledWith(
+        '+15550001234',
+      );
       expect(result).toEqual({ ok: true });
     });
   });

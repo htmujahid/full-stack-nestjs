@@ -64,10 +64,7 @@ export function TwoFactorForm() {
     e.preventDefault();
     setError(null);
     if (totp.length !== TOTP_LENGTH) return;
-    verifyTotp.mutate(
-      { code: totp, trustDevice },
-      { onSuccess, onError },
-    );
+    verifyTotp.mutate({ code: totp, trustDevice }, { onSuccess, onError });
   };
 
   const handleBackupSubmit = (e: React.FormEvent) => {
@@ -78,10 +75,7 @@ export function TwoFactorForm() {
       setError('Code must be in XXXXX-XXXXX format');
       return;
     }
-    verifyBackup.mutate(
-      { code: trimmed, trustDevice },
-      { onSuccess, onError },
-    );
+    verifyBackup.mutate({ code: trimmed, trustDevice }, { onSuccess, onError });
   };
 
   const handleSendOtp = (e: React.MouseEvent) => {
@@ -179,7 +173,9 @@ export function TwoFactorForm() {
               type="submit"
               disabled={
                 isPending ||
-                (mode === 'totp' ? totp.length !== TOTP_LENGTH : !BACKUP_CODE_RE.test(backupCode.trim()))
+                (mode === 'totp'
+                  ? totp.length !== TOTP_LENGTH
+                  : !BACKUP_CODE_RE.test(backupCode.trim()))
               }
             >
               {totpPending || backupPending ? (

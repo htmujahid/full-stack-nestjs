@@ -32,7 +32,10 @@ export abstract class BaseAuthController {
       : false;
 
     if (!isTrusted) {
-      const pendingToken = await this.twoFactorGate.createPendingToken(user.id, user.role);
+      const pendingToken = await this.twoFactorGate.createPendingToken(
+        user.id,
+        user.role,
+      );
       this.setPendingCookie(res, pendingToken);
       return 'pending';
     }

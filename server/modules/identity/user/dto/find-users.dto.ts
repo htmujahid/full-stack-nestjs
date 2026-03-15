@@ -1,5 +1,14 @@
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsEnum, IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 import { UserRole } from '../user-role.enum';
 
 export class FindUsersDto {

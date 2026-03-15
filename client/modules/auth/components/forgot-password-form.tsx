@@ -43,9 +43,11 @@ export function ForgotPasswordForm() {
         errorURL: `${window.location.origin}${paths.auth.error}`,
       },
       {
-        onSuccess: () => toast.success('Check your email', {
-          description: 'If an account exists, you\'ll receive a link to reset your password.',
-        }),
+        onSuccess: () =>
+          toast.success('Check your email', {
+            description:
+              "If an account exists, you'll receive a link to reset your password.",
+          }),
         onError: (e) => setError('root', { message: getAuthErrorMessage(e) }),
       },
     );
@@ -70,10 +72,15 @@ export function ForgotPasswordForm() {
             aria-describedby={errors.email ? 'forgot-email-error' : undefined}
             {...register('email', {
               required: 'Email is required',
-              pattern: { value: EMAIL_RE, message: 'Please enter a valid email' },
+              pattern: {
+                value: EMAIL_RE,
+                message: 'Please enter a valid email',
+              },
             })}
           />
-          <FieldError id="forgot-email-error">{errors.email?.message}</FieldError>
+          <FieldError id="forgot-email-error">
+            {errors.email?.message}
+          </FieldError>
         </Field>
         <Field>
           <Button type="submit" disabled={forgotPassword.isPending}>
@@ -87,8 +94,7 @@ export function ForgotPasswordForm() {
             )}
           </Button>
           <FieldDescription className="text-center">
-            Remember your password?{' '}
-            <Link to={paths.auth.signIn}>Sign in</Link>
+            Remember your password? <Link to={paths.auth.signIn}>Sign in</Link>
           </FieldDescription>
         </Field>
       </FieldGroup>

@@ -40,7 +40,9 @@ const makeUser = (overrides: Partial<User> = {}): User =>
     ...overrides,
   }) as User;
 
-const makeVerification = (overrides: Partial<Verification> = {}): Verification =>
+const makeVerification = (
+  overrides: Partial<Verification> = {},
+): Verification =>
   ({
     id: 'ver-uuid',
     identifier: `${PHONE_OTP_IDENTIFIER_PREFIX}+15555555555`,
@@ -69,7 +71,9 @@ describe('PhoneService', () => {
     jest.setSystemTime(NOW);
 
     dataSource = mockDataSource();
-    authService = { createAuthSession: jest.fn().mockResolvedValue(makeTokenPair()) };
+    authService = {
+      createAuthSession: jest.fn().mockResolvedValue(makeTokenPair()),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -187,7 +191,9 @@ describe('PhoneService', () => {
   describe('verifySignInOtp', () => {
     it('returns user and tokens on valid OTP', async () => {
       const user = makeUser();
-      const verRecord = makeVerification({ value: JSON.stringify({ hash: '123456', attempts: 0 }) });
+      const verRecord = makeVerification({
+        value: JSON.stringify({ hash: '123456', attempts: 0 }),
+      });
 
       const userRepo = mockRepository();
       userRepo.findOne.mockResolvedValue(user);
@@ -202,7 +208,12 @@ describe('PhoneService', () => {
         return verRepo;
       });
 
-      const result = await service.verifySignInOtp('+15555555555', '123456', false, ctx);
+      const result = await service.verifySignInOtp(
+        '+15555555555',
+        '123456',
+        false,
+        ctx,
+      );
 
       expect(result.user).toBe(user);
       expect(result.tokens).toEqual(makeTokenPair());
@@ -259,7 +270,9 @@ describe('PhoneService', () => {
 
     it('marks phoneVerified=true when user is not yet verified', async () => {
       const user = makeUser({ phoneVerified: false });
-      const verRecord = makeVerification({ value: JSON.stringify({ hash: '123456', attempts: 0 }) });
+      const verRecord = makeVerification({
+        value: JSON.stringify({ hash: '123456', attempts: 0 }),
+      });
 
       const userRepo = mockRepository();
       userRepo.findOne.mockResolvedValue(user);
@@ -276,12 +289,16 @@ describe('PhoneService', () => {
 
       await service.verifySignInOtp('+15555555555', '123456', false, ctx);
 
-      expect(userRepo.update).toHaveBeenCalledWith('user-uuid', { phoneVerified: true });
+      expect(userRepo.update).toHaveBeenCalledWith('user-uuid', {
+        phoneVerified: true,
+      });
     });
 
     it('skips phoneVerified update when user is already verified', async () => {
       const user = makeUser({ phoneVerified: true });
-      const verRecord = makeVerification({ value: JSON.stringify({ hash: '123456', attempts: 0 }) });
+      const verRecord = makeVerification({
+        value: JSON.stringify({ hash: '123456', attempts: 0 }),
+      });
 
       const userRepo = mockRepository();
       userRepo.findOne.mockResolvedValue(user);
@@ -302,7 +319,9 @@ describe('PhoneService', () => {
 
     it('delegates to authService.createAuthSession with phone method', async () => {
       const user = makeUser({ phoneVerified: true });
-      const verRecord = makeVerification({ value: JSON.stringify({ hash: '123456', attempts: 0 }) });
+      const verRecord = makeVerification({
+        value: JSON.stringify({ hash: '123456', attempts: 0 }),
+      });
 
       const userRepo = mockRepository();
       userRepo.findOne.mockResolvedValue(user);
@@ -431,7 +450,9 @@ describe('PhoneService', () => {
       const result = await service.verifyPhone('+15555555555', '654321');
 
       expect(result).toEqual({ ok: true });
-      expect(userRepo.update).toHaveBeenCalledWith('user-uuid', { phoneVerified: true });
+      expect(userRepo.update).toHaveBeenCalledWith('user-uuid', {
+        phoneVerified: true,
+      });
     });
 
     it('returns ok=false with error=user_not_found when user does not exist', async () => {
@@ -586,7 +607,11 @@ describe('PhoneService', () => {
     it('returns ok=true and updates phone and deletes sessions on valid code', async () => {
       const verRecord = makeVerification({
         identifier: `${PHONE_CHANGE_IDENTIFIER_PREFIX}+16666666666`,
-        value: JSON.stringify({ hash: '777777', attempts: 0, userId: 'user-uuid' }),
+        value: JSON.stringify({
+          hash: '777777',
+          attempts: 0,
+          userId: 'user-uuid',
+        }),
       });
 
       const outerVerRepo = mockRepository();
@@ -615,11 +640,13 @@ describe('PhoneService', () => {
       const result = await service.verifyPhoneChange('+16666666666', '777777');
 
       expect(result).toEqual({ ok: true });
-      expect(txUserRepo.update).toHaveBeenCalledWith(
-        'user-uuid',
-        { phone: '+16666666666', phoneVerified: true },
-      );
-      expect(txSessionRepo.delete).toHaveBeenCalledWith({ userId: 'user-uuid' });
+      expect(txUserRepo.update).toHaveBeenCalledWith('user-uuid', {
+        phone: '+16666666666',
+        phoneVerified: true,
+      });
+      expect(txSessionRepo.delete).toHaveBeenCalledWith({
+        userId: 'user-uuid',
+      });
     });
 
     it('returns ok=false with error=code_not_found when no verification record exists', async () => {
@@ -651,7 +678,11 @@ describe('PhoneService', () => {
     it('returns ok=false with error=invalid_code when OTP code is wrong', async () => {
       const verRecord = makeVerification({
         identifier: `${PHONE_CHANGE_IDENTIFIER_PREFIX}+16666666666`,
-        value: JSON.stringify({ hash: '777777', attempts: 0, userId: 'user-uuid' }),
+        value: JSON.stringify({
+          hash: '777777',
+          attempts: 0,
+          userId: 'user-uuid',
+        }),
       });
 
       const verRepo = mockRepository();
@@ -662,7 +693,10 @@ describe('PhoneService', () => {
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      const result = await service.verifyPhoneChange('+16666666666', 'wrong-code');
+      const result = await service.verifyPhoneChange(
+        '+16666666666',
+        'wrong-code',
+      );
 
       expect(result).toEqual({ ok: false, error: 'invalid_code' });
     });
@@ -670,7 +704,11 @@ describe('PhoneService', () => {
     it('returns ok=false with error=invalid_code when OTP has expired', async () => {
       const expiredRecord = makeVerification({
         identifier: `${PHONE_CHANGE_IDENTIFIER_PREFIX}+16666666666`,
-        value: JSON.stringify({ hash: '777777', attempts: 0, userId: 'user-uuid' }),
+        value: JSON.stringify({
+          hash: '777777',
+          attempts: 0,
+          userId: 'user-uuid',
+        }),
         expiresAt: new Date(NOW - 1),
       });
 
@@ -694,7 +732,10 @@ describe('PhoneService', () => {
     it('throws BadRequestException when attempt count reaches PHONE_OTP_MAX_ATTEMPTS', async () => {
       const user = makeUser({ phoneVerified: true });
       const verRecord = makeVerification({
-        value: JSON.stringify({ hash: '123456', attempts: PHONE_OTP_MAX_ATTEMPTS }),
+        value: JSON.stringify({
+          hash: '123456',
+          attempts: PHONE_OTP_MAX_ATTEMPTS,
+        }),
       });
 
       const userRepo = mockRepository();

@@ -151,7 +151,12 @@ export class EmailService {
       .findOne({ where: { email: normalizedEmail } });
 
     if (!user || user.emailVerified) return; // prevent enumeration
-    await this.sendVerificationEmail(user.id, normalizedEmail, callbackURL, errorURL);
+    await this.sendVerificationEmail(
+      user.id,
+      normalizedEmail,
+      callbackURL,
+      errorURL,
+    );
   }
 
   async initiateEmailChange(

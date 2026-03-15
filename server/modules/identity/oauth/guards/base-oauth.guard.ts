@@ -1,7 +1,10 @@
 import { ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Response } from 'express';
-import { OAUTH_REDIRECT_COOKIE, OAUTH_REDIRECT_EXPIRES_MS } from '../../auth/auth.constants';
+import {
+  OAUTH_REDIRECT_COOKIE,
+  OAUTH_REDIRECT_EXPIRES_MS,
+} from '../../auth/auth.constants';
 
 /**
  * Wraps any passport AuthGuard with redirect-URI capture logic.

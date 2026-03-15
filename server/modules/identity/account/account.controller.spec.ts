@@ -24,9 +24,7 @@ describe('AccountController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AccountController],
-      providers: [
-        { provide: AccountService, useValue: accountService },
-      ],
+      providers: [{ provide: AccountService, useValue: accountService }],
     }).compile();
 
     controller = module.get(AccountController);

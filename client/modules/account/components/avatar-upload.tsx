@@ -69,7 +69,7 @@ export function AvatarUpload({
             isDragging
               ? 'border-primary bg-primary/5'
               : 'border-muted-foreground/25 hover:border-muted-foreground/20',
-            previewUrl && 'border-solid'
+            previewUrl && 'border-solid',
           )}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}

@@ -60,7 +60,7 @@ export function SignUpForm() {
         username: data.username,
         email: data.email,
         password: data.password,
-        callbackURL: paths.home
+        callbackURL: paths.home,
       },
       {
         onSuccess: () => {
@@ -94,15 +94,28 @@ export function SignUpForm() {
             placeholder="username"
             autoComplete="username"
             aria-invalid={!!errors.username}
-            aria-describedby={errors.username ? 'sign-up-username-error' : undefined}
+            aria-describedby={
+              errors.username ? 'sign-up-username-error' : undefined
+            }
             {...register('username', {
               required: 'Username is required',
-              minLength: { value: MIN_USERNAME_LENGTH, message: `At least ${MIN_USERNAME_LENGTH} characters` },
-              maxLength: { value: MAX_USERNAME_LENGTH, message: `At most ${MAX_USERNAME_LENGTH} characters` },
-              pattern: { value: USERNAME_RE, message: 'Letters, numbers, underscores, hyphens only' },
+              minLength: {
+                value: MIN_USERNAME_LENGTH,
+                message: `At least ${MIN_USERNAME_LENGTH} characters`,
+              },
+              maxLength: {
+                value: MAX_USERNAME_LENGTH,
+                message: `At most ${MAX_USERNAME_LENGTH} characters`,
+              },
+              pattern: {
+                value: USERNAME_RE,
+                message: 'Letters, numbers, underscores, hyphens only',
+              },
             })}
           />
-          <FieldError id="sign-up-username-error">{errors.username?.message}</FieldError>
+          <FieldError id="sign-up-username-error">
+            {errors.username?.message}
+          </FieldError>
         </Field>
         <Field data-invalid={!!errors.email}>
           <FieldLabel htmlFor="sign-up-email">Email</FieldLabel>
@@ -115,10 +128,15 @@ export function SignUpForm() {
             aria-describedby={errors.email ? 'sign-up-email-error' : undefined}
             {...register('email', {
               required: 'Email is required',
-              pattern: { value: EMAIL_RE, message: 'Please enter a valid email' },
+              pattern: {
+                value: EMAIL_RE,
+                message: 'Please enter a valid email',
+              },
             })}
           />
-          <FieldError id="sign-up-email-error">{errors.email?.message}</FieldError>
+          <FieldError id="sign-up-email-error">
+            {errors.email?.message}
+          </FieldError>
         </Field>
         <Field data-invalid={!!errors.password}>
           <FieldLabel htmlFor="sign-up-password">Password</FieldLabel>
@@ -128,7 +146,9 @@ export function SignUpForm() {
               type={showPassword ? 'text' : 'password'}
               autoComplete="new-password"
               aria-invalid={!!errors.password}
-              aria-describedby={errors.password ? 'sign-up-password-error' : undefined}
+              aria-describedby={
+                errors.password ? 'sign-up-password-error' : undefined
+              }
               {...register('password', {
                 required: 'Password is required',
                 minLength: {
@@ -145,11 +165,17 @@ export function SignUpForm() {
                 onClick={() => setShowPassword((p) => !p)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                {showPassword ? (
+                  <EyeOff className="size-4" />
+                ) : (
+                  <Eye className="size-4" />
+                )}
               </InputGroupButton>
             </InputGroupAddon>
           </InputGroup>
-          <FieldError id="sign-up-password-error">{errors.password?.message}</FieldError>
+          <FieldError id="sign-up-password-error">
+            {errors.password?.message}
+          </FieldError>
         </Field>
         <Field>
           <Button type="submit" disabled={signUp.isPending}>
@@ -163,10 +189,7 @@ export function SignUpForm() {
             )}
           </Button>
           <FieldDescription className="text-center">
-            Already have an account?{' '}
-            <Link to={paths.auth.signIn}>
-              Sign in
-            </Link>
+            Already have an account? <Link to={paths.auth.signIn}>Sign in</Link>
           </FieldDescription>
         </Field>
       </FieldGroup>

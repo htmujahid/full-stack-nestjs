@@ -76,52 +76,52 @@ export function OneTimeVerifyForm() {
   return (
     <>
       <form onSubmit={onSubmit} noValidate>
-      <FieldGroup>
-        {error && (
-          <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {error}
-          </div>
-        )}
-        <Field>
-          <FieldLabel>Enter the 6-digit code sent to {phone}</FieldLabel>
-          <InputOTP
-            maxLength={OTP_LENGTH}
-            value={otp}
-            onChange={setOtp}
-            aria-invalid={!!error}
-          >
-            <InputOTPGroup className="w-min mx-auto">
-              {Array.from({ length: OTP_LENGTH }).map((_, i) => (
-                <InputOTPSlot key={i} index={i} />
-              ))}
-            </InputOTPGroup>
-          </InputOTP>
-        </Field>
-        <Field>
-          <Button
-            type="submit"
-            disabled={verifyOtp.isPending || otp.length !== OTP_LENGTH}
-          >
-            {verifyOtp.isPending ? (
-              <>
-                <Spinner aria-hidden />
-                Verifying…
-              </>
-            ) : (
-              'Verify and sign in'
-            )}
-          </Button>
-        </Field>
-      </FieldGroup>
-    </form>
-    <div className="mt-4 flex flex-col gap-3">
-      <FieldDescription className="text-center">
-        <Link to={paths.auth.oneTimePhone}>Use a different number</Link>
-      </FieldDescription>
-      <FieldDescription className="text-center">
-        <Link to={paths.auth.signIn}>Back to sign in</Link>
-      </FieldDescription>
-    </div>
-  </>
+        <FieldGroup>
+          {error && (
+            <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+          <Field>
+            <FieldLabel>Enter the 6-digit code sent to {phone}</FieldLabel>
+            <InputOTP
+              maxLength={OTP_LENGTH}
+              value={otp}
+              onChange={setOtp}
+              aria-invalid={!!error}
+            >
+              <InputOTPGroup className="w-min mx-auto">
+                {Array.from({ length: OTP_LENGTH }).map((_, i) => (
+                  <InputOTPSlot key={i} index={i} />
+                ))}
+              </InputOTPGroup>
+            </InputOTP>
+          </Field>
+          <Field>
+            <Button
+              type="submit"
+              disabled={verifyOtp.isPending || otp.length !== OTP_LENGTH}
+            >
+              {verifyOtp.isPending ? (
+                <>
+                  <Spinner aria-hidden />
+                  Verifying…
+                </>
+              ) : (
+                'Verify and sign in'
+              )}
+            </Button>
+          </Field>
+        </FieldGroup>
+      </form>
+      <div className="mt-4 flex flex-col gap-3">
+        <FieldDescription className="text-center">
+          <Link to={paths.auth.oneTimePhone}>Use a different number</Link>
+        </FieldDescription>
+        <FieldDescription className="text-center">
+          <Link to={paths.auth.signIn}>Back to sign in</Link>
+        </FieldDescription>
+      </div>
+    </>
   );
 }

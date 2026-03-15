@@ -22,7 +22,9 @@ export class UploadService {
     const secretKey = this.config.getOrThrow<string>('s3.secretKey');
 
     this.bucket = this.config.getOrThrow<string>('s3.bucket');
-    this.publicUrl = this.config.getOrThrow<string>('s3.publicUrl').replace(/\/$/, '');
+    this.publicUrl = this.config
+      .getOrThrow<string>('s3.publicUrl')
+      .replace(/\/$/, '');
 
     this.s3 = new S3Client({
       endpoint,

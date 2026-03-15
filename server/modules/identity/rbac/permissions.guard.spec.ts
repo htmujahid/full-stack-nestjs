@@ -60,7 +60,10 @@ describe('PermissionsGuard', () => {
     });
 
     it('returns true when user is SuperAdmin (bypasses permission check)', () => {
-      reflector.getAllAndOverride.mockReturnValue(['project:delete', 'project:update']);
+      reflector.getAllAndOverride.mockReturnValue([
+        'project:delete',
+        'project:update',
+      ]);
       const context = makeContext({ userId: 'u1', role: UserRole.SuperAdmin });
 
       const result = guard.canActivate(context);
@@ -69,7 +72,10 @@ describe('PermissionsGuard', () => {
     });
 
     it('returns true when Member has all required permissions', () => {
-      reflector.getAllAndOverride.mockReturnValue(['project:read', 'project:create']);
+      reflector.getAllAndOverride.mockReturnValue([
+        'project:read',
+        'project:create',
+      ]);
       const context = makeContext({ userId: 'u1', role: UserRole.Member });
 
       const result = guard.canActivate(context);
@@ -78,7 +84,10 @@ describe('PermissionsGuard', () => {
     });
 
     it('throws ForbiddenException when Member lacks a required permission', () => {
-      reflector.getAllAndOverride.mockReturnValue(['project:read', 'user:delete']);
+      reflector.getAllAndOverride.mockReturnValue([
+        'project:read',
+        'user:delete',
+      ]);
       const context = makeContext({ userId: 'u1', role: UserRole.Member });
 
       expect(() => guard.canActivate(context)).toThrow(ForbiddenException);

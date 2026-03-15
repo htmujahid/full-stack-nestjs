@@ -2,7 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { BaseOAuthController, type OAuthProfile } from './base-oauth.controller';
+import {
+  BaseOAuthController,
+  type OAuthProfile,
+} from './base-oauth.controller';
 import { AccountService } from '../../account/account.service';
 import { AuthService } from '../../auth/services/auth.service';
 import { TwoFactorGateService } from '../../auth/services/two-factor-gate.service';
@@ -82,7 +85,9 @@ describe('BaseOAuthController', () => {
     jest.setSystemTime(NOW);
 
     dataSource = mockDataSource();
-    authService = { createAuthSession: jest.fn().mockResolvedValue(makeTokenPair()) };
+    authService = {
+      createAuthSession: jest.fn().mockResolvedValue(makeTokenPair()),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TestOAuthController],
@@ -91,7 +96,11 @@ describe('BaseOAuthController', () => {
         { provide: AuthService, useValue: authService },
         {
           provide: AccountService,
-          useValue: { listAccounts: jest.fn(), linkAccount: jest.fn(), unlinkAccount: jest.fn() },
+          useValue: {
+            listAccounts: jest.fn(),
+            linkAccount: jest.fn(),
+            unlinkAccount: jest.fn(),
+          },
         },
         {
           provide: TwoFactorGateService,
@@ -101,7 +110,10 @@ describe('BaseOAuthController', () => {
             rotateTrustDevice: jest.fn(),
           },
         },
-        { provide: JwtService, useValue: { verify: jest.fn(), sign: jest.fn() } },
+        {
+          provide: JwtService,
+          useValue: { verify: jest.fn(), sign: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -148,11 +160,13 @@ describe('BaseOAuthController', () => {
       const newAccount = makeAccount();
 
       const txRepo = mockRepository();
-      txRepo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
-      txRepo.create.mockReturnValueOnce(newUser).mockReturnValueOnce(newAccount);
-      txRepo.save.mockResolvedValueOnce(newUser).mockResolvedValueOnce(newAccount);
+      txRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+      txRepo.create
+        .mockReturnValueOnce(newUser)
+        .mockReturnValueOnce(newAccount);
+      txRepo.save
+        .mockResolvedValueOnce(newUser)
+        .mockResolvedValueOnce(newAccount);
 
       dataSource.transaction.mockImplementation(async (cb) => {
         const tx = { getRepository: jest.fn().mockReturnValue(txRepo) };
@@ -171,11 +185,13 @@ describe('BaseOAuthController', () => {
       const newUser = makeUser({ emailVerified: true });
 
       const txRepo = mockRepository();
-      txRepo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
-      txRepo.create.mockReturnValueOnce(newUser).mockReturnValueOnce(makeAccount());
-      txRepo.save.mockResolvedValueOnce(newUser).mockResolvedValueOnce(makeAccount());
+      txRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+      txRepo.create
+        .mockReturnValueOnce(newUser)
+        .mockReturnValueOnce(makeAccount());
+      txRepo.save
+        .mockResolvedValueOnce(newUser)
+        .mockResolvedValueOnce(makeAccount());
 
       dataSource.transaction.mockImplementation(async (cb) => {
         const tx = { getRepository: jest.fn().mockReturnValue(txRepo) };
@@ -194,11 +210,13 @@ describe('BaseOAuthController', () => {
       const newUser = makeUser({ email: 'google@example.com' });
 
       const txRepo = mockRepository();
-      txRepo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
-      txRepo.create.mockReturnValueOnce(newUser).mockReturnValueOnce(makeAccount());
-      txRepo.save.mockResolvedValueOnce(newUser).mockResolvedValueOnce(makeAccount());
+      txRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+      txRepo.create
+        .mockReturnValueOnce(newUser)
+        .mockReturnValueOnce(makeAccount());
+      txRepo.save
+        .mockResolvedValueOnce(newUser)
+        .mockResolvedValueOnce(makeAccount());
 
       dataSource.transaction.mockImplementation(async (cb) => {
         const tx = { getRepository: jest.fn().mockReturnValue(txRepo) };
@@ -254,10 +272,9 @@ describe('BaseOAuthController', () => {
 
       await controller.findOrCreateUser(profile);
 
-      expect(txRepo.update).toHaveBeenCalledWith(
-        existingUser.id,
-        { emailVerified: true },
-      );
+      expect(txRepo.update).toHaveBeenCalledWith(existingUser.id, {
+        emailVerified: true,
+      });
     });
 
     it('saves new account with providerId and profile accountId', async () => {
@@ -266,11 +283,13 @@ describe('BaseOAuthController', () => {
       const newAccount = makeAccount({ accountId: 'gid-12345' });
 
       const txRepo = mockRepository();
-      txRepo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
-      txRepo.create.mockReturnValueOnce(newUser).mockReturnValueOnce(newAccount);
-      txRepo.save.mockResolvedValueOnce(newUser).mockResolvedValueOnce(newAccount);
+      txRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+      txRepo.create
+        .mockReturnValueOnce(newUser)
+        .mockReturnValueOnce(newAccount);
+      txRepo.save
+        .mockResolvedValueOnce(newUser)
+        .mockResolvedValueOnce(newAccount);
 
       dataSource.transaction.mockImplementation(async (cb) => {
         const tx = { getRepository: jest.fn().mockReturnValue(txRepo) };

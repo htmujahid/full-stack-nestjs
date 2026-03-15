@@ -89,7 +89,11 @@ export class PasswordService {
       });
       await accountRepo.save(account);
 
-      await this.emailService.sendVerificationEmail(savedUser.id, normalizedEmail, dto.callbackURL);
+      await this.emailService.sendVerificationEmail(
+        savedUser.id,
+        normalizedEmail,
+        dto.callbackURL,
+      );
 
       return { user: savedUser };
     });

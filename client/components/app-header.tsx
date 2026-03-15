@@ -47,9 +47,14 @@ export function AppHeader({ children }: AppHeaderProps) {
             render={
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Avatar size="sm">
-                  <AvatarImage src={user?.image ?? undefined} alt={user?.name} />
+                  <AvatarImage
+                    src={user?.image ?? undefined}
+                    alt={user?.name}
+                  />
                   <AvatarFallback>
-                    {user?.name?.slice(0, 2).toUpperCase() ?? <User className="size-4" />}
+                    {user?.name?.slice(0, 2).toUpperCase() ?? (
+                      <User className="size-4" />
+                    )}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -65,7 +70,10 @@ export function AppHeader({ children }: AppHeaderProps) {
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="size-8 rounded-lg">
-                    <AvatarImage src={user?.image ?? undefined} alt={user?.name} />
+                    <AvatarImage
+                      src={user?.image ?? undefined}
+                      alt={user?.name}
+                    />
                     <AvatarFallback className="rounded-lg">
                       {user?.name?.slice(0, 2).toUpperCase() ?? (
                         <User className="size-4" />
@@ -95,11 +103,15 @@ export function AppHeader({ children }: AppHeaderProps) {
                 <User className="size-4" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate(paths.account.verification)}>
+              <DropdownMenuItem
+                onClick={() => navigate(paths.account.verification)}
+              >
                 <BadgeCheck className="size-4" />
                 Verification
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate(paths.account.security)}>
+              <DropdownMenuItem
+                onClick={() => navigate(paths.account.security)}
+              >
                 <Shield className="size-4" />
                 Security
               </DropdownMenuItem>

@@ -73,7 +73,12 @@ describe('GoogleStrategy', () => {
       const done = jest.fn() as unknown as VerifyCallback;
       const profile = makeProfile();
 
-      strategy.validate('access-token', undefined as unknown as string, profile, done);
+      strategy.validate(
+        'access-token',
+        undefined as unknown as string,
+        profile,
+        done,
+      );
 
       expect(done).toHaveBeenCalledWith(
         null,
@@ -98,9 +103,7 @@ describe('GoogleStrategy', () => {
 
       strategy.validate('access-token', 'refresh-token', profile, done);
 
-      expect(done).toHaveBeenCalledWith(
-        expect.any(Error),
-      );
+      expect(done).toHaveBeenCalledWith(expect.any(Error));
     });
   });
 });

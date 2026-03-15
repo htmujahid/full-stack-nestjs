@@ -14,13 +14,16 @@ export class SignUpDto {
   @IsString()
   name: string;
 
-  @ApiPropertyOptional({ description: 'Unique username (letters, numbers, underscores, hyphens)' })
+  @ApiPropertyOptional({
+    description: 'Unique username (letters, numbers, underscores, hyphens)',
+  })
   @IsOptional()
   @IsString()
   @MinLength(3, { message: 'Username must be at least 3 characters' })
   @MaxLength(30, { message: 'Username must be at most 30 characters' })
   @Matches(/^[a-zA-Z0-9_-]+$/, {
-    message: 'Username may only contain letters, numbers, underscores, and hyphens',
+    message:
+      'Username may only contain letters, numbers, underscores, and hyphens',
   })
   username?: string;
 
@@ -43,7 +46,9 @@ export class SignUpDto {
   @IsString()
   image?: string;
 
-  @ApiPropertyOptional({ description: 'Phone number in E.164 format, e.g. +12345678900' })
+  @ApiPropertyOptional({
+    description: 'Phone number in E.164 format, e.g. +12345678900',
+  })
   @IsOptional()
   @IsString()
   @Matches(/^\+[1-9]\d{6,14}$/, {

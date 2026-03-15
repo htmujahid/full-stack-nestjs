@@ -19,9 +19,7 @@ export default function ResetPasswordPage() {
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Reset password</CardTitle>
-          <CardDescription>
-            Enter your new password below
-          </CardDescription>
+          <CardDescription>Enter your new password below</CardDescription>
         </CardHeader>
         <CardContent>
           <ResetPasswordForm token={token} />
@@ -30,8 +28,7 @@ export default function ResetPasswordPage() {
       <FieldDescription className="px-6 text-center">
         By clicking continue, you agree to our{' '}
         <Link to={paths.terms}>Terms of Service</Link> and{' '}
-        <Link to={paths.privacy}>Privacy Policy</Link>
-        .
+        <Link to={paths.privacy}>Privacy Policy</Link>.
       </FieldDescription>
     </div>
   );

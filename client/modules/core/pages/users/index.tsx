@@ -34,7 +34,9 @@ export default function UsersIndexPage() {
     : [];
 
   const [draft, setDraft] = useState(search);
-  useEffect(() => { setDraft(search); }, [search]);
+  useEffect(() => {
+    setDraft(search);
+  }, [search]);
 
   const { data, isLoading, isError, isFetching } = useUsersQuery({
     page,
@@ -109,7 +111,10 @@ export default function UsersIndexPage() {
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') commitSearch(draft.trim());
-                if (e.key === 'Escape') { setDraft(''); commitSearch(''); }
+                if (e.key === 'Escape') {
+                  setDraft('');
+                  commitSearch('');
+                }
               }}
             />
           </div>

@@ -1,15 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, CanActivate, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  CanActivate,
+  ConflictException,
+} from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { PasswordController } from './password.controller';
 import { PasswordService } from '../services/password.service';
 import { TwoFactorGateService } from '../services/two-factor-gate.service';
 import { User } from '../../user/user.entity';
 import type { Request as ExpressRequest, Response } from 'express';
-import {
-  TFA_PENDING_COOKIE,
-  TRUST_DEVICE_COOKIE,
-} from '../auth.constants';
+import { TFA_PENDING_COOKIE, TRUST_DEVICE_COOKIE } from '../auth.constants';
 
 const noopGuard: CanActivate = { canActivate: () => true };
 
@@ -148,9 +149,19 @@ describe('PasswordController', () => {
 
       const req = makeMockRequest({ user });
       const res = makeMockResponse();
-      const dto = { identifier: 'test@example.com', password: 'pass', rememberMe: true };
+      const dto = {
+        identifier: 'test@example.com',
+        password: 'pass',
+        rememberMe: true,
+      };
 
-      const result = await controller.signIn(req, dto, undefined, undefined, res);
+      const result = await controller.signIn(
+        req,
+        dto,
+        undefined,
+        undefined,
+        res,
+      );
 
       expect(passwordService.signIn).toHaveBeenCalledWith(user, true, {
         ip: null,
@@ -173,7 +184,13 @@ describe('PasswordController', () => {
       const res = makeMockResponse();
       const dto = { identifier: 'test@example.com', password: 'pass' };
 
-      const result = await controller.signIn(req, dto, undefined, undefined, res);
+      const result = await controller.signIn(
+        req,
+        dto,
+        undefined,
+        undefined,
+        res,
+      );
 
       expect(passwordService.signIn).not.toHaveBeenCalled();
       expect(result).toEqual({ twoFactorRedirect: true });
@@ -204,7 +221,11 @@ describe('PasswordController', () => {
 
       const req = makeMockRequest({ user });
       const res = makeMockResponse();
-      const dto = { identifier: 'test@example.com', password: 'pass', rememberMe: false };
+      const dto = {
+        identifier: 'test@example.com',
+        password: 'pass',
+        rememberMe: false,
+      };
 
       await controller.signIn(req, dto, undefined, undefined, res);
 
@@ -224,18 +245,25 @@ describe('PasswordController', () => {
       const res = makeMockResponse();
       const dto = { identifier: 'test@example.com', password: 'pass' };
 
-      await controller.signIn(req, dto, '10.0.0.1, 172.16.0.1', 'jest-agent', res);
-
-      expect(passwordService.signIn).toHaveBeenCalledWith(
-        user,
-        true,
-        { ip: '10.0.0.1', userAgent: 'jest-agent' },
+      await controller.signIn(
+        req,
+        dto,
+        '10.0.0.1, 172.16.0.1',
+        'jest-agent',
+        res,
       );
+
+      expect(passwordService.signIn).toHaveBeenCalledWith(user, true, {
+        ip: '10.0.0.1',
+        userAgent: 'jest-agent',
+      });
     });
 
     it('propagates error when passwordService.signIn throws', async () => {
       const user = makeUser({ twoFactorEnabled: false });
-      passwordService.signIn.mockRejectedValue(new Error('Session creation failed'));
+      passwordService.signIn.mockRejectedValue(
+        new Error('Session creation failed'),
+      );
 
       const req = makeMockRequest({ user });
       const res = makeMockResponse();
@@ -274,7 +302,9 @@ describe('PasswordController', () => {
       const tokens = makeTokens();
       passwordService.signIn.mockResolvedValue({ user, tokens });
       twoFactorGate.checkTrustDevice.mockResolvedValue(true);
-      twoFactorGate.rotateTrustDevice.mockResolvedValue('new-trust-cookie-value');
+      twoFactorGate.rotateTrustDevice.mockResolvedValue(
+        'new-trust-cookie-value',
+      );
 
       const req = makeMockRequest({
         user,
@@ -290,7 +320,10 @@ describe('PasswordController', () => {
         res,
       );
 
-      expect(twoFactorGate.rotateTrustDevice).toHaveBeenCalledWith('old-trust-value', user.id);
+      expect(twoFactorGate.rotateTrustDevice).toHaveBeenCalledWith(
+        'old-trust-value',
+        user.id,
+      );
       expect(passwordService.signIn).toHaveBeenCalled();
       expect(result).toEqual(expect.objectContaining({ user }));
     });
@@ -367,17 +400,31 @@ describe('PasswordController', () => {
     it('returns redirect to /auth/error when errorURL missing and token is invalid', async () => {
       passwordService.validateResetPasswordToken.mockResolvedValue(false);
 
-      const result = await controller.resetPasswordCallback('bad-token', undefined, undefined);
+      const result = await controller.resetPasswordCallback(
+        'bad-token',
+        undefined,
+        undefined,
+      );
 
-      expect(result).toEqual({ url: '/auth/error?error=INVALID_TOKEN', statusCode: 302 });
+      expect(result).toEqual({
+        url: '/auth/error?error=INVALID_TOKEN',
+        statusCode: 302,
+      });
     });
 
     it('returns redirect to /auth/error when callbackURL missing but token is valid', async () => {
       passwordService.validateResetPasswordToken.mockResolvedValue(true);
 
-      const result = await controller.resetPasswordCallback('valid-token', undefined, undefined);
+      const result = await controller.resetPasswordCallback(
+        'valid-token',
+        undefined,
+        undefined,
+      );
 
-      expect(result).toEqual({ url: '/auth/error?error=INVALID_TOKEN', statusCode: 302 });
+      expect(result).toEqual({
+        url: '/auth/error?error=INVALID_TOKEN',
+        statusCode: 302,
+      });
     });
 
     it('uses "&" as separator when callbackURL already contains a query string', async () => {
@@ -420,7 +467,10 @@ describe('PasswordController', () => {
       );
 
       await expect(
-        controller.resetPassword({ token: 'bad-token', newPassword: 'newpass' }),
+        controller.resetPassword({
+          token: 'bad-token',
+          newPassword: 'newpass',
+        }),
       ).rejects.toThrow(BadRequestException);
     });
   });

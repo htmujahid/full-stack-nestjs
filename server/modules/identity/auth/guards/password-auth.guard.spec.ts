@@ -37,9 +37,15 @@ describe('PasswordAuthGuard', () => {
     });
 
     it('calls super.canActivate when body is valid', async () => {
-      const ctx = makeContext({ identifier: 'user@example.com', password: 'secret123' });
+      const ctx = makeContext({
+        identifier: 'user@example.com',
+        password: 'secret123',
+      });
       const superCanActivate = jest
-        .spyOn(Object.getPrototypeOf(PasswordAuthGuard.prototype), 'canActivate')
+        .spyOn(
+          Object.getPrototypeOf(PasswordAuthGuard.prototype),
+          'canActivate',
+        )
         .mockResolvedValue(true);
 
       const result = await guard.canActivate(ctx);

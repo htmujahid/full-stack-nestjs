@@ -44,7 +44,7 @@ export function ProfileInfoCard({ user }: { user: AuthUser }) {
   });
 
   const handleAvatarChange = (
-    file: { file: File | { url: string }; id: string } | null
+    file: { file: File | { url: string }; id: string } | null,
   ) => {
     if (!file) {
       const currentUrl = form.getValues('image');
@@ -65,7 +65,7 @@ export function ProfileInfoCard({ user }: { user: AuthUser }) {
           onError: (err) => {
             form.setError('root', { message: getAuthErrorMessage(err) });
           },
-        }
+        },
       );
     } else {
       form.setValue('image', f.url, { shouldDirty: true });

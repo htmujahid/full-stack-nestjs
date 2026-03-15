@@ -126,10 +126,7 @@ export function ProfilePhoneCard({ user }: { user: AuthUser }) {
                 </FieldError>
               </Field>
               <div className="flex gap-2">
-                <Button
-                  type="submit"
-                  disabled={verifyPhoneChange.isPending}
-                >
+                <Button type="submit" disabled={verifyPhoneChange.isPending}>
                   {verifyPhoneChange.isPending ? 'Verifying…' : 'Verify'}
                 </Button>
                 <Button

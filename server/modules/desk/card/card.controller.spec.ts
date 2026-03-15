@@ -22,8 +22,10 @@ const makeCard = (overrides: Partial<Card> = {}): Card =>
     ...overrides,
   }) as Card;
 
-const makeRequest = (userId: string, role: UserRole = UserRole.Member): Request =>
-  ({ user: { userId, role } }) as unknown as Request;
+const makeRequest = (
+  userId: string,
+  role: UserRole = UserRole.Member,
+): Request => ({ user: { userId, role } }) as unknown as Request;
 
 const mockCardService = () => ({
   findAll: jest.fn(),
@@ -85,7 +87,9 @@ describe('CardController', () => {
     });
 
     it('propagates NotFoundException', async () => {
-      service.findOne.mockRejectedValue(new NotFoundException('Card not found'));
+      service.findOne.mockRejectedValue(
+        new NotFoundException('Card not found'),
+      );
 
       await expect(controller.findOne('missing')).rejects.toThrow(
         NotFoundException,

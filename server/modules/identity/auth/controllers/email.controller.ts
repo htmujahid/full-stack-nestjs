@@ -136,7 +136,10 @@ export class EmailController extends BaseAuthController {
     if (!result.ok) {
       const errorTarget = errorURL ?? '/auth/error';
       const sep = errorTarget.includes('?') ? '&' : '?';
-      return { url: `${errorTarget}${sep}error=${encodeURIComponent(result.error)}`, statusCode: HttpStatus.FOUND };
+      return {
+        url: `${errorTarget}${sep}error=${encodeURIComponent(result.error)}`,
+        statusCode: HttpStatus.FOUND,
+      };
     }
 
     this.setTokenCookies(res, result.tokens, false);

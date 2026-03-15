@@ -15,7 +15,9 @@ type FreshJwtRouteProps = {
   redirectTo?: string;
 };
 
-export function FreshJwtRoute({ redirectTo = paths.auth.signIn }: FreshJwtRouteProps) {
+export function FreshJwtRoute({
+  redirectTo = paths.auth.signIn,
+}: FreshJwtRouteProps) {
   const { isAuthenticated, isLoading } = useUser();
   const { isFreshJwt, isLoading: isSessionLoading } = useSession();
   const [sessionVerified, setSessionVerified] = useState(false);

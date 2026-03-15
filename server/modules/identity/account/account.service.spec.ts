@@ -20,7 +20,9 @@ const makeAccount = (overrides: Partial<Account> = {}): Account =>
     ...overrides,
   }) as Account;
 
-const makeLinkData = (overrides: Partial<LinkAccountData> = {}): LinkAccountData => ({
+const makeLinkData = (
+  overrides: Partial<LinkAccountData> = {},
+): LinkAccountData => ({
   providerId: 'google',
   accountId: 'google-account-id',
   ...overrides,
@@ -125,8 +127,16 @@ describe('AccountService', () => {
     });
 
     it('persists accessToken, refreshToken, scope when provided', async () => {
-      const data = makeLinkData({ accessToken: 'at', refreshToken: 'rt', scope: 'email' });
-      const created = makeAccount({ accessToken: 'at', refreshToken: 'rt', scope: 'email' });
+      const data = makeLinkData({
+        accessToken: 'at',
+        refreshToken: 'rt',
+        scope: 'email',
+      });
+      const created = makeAccount({
+        accessToken: 'at',
+        refreshToken: 'rt',
+        scope: 'email',
+      });
       repo.findOne.mockResolvedValue(null);
       repo.create.mockReturnValue(created);
       repo.save.mockResolvedValue(created);
@@ -134,7 +144,11 @@ describe('AccountService', () => {
       await service.linkAccount('user-uuid', data);
 
       expect(repo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ accessToken: 'at', refreshToken: 'rt', scope: 'email' }),
+        expect.objectContaining({
+          accessToken: 'at',
+          refreshToken: 'rt',
+          scope: 'email',
+        }),
       );
     });
 
@@ -143,29 +157,43 @@ describe('AccountService', () => {
       // First findOne: the provider+accountId combo, owned by the same user
       repo.findOne.mockResolvedValueOnce(makeAccount({ userId: 'user-uuid' }));
 
-      await expect(service.linkAccount('user-uuid', data)).rejects.toThrow(BadRequestException);
+      await expect(service.linkAccount('user-uuid', data)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws BadRequestException when same provider+accountId is linked to a DIFFERENT user', async () => {
       const data = makeLinkData();
       // First findOne: the provider+accountId combo, owned by another user
-      repo.findOne.mockResolvedValueOnce(makeAccount({ userId: 'other-user-uuid' }));
+      repo.findOne.mockResolvedValueOnce(
+        makeAccount({ userId: 'other-user-uuid' }),
+      );
 
-      await expect(service.linkAccount('user-uuid', data)).rejects.toThrow(BadRequestException);
+      await expect(service.linkAccount('user-uuid', data)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('includes the provider name in the error message — already linked to this user', async () => {
       const data = makeLinkData({ providerId: 'github' });
-      repo.findOne.mockResolvedValueOnce(makeAccount({ userId: 'user-uuid', providerId: 'github' }));
+      repo.findOne.mockResolvedValueOnce(
+        makeAccount({ userId: 'user-uuid', providerId: 'github' }),
+      );
 
-      await expect(service.linkAccount('user-uuid', data)).rejects.toThrow(/github/);
+      await expect(service.linkAccount('user-uuid', data)).rejects.toThrow(
+        /github/,
+      );
     });
 
     it('includes the provider name in the error message — linked to another account', async () => {
       const data = makeLinkData({ providerId: 'github' });
-      repo.findOne.mockResolvedValueOnce(makeAccount({ userId: 'other-uuid', providerId: 'github' }));
+      repo.findOne.mockResolvedValueOnce(
+        makeAccount({ userId: 'other-uuid', providerId: 'github' }),
+      );
 
-      await expect(service.linkAccount('user-uuid', data)).rejects.toThrow(/github/);
+      await expect(service.linkAccount('user-uuid', data)).rejects.toThrow(
+        /github/,
+      );
     });
 
     it('throws BadRequestException when user already has a different account for this provider', async () => {
@@ -173,9 +201,13 @@ describe('AccountService', () => {
       // First findOne (provider+accountId): no match
       repo.findOne.mockResolvedValueOnce(null);
       // Second findOne (userId+providerId): user already has a google account
-      repo.findOne.mockResolvedValueOnce(makeAccount({ accountId: 'existing-google-id' }));
+      repo.findOne.mockResolvedValueOnce(
+        makeAccount({ accountId: 'existing-google-id' }),
+      );
 
-      await expect(service.linkAccount('user-uuid', data)).rejects.toThrow(BadRequestException);
+      await expect(service.linkAccount('user-uuid', data)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('does not call save when conflicts are detected', async () => {
@@ -208,9 +240,9 @@ describe('AccountService', () => {
     it('throws NotFoundException when account is not found', async () => {
       repo.findOne.mockResolvedValue(null);
 
-      await expect(service.unlinkAccount('user-uuid', 'missing-id')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.unlinkAccount('user-uuid', 'missing-id'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('throws BadRequestException when the account is the last authentication method', async () => {
@@ -218,17 +250,17 @@ describe('AccountService', () => {
       repo.findOne.mockResolvedValue(account);
       repo.count.mockResolvedValue(1);
 
-      await expect(service.unlinkAccount('user-uuid', 'account-uuid')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.unlinkAccount('user-uuid', 'account-uuid'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('queries with both id and userId to prevent cross-user unlink', async () => {
       repo.findOne.mockResolvedValue(null);
 
-      await expect(service.unlinkAccount('user-uuid', 'account-uuid')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.unlinkAccount('user-uuid', 'account-uuid'),
+      ).rejects.toThrow(NotFoundException);
 
       expect(repo.findOne).toHaveBeenCalledWith({
         where: { id: 'account-uuid', userId: 'user-uuid' },
@@ -245,7 +277,9 @@ describe('AccountService', () => {
 
       await service.unlinkAccount('user-uuid', 'account-uuid');
 
-      expect(repo.count).toHaveBeenCalledWith({ where: { userId: 'user-uuid' } });
+      expect(repo.count).toHaveBeenCalledWith({
+        where: { userId: 'user-uuid' },
+      });
     });
 
     it('does not call remove when it is the last account', async () => {
@@ -256,7 +290,9 @@ describe('AccountService', () => {
       const removeMock = jest.fn();
       (repo as typeof repo & { remove: jest.Mock }).remove = removeMock;
 
-      await expect(service.unlinkAccount('user-uuid', 'account-uuid')).rejects.toThrow();
+      await expect(
+        service.unlinkAccount('user-uuid', 'account-uuid'),
+      ).rejects.toThrow();
 
       expect(removeMock).not.toHaveBeenCalled();
     });

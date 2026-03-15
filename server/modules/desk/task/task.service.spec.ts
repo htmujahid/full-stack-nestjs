@@ -41,7 +41,9 @@ const auth = { userId: 'user-1', role: UserRole.Member } as const;
 
 describe('TaskService', () => {
   let service: TaskService;
-  let taskRepo: ReturnType<typeof mockRepository> & { createQueryBuilder: jest.Mock };
+  let taskRepo: ReturnType<typeof mockRepository> & {
+    createQueryBuilder: jest.Mock;
+  };
   let projectService: { findOne: jest.Mock };
   let qb: ReturnType<typeof mockQueryBuilder>;
 
@@ -149,8 +151,12 @@ describe('TaskService', () => {
     it('throws NotFoundException when not found', async () => {
       taskRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.findOne('missing')).rejects.toThrow(NotFoundException);
-      await expect(service.findOne('missing')).rejects.toThrow('Task not found');
+      await expect(service.findOne('missing')).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.findOne('missing')).rejects.toThrow(
+        'Task not found',
+      );
     });
   });
 
@@ -185,7 +191,9 @@ describe('TaskService', () => {
         makeProject({ userId: 'other-user' }),
       );
 
-      await expect(service.create(dto, auth)).rejects.toThrow(ForbiddenException);
+      await expect(service.create(dto, auth)).rejects.toThrow(
+        ForbiddenException,
+      );
       expect(taskRepo.create).not.toHaveBeenCalled();
     });
 
@@ -249,7 +257,9 @@ describe('TaskService', () => {
     it('removes task when user owns project', async () => {
       const task = makeTask();
       taskRepo.findOne.mockResolvedValue(task);
-      projectService.findOne.mockResolvedValue(makeProject({ userId: 'user-1' }));
+      projectService.findOne.mockResolvedValue(
+        makeProject({ userId: 'user-1' }),
+      );
       taskRepo.remove.mockResolvedValue(undefined);
 
       await service.remove('task-1', auth);

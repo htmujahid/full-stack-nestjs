@@ -99,8 +99,7 @@ export function SecurityTwoFactorCard({ user }: { user: AuthUser }) {
                     {},
                     {
                       onSuccess: () => toast.success('2FA disabled'),
-                      onError: (err) =>
-                        toast.error(getAuthErrorMessage(err)),
+                      onError: (err) => toast.error(getAuthErrorMessage(err)),
                     },
                   )
                 }
@@ -127,8 +126,7 @@ export function SecurityTwoFactorCard({ user }: { user: AuthUser }) {
                         setGeneratedBackupCodes(data.backupCodes);
                         toast.success('Backup codes generated');
                       },
-                      onError: (err) =>
-                        toast.error(getAuthErrorMessage(err)),
+                      onError: (err) => toast.error(getAuthErrorMessage(err)),
                     },
                   )
                 }
@@ -180,8 +178,7 @@ export function SecurityTwoFactorCard({ user }: { user: AuthUser }) {
                           setTotpUri(data.totpURI);
                           setBackupCodes(data.backupCodes);
                         },
-                        onError: (err) =>
-                          toast.error(getAuthErrorMessage(err)),
+                        onError: (err) => toast.error(getAuthErrorMessage(err)),
                       },
                     )
                   }
@@ -261,13 +258,8 @@ export function SecurityTwoFactorCard({ user }: { user: AuthUser }) {
                         {enableForm.formState.errors.code?.message}
                       </FieldError>
                     </Field>
-                    <Button
-                      type="submit"
-                      disabled={verifyEnableTotp.isPending}
-                    >
-                      {verifyEnableTotp.isPending
-                        ? 'Verifying…'
-                        : 'Enable 2FA'}
+                    <Button type="submit" disabled={verifyEnableTotp.isPending}>
+                      {verifyEnableTotp.isPending ? 'Verifying…' : 'Enable 2FA'}
                     </Button>
                   </FieldGroup>
                 </form>

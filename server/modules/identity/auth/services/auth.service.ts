@@ -78,7 +78,13 @@ export class AuthService {
 
     await sessionRepo.delete(session.id);
 
-    const tokens = await this.issueTokens(userId, role, familyId, false, 'refresh');
+    const tokens = await this.issueTokens(
+      userId,
+      role,
+      familyId,
+      false,
+      'refresh',
+    );
     await this.createRefreshSession(userId, familyId, tokens, ctx);
     return tokens;
   }

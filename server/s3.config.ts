@@ -7,6 +7,5 @@ export default registerAs('s3', () => ({
   secretKey: process.env.S3_SECRET_KEY ?? 'minioadmin',
   bucket: process.env.S3_BUCKET ?? 'crude',
   /** Public URL base for object access (e.g. http://localhost:9000/crude) */
-  publicUrl:
-    process.env.S3_PUBLIC_URL ?? 'http://localhost:9000/crude',
+  publicUrl: process.env.S3_PUBLIC_URL ?? 'http://localhost:9000/crude',
 }));

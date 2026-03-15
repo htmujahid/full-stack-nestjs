@@ -25,8 +25,10 @@ const makeEvent = (overrides: Partial<CalendarEvent> = {}): CalendarEvent =>
     ...overrides,
   }) as CalendarEvent;
 
-const makeRequest = (userId: string, role: UserRole = UserRole.Member): Request =>
-  ({ user: { userId, role } }) as unknown as Request;
+const makeRequest = (
+  userId: string,
+  role: UserRole = UserRole.Member,
+): Request => ({ user: { userId, role } }) as unknown as Request;
 
 const mockCalendarEventService = () => ({
   findAll: jest.fn(),
@@ -45,9 +47,7 @@ describe('CalendarEventController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CalendarEventController],
-      providers: [
-        { provide: CalendarEventService, useValue: service },
-      ],
+      providers: [{ provide: CalendarEventService, useValue: service }],
     })
       .overrideGuard(RolesGuard)
       .useValue({ canActivate: jest.fn().mockReturnValue(true) })

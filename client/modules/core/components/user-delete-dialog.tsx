@@ -1,5 +1,9 @@
 import { toast } from 'sonner';
-import { useDeleteUserMutation, getUserErrorMessage, type User } from '../lib/query';
+import {
+  useDeleteUserMutation,
+  getUserErrorMessage,
+  type User,
+} from '../lib/query';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +23,12 @@ type Props = {
   onDeleted?: () => void;
 };
 
-export function UserDeleteDialog({ user, open, onOpenChange, onDeleted }: Props) {
+export function UserDeleteDialog({
+  user,
+  open,
+  onOpenChange,
+  onDeleted,
+}: Props) {
   const deleteUser = useDeleteUserMutation();
 
   const handleDelete = () => {

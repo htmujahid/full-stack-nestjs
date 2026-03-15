@@ -21,7 +21,11 @@ export class TeamMember {
   @Column('uuid')
   userId: string;
 
-  @Column({ type: 'enum', enum: TeamMemberRole, default: TeamMemberRole.Member })
+  @Column({
+    type: 'enum',
+    enum: TeamMemberRole,
+    default: TeamMemberRole.Member,
+  })
   role: TeamMemberRole;
 
   @CreateDateColumn()

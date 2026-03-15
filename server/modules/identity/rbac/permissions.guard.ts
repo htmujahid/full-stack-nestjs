@@ -23,6 +23,8 @@ const ROLE_PERMISSIONS: Partial<Record<UserRole, string[]>> = {
     'team:create',
     'team:update',
     'team:delete',
+    'audit:read',
+    'analytics:read',
   ],
   [UserRole.Admin]: [
     'user:read',
@@ -33,6 +35,8 @@ const ROLE_PERMISSIONS: Partial<Record<UserRole, string[]>> = {
     'team:create',
     'team:update',
     'team:delete',
+    'audit:read',
+    'analytics:read',
   ],
   [UserRole.Member]: [
     'project:read',

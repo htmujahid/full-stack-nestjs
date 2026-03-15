@@ -123,9 +123,7 @@ export function SecurityPasswordCard() {
                 {form.formState.errors.newPassword?.message}
               </FieldError>
             </Field>
-            <Field
-              data-invalid={!!form.formState.errors.confirmPassword}
-            >
+            <Field data-invalid={!!form.formState.errors.confirmPassword}>
               <FieldLabel htmlFor="password-confirm">
                 Confirm password
               </FieldLabel>
@@ -134,9 +132,7 @@ export function SecurityPasswordCard() {
                   id="password-confirm"
                   type={showConfirm ? 'text' : 'password'}
                   autoComplete="new-password"
-                  aria-invalid={
-                    !!form.formState.errors.confirmPassword
-                  }
+                  aria-invalid={!!form.formState.errors.confirmPassword}
                   aria-describedby={
                     form.formState.errors.confirmPassword
                       ? 'password-confirm-error'
@@ -154,9 +150,7 @@ export function SecurityPasswordCard() {
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => setShowConfirm((p) => !p)}
-                    aria-label={
-                      showConfirm ? 'Hide password' : 'Show password'
-                    }
+                    aria-label={showConfirm ? 'Hide password' : 'Show password'}
                   >
                     {showConfirm ? (
                       <EyeOff className="size-4" />
@@ -170,10 +164,7 @@ export function SecurityPasswordCard() {
                 {form.formState.errors.confirmPassword?.message}
               </FieldError>
             </Field>
-            <Button
-              type="submit"
-              disabled={updatePassword.isPending}
-            >
+            <Button type="submit" disabled={updatePassword.isPending}>
               {updatePassword.isPending ? 'Updating…' : 'Update password'}
             </Button>
           </FieldGroup>

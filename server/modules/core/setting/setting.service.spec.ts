@@ -101,7 +101,9 @@ describe('SettingService', () => {
     });
 
     it('returns coerced value when key exists', async () => {
-      repo.findOne.mockResolvedValue(makeSetting({ value: '7', type: SettingType.Number }));
+      repo.findOne.mockResolvedValue(
+        makeSetting({ value: '7', type: SettingType.Number }),
+      );
       expect(await service.getOrThrow('test.key')).toBe(7);
     });
   });
@@ -128,7 +130,12 @@ describe('SettingService', () => {
     it('returns a key→value map of public settings', async () => {
       repo.find.mockResolvedValue([
         makeSetting({ key: 'site.name', value: 'crude', isPublic: true }),
-        makeSetting({ key: 'site.version', value: '2', type: SettingType.Number, isPublic: true }),
+        makeSetting({
+          key: 'site.version',
+          value: '2',
+          type: SettingType.Number,
+          isPublic: true,
+        }),
       ]);
 
       const result = await service.getPublic();
@@ -150,7 +157,12 @@ describe('SettingService', () => {
   describe('getByGroup', () => {
     it('returns a key→value map for the given group', async () => {
       repo.find.mockResolvedValue([
-        makeSetting({ key: 'auth.timeout', value: '30', type: SettingType.Number, group: 'auth' }),
+        makeSetting({
+          key: 'auth.timeout',
+          value: '30',
+          type: SettingType.Number,
+          group: 'auth',
+        }),
       ]);
 
       const result = await service.getByGroup('auth');
@@ -185,7 +197,11 @@ describe('SettingService', () => {
       repo.create.mockReturnValue(created);
       repo.save.mockResolvedValue(created);
 
-      await service.set('k', true, { type: SettingType.Boolean, group: 'flags', isPublic: true });
+      await service.set('k', true, {
+        type: SettingType.Boolean,
+        group: 'flags',
+        isPublic: true,
+      });
 
       expect(repo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -262,7 +278,9 @@ describe('SettingService', () => {
   describe('delete', () => {
     it('throws NotFoundException when no row was affected', async () => {
       repo.delete.mockResolvedValue({ affected: 0, raw: [] });
-      await expect(service.delete('missing')).rejects.toThrow(NotFoundException);
+      await expect(service.delete('missing')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('resolves without error when the row is deleted', async () => {

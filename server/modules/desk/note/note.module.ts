@@ -7,11 +7,7 @@ import { RbacModule } from '../../identity/rbac/rbac.module';
 import { ProjectModule } from '../project/project.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Note]),
-    RbacModule,
-    ProjectModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Note]), RbacModule, ProjectModule],
   controllers: [NoteController],
   providers: [NoteService],
 })

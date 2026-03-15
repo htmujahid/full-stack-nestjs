@@ -39,9 +39,7 @@ describe('MeController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MeController],
-      providers: [
-        { provide: getRepositoryToken(User), useValue: userRepo },
-      ],
+      providers: [{ provide: getRepositoryToken(User), useValue: userRepo }],
     }).compile();
 
     controller = module.get(MeController);

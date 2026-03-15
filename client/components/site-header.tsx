@@ -1,6 +1,6 @@
-import { AppBreadcrumbs } from "./app-breadcrumbs";
-import { Separator } from "./ui/separator";
-import { SidebarTrigger } from "./ui/sidebar";
+import { AppBreadcrumbs } from './app-breadcrumbs';
+import { Separator } from './ui/separator';
+import { SidebarTrigger } from './ui/sidebar';
 
 export function SiteHeader({ children }: { children?: React.ReactNode }) {
   return (
@@ -13,9 +13,7 @@ export function SiteHeader({ children }: { children?: React.ReactNode }) {
         />
         <AppBreadcrumbs />
       </div>
-      <div className="px-4">
-        {children}
-      </div>
+      <div className="px-4">{children}</div>
     </header>
-  )
+  );
 }

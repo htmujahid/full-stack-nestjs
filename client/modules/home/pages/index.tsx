@@ -27,7 +27,9 @@ export default function HomePage() {
         <Avatar className="size-16 sm:size-20">
           <AvatarImage src={user.image ?? undefined} alt={user.name} />
           <AvatarFallback className="text-lg">
-            {user.name?.slice(0, 2).toUpperCase() ?? <User className="size-8" />}
+            {user.name?.slice(0, 2).toUpperCase() ?? (
+              <User className="size-8" />
+            )}
           </AvatarFallback>
         </Avatar>
         <div className="space-y-1">
@@ -53,7 +55,9 @@ export default function HomePage() {
                 <Mail className="size-5 text-primary" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground">Email</p>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Email
+                </p>
                 <p className="truncate font-medium">{user.email}</p>
                 {user.emailVerified && (
                   <Badge variant="secondary" className="mt-1">

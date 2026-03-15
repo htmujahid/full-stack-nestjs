@@ -145,7 +145,10 @@ export class PhoneController extends BaseAuthController {
   })
   @ApiOperation({ summary: 'Confirm phone number change via OTP' })
   async verifyPhoneChange(@Body() dto: VerifyPhoneChangeDto) {
-    const result = await this.phoneService.verifyPhoneChange(dto.phone, dto.code);
+    const result = await this.phoneService.verifyPhoneChange(
+      dto.phone,
+      dto.code,
+    );
     if (!result.ok) {
       return { ok: false, error: result.error };
     }

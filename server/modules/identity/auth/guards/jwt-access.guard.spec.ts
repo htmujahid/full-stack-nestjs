@@ -15,7 +15,9 @@ describe('JwtAccessGuard', () => {
   let reflector: jest.Mocked<Reflector>;
 
   beforeEach(() => {
-    reflector = { getAllAndOverride: jest.fn() } as unknown as jest.Mocked<Reflector>;
+    reflector = {
+      getAllAndOverride: jest.fn(),
+    } as unknown as jest.Mocked<Reflector>;
     guard = new JwtAccessGuard(reflector);
   });
 
@@ -72,11 +74,15 @@ describe('JwtAccessGuard', () => {
     });
 
     it('throws UnauthorizedException when user is null', () => {
-      expect(() => guard.handleRequest(null, null)).toThrow(UnauthorizedException);
+      expect(() => guard.handleRequest(null, null)).toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('throws UnauthorizedException when user is undefined', () => {
-      expect(() => guard.handleRequest(null, undefined)).toThrow(UnauthorizedException);
+      expect(() => guard.handleRequest(null, undefined)).toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('re-throws provided error when err is set', () => {

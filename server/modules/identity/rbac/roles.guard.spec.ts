@@ -22,10 +22,7 @@ describe('RolesGuard', () => {
     reflector = { getAllAndOverride: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        RolesGuard,
-        { provide: Reflector, useValue: reflector },
-      ],
+      providers: [RolesGuard, { provide: Reflector, useValue: reflector }],
     }).compile();
 
     guard = module.get(RolesGuard);
@@ -67,7 +64,10 @@ describe('RolesGuard', () => {
     });
 
     it('returns true when user role is in the list', () => {
-      reflector.getAllAndOverride.mockReturnValue([UserRole.Admin, UserRole.Member]);
+      reflector.getAllAndOverride.mockReturnValue([
+        UserRole.Admin,
+        UserRole.Member,
+      ]);
       const context = makeContext({ userId: 'u1', role: UserRole.Member });
 
       const result = guard.canActivate(context);
@@ -76,7 +76,10 @@ describe('RolesGuard', () => {
     });
 
     it('returns true when user is Admin and Admin is in the list', () => {
-      reflector.getAllAndOverride.mockReturnValue([UserRole.Admin, UserRole.Member]);
+      reflector.getAllAndOverride.mockReturnValue([
+        UserRole.Admin,
+        UserRole.Member,
+      ]);
       const context = makeContext({ userId: 'u1', role: UserRole.Admin });
 
       const result = guard.canActivate(context);

@@ -1,13 +1,18 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
-import { JwtRefreshStrategy, type JwtRefreshPayload } from './jwt-refresh.strategy';
+import {
+  JwtRefreshStrategy,
+  type JwtRefreshPayload,
+} from './jwt-refresh.strategy';
 import { RefreshSession } from '../entities/refresh-session.entity';
 import { REFRESH_TOKEN_COOKIE } from '../auth.constants';
 import { mockRepository } from '../../../../mocks/db.mock';
 import { UserRole } from '../../user/user-role.enum';
 
-const makePayload = (overrides: Partial<JwtRefreshPayload> = {}): JwtRefreshPayload => ({
+const makePayload = (
+  overrides: Partial<JwtRefreshPayload> = {},
+): JwtRefreshPayload => ({
   sub: 'user-uuid',
   role: UserRole.Member,
   sid: 'session-uuid',
@@ -47,7 +52,10 @@ describe('JwtRefreshStrategy', () => {
       getOrThrow: jest.fn().mockReturnValue('test-refresh-secret'),
     } as unknown as ConfigService;
 
-    strategy = new JwtRefreshStrategy(configService, dataSource as unknown as DataSource);
+    strategy = new JwtRefreshStrategy(
+      configService,
+      dataSource as unknown as DataSource,
+    );
   });
 
   afterEach(() => {
@@ -60,7 +68,10 @@ describe('JwtRefreshStrategy', () => {
       const session = makeSession();
       repo.findOne.mockResolvedValue(session);
 
-      const req = { cookies: { [REFRESH_TOKEN_COOKIE]: 'raw-token' }, headers: {} } as never;
+      const req = {
+        cookies: { [REFRESH_TOKEN_COOKIE]: 'raw-token' },
+        headers: {},
+      } as never;
       const result = await strategy.validate(req, makePayload());
 
       expect(result).toEqual({
@@ -110,7 +121,10 @@ describe('JwtRefreshStrategy', () => {
       repo.findOne.mockResolvedValue(null);
       repo.delete.mockResolvedValue({ affected: 1, raw: [] });
 
-      const req = { cookies: { [REFRESH_TOKEN_COOKIE]: 'raw-token' }, headers: {} } as never;
+      const req = {
+        cookies: { [REFRESH_TOKEN_COOKIE]: 'raw-token' },
+        headers: {},
+      } as never;
       const payload = makePayload({ sub: 'user-uuid', fid: 'family-uuid' });
 
       await expect(strategy.validate(req, payload)).rejects.toThrow(
@@ -129,7 +143,10 @@ describe('JwtRefreshStrategy', () => {
       repo.findOne.mockResolvedValue(expiredSession);
       repo.delete.mockResolvedValue({ affected: 1, raw: [] });
 
-      const req = { cookies: { [REFRESH_TOKEN_COOKIE]: 'raw-token' }, headers: {} } as never;
+      const req = {
+        cookies: { [REFRESH_TOKEN_COOKIE]: 'raw-token' },
+        headers: {},
+      } as never;
 
       await expect(strategy.validate(req, makePayload())).rejects.toThrow(
         'Refresh token expired',
@@ -141,11 +158,18 @@ describe('JwtRefreshStrategy', () => {
       const session = makeSession();
       repo.findOne.mockResolvedValue(session);
 
-      const req = { cookies: { [REFRESH_TOKEN_COOKIE]: 'raw-token' }, headers: {} } as never;
+      const req = {
+        cookies: { [REFRESH_TOKEN_COOKIE]: 'raw-token' },
+        headers: {},
+      } as never;
       await strategy.validate(req, makePayload());
 
       expect(repo.findOne).toHaveBeenCalledWith({
-        where: { id: 'session-uuid', userId: 'user-uuid', familyId: 'family-uuid' },
+        where: {
+          id: 'session-uuid',
+          userId: 'user-uuid',
+          familyId: 'family-uuid',
+        },
       });
     });
   });

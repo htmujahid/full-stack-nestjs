@@ -73,7 +73,10 @@ describe('CalendarEventService', () => {
 
   describe('findAll', () => {
     it('returns CalendarEventsPage with data, total, page, limit', async () => {
-      const events = [makeEvent(), makeEvent({ id: 'event-2', title: 'Other' })];
+      const events = [
+        makeEvent(),
+        makeEvent({ id: 'event-2', title: 'Other' }),
+      ];
       qb.getManyAndCount.mockResolvedValue([events, 2]);
 
       const dto: FindCalendarEventsDto = {};
@@ -101,18 +104,15 @@ describe('CalendarEventService', () => {
         '(event.title LIKE :search OR event.description LIKE :search)',
         { search: '%meeting%' },
       );
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'event.projectId = :projectId',
-        { projectId: 'proj-1' },
-      );
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'event.endAt >= :startFrom',
-        { startFrom: '2024-06-01' },
-      );
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'event.startAt <= :endBefore',
-        { endBefore: '2024-06-30' },
-      );
+      expect(qb.andWhere).toHaveBeenCalledWith('event.projectId = :projectId', {
+        projectId: 'proj-1',
+      });
+      expect(qb.andWhere).toHaveBeenCalledWith('event.endAt >= :startFrom', {
+        startFrom: '2024-06-01',
+      });
+      expect(qb.andWhere).toHaveBeenCalledWith('event.startAt <= :endBefore', {
+        endBefore: '2024-06-30',
+      });
     });
 
     it('applies pagination and sortBy', async () => {
@@ -232,7 +232,9 @@ describe('CalendarEventService', () => {
     it('removes event when user owns project', async () => {
       const event = makeEvent();
       eventRepo.findOne.mockResolvedValue(event);
-      projectService.findOne.mockResolvedValue(makeProject({ userId: 'user-1' }));
+      projectService.findOne.mockResolvedValue(
+        makeProject({ userId: 'user-1' }),
+      );
       eventRepo.remove.mockResolvedValue(undefined);
 
       await service.remove('event-1', auth);

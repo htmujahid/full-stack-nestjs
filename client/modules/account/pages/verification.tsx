@@ -11,9 +11,7 @@ export default function VerificationPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Verification</h1>
-        <p className="text-muted-foreground">
-          Verify your email and phone
-        </p>
+        <p className="text-muted-foreground">Verify your email and phone</p>
       </div>
 
       <ProfileEmailCard user={user} />

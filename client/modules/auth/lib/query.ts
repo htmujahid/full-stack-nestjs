@@ -75,7 +75,11 @@ export type VerifyPhoneOtpInput = {
 export type VerifyTotpInput = { code: string; trustDevice?: boolean };
 export type VerifyOtpInput = { code: string; trustDevice?: boolean };
 export type VerifyBackupCodeInput = { code: string; trustDevice?: boolean };
-export type TwoFactorVerifyResponse = { ok: true; accessToken: string; refreshToken: string };
+export type TwoFactorVerifyResponse = {
+  ok: true;
+  accessToken: string;
+  refreshToken: string;
+};
 
 // ─── Mutations ───────────────────────────────────────────────────────────────
 
@@ -256,7 +260,11 @@ export function useSendTwoFactorOtpMutation() {
 // ─── Error helpers ────────────────────────────────────────────────────────────
 
 export function getAuthErrorMessage(error: unknown): string {
-  if (error instanceof FetcherError && typeof error.body === 'object' && error.body) {
+  if (
+    error instanceof FetcherError &&
+    typeof error.body === 'object' &&
+    error.body
+  ) {
     const b = error.body as { message?: unknown };
     if (Array.isArray(b.message)) return b.message.join(', ');
     if (typeof b.message === 'string') return b.message;

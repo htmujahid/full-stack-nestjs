@@ -1,6 +1,9 @@
 import { ExecutionContext } from '@nestjs/common';
 import { GoogleAuthGuard } from './google-auth.guard';
-import { OAUTH_REDIRECT_COOKIE, OAUTH_REDIRECT_EXPIRES_MS } from '../../auth/auth.constants';
+import {
+  OAUTH_REDIRECT_COOKIE,
+  OAUTH_REDIRECT_EXPIRES_MS,
+} from '../../auth/auth.constants';
 
 const makeContext = (
   path: string,
@@ -31,9 +34,18 @@ describe('GoogleAuthGuard', () => {
     it('sets OAUTH_REDIRECT_COOKIE when redirectUri starts with "/" and path is not a callback', () => {
       const cookieFn = jest.fn();
       const superCanActivate = jest
-        .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(GoogleAuthGuard.prototype)), 'canActivate')
+        .spyOn(
+          Object.getPrototypeOf(
+            Object.getPrototypeOf(GoogleAuthGuard.prototype),
+          ),
+          'canActivate',
+        )
         .mockReturnValue(true);
-      const ctx = makeContext('/api/oauth/google', { redirectUri: '/dashboard' }, cookieFn);
+      const ctx = makeContext(
+        '/api/oauth/google',
+        { redirectUri: '/dashboard' },
+        cookieFn,
+      );
 
       guard.canActivate(ctx);
 
@@ -54,9 +66,18 @@ describe('GoogleAuthGuard', () => {
     it('does NOT set cookie when path ends with "/callback"', () => {
       const cookieFn = jest.fn();
       const superCanActivate = jest
-        .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(GoogleAuthGuard.prototype)), 'canActivate')
+        .spyOn(
+          Object.getPrototypeOf(
+            Object.getPrototypeOf(GoogleAuthGuard.prototype),
+          ),
+          'canActivate',
+        )
         .mockReturnValue(true);
-      const ctx = makeContext('/api/oauth/google/callback', { redirectUri: '/dashboard' }, cookieFn);
+      const ctx = makeContext(
+        '/api/oauth/google/callback',
+        { redirectUri: '/dashboard' },
+        cookieFn,
+      );
 
       guard.canActivate(ctx);
 
@@ -68,7 +89,12 @@ describe('GoogleAuthGuard', () => {
     it('does NOT set cookie when redirectUri is absent', () => {
       const cookieFn = jest.fn();
       const superCanActivate = jest
-        .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(GoogleAuthGuard.prototype)), 'canActivate')
+        .spyOn(
+          Object.getPrototypeOf(
+            Object.getPrototypeOf(GoogleAuthGuard.prototype),
+          ),
+          'canActivate',
+        )
         .mockReturnValue(true);
       const ctx = makeContext('/api/oauth/google', {}, cookieFn);
 
@@ -82,9 +108,18 @@ describe('GoogleAuthGuard', () => {
     it('does NOT set cookie when redirectUri does not start with "/"', () => {
       const cookieFn = jest.fn();
       const superCanActivate = jest
-        .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(GoogleAuthGuard.prototype)), 'canActivate')
+        .spyOn(
+          Object.getPrototypeOf(
+            Object.getPrototypeOf(GoogleAuthGuard.prototype),
+          ),
+          'canActivate',
+        )
         .mockReturnValue(true);
-      const ctx = makeContext('/api/oauth/google', { redirectUri: 'https://evil.com' }, cookieFn);
+      const ctx = makeContext(
+        '/api/oauth/google',
+        { redirectUri: 'https://evil.com' },
+        cookieFn,
+      );
 
       guard.canActivate(ctx);
 
@@ -96,9 +131,18 @@ describe('GoogleAuthGuard', () => {
     it('delegates to the passport AuthGuard base and returns its result', () => {
       const cookieFn = jest.fn();
       const superCanActivate = jest
-        .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(GoogleAuthGuard.prototype)), 'canActivate')
+        .spyOn(
+          Object.getPrototypeOf(
+            Object.getPrototypeOf(GoogleAuthGuard.prototype),
+          ),
+          'canActivate',
+        )
         .mockReturnValue(true);
-      const ctx = makeContext('/api/oauth/google', { redirectUri: '/dashboard' }, cookieFn);
+      const ctx = makeContext(
+        '/api/oauth/google',
+        { redirectUri: '/dashboard' },
+        cookieFn,
+      );
 
       const result = guard.canActivate(ctx);
 

@@ -7,10 +7,7 @@ import { TeamController } from './team.controller';
 import { RbacModule } from '../rbac/rbac.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Team, TeamMember]),
-    RbacModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Team, TeamMember]), RbacModule],
   controllers: [TeamController],
   providers: [TeamService],
   exports: [TypeOrmModule, TeamService],

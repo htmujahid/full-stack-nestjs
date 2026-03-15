@@ -40,7 +40,10 @@ export class UploadController {
       type: 'object',
       properties: {
         file: { type: 'string', format: 'binary' },
-        prefix: { type: 'string', description: 'Optional S3 key prefix (default: uploads)' },
+        prefix: {
+          type: 'string',
+          description: 'Optional S3 key prefix (default: uploads)',
+        },
       },
     },
   })
@@ -49,7 +52,10 @@ export class UploadController {
     schema: {
       type: 'object',
       properties: {
-        url: { type: 'string', example: 'http://localhost:9000/crude/uploads/xxx.jpg' },
+        url: {
+          type: 'string',
+          example: 'http://localhost:9000/crude/uploads/xxx.jpg',
+        },
         key: { type: 'string' },
         size: { type: 'number' },
         name: { type: 'string' },
@@ -77,7 +83,10 @@ export class UploadController {
       type: 'object',
       properties: {
         key: { type: 'string', description: 'S3 object key' },
-        url: { type: 'string', description: 'Full file URL (alternative to key)' },
+        url: {
+          type: 'string',
+          description: 'Full file URL (alternative to key)',
+        },
       },
     },
   })

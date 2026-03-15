@@ -16,9 +16,7 @@ export default function SignInPage() {
       <Card className="w-full">
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>
-            Sign in with Google or your email
-          </CardDescription>
+          <CardDescription>Sign in with Google or your email</CardDescription>
         </CardHeader>
         <CardContent>
           <SignInForm />
@@ -27,8 +25,7 @@ export default function SignInPage() {
       <FieldDescription className="px-6 text-center">
         By clicking continue, you agree to our{' '}
         <Link to={paths.terms}>Terms of Service</Link> and{' '}
-        <Link to={paths.privacy}>Privacy Policy</Link>
-        .
+        <Link to={paths.privacy}>Privacy Policy</Link>.
       </FieldDescription>
     </div>
   );

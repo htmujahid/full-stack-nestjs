@@ -11,6 +11,9 @@ export const ROLE_BADGE: Record<
 };
 
 export function UserRoleBadge({ role }: { role: UserRole }) {
-  const config = ROLE_BADGE[role] ?? { label: role, variant: 'outline' as const };
+  const config = ROLE_BADGE[role] ?? {
+    label: role,
+    variant: 'outline' as const,
+  };
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }

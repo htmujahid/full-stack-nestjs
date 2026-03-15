@@ -90,9 +90,7 @@ describe('PasswordAuthStrategy', () => {
       const user = makeUser();
       const account = makeAccount();
       // first call (username lookup) returns null, second (phone lookup) returns user
-      userRepo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(user);
+      userRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(user);
       accountRepo.findOne.mockResolvedValue(account);
 
       await strategy.validate('+1234567890', 'password');
@@ -105,9 +103,9 @@ describe('PasswordAuthStrategy', () => {
     it('throws UnauthorizedException and calls bcrypt.hash for timing when user not found', async () => {
       userRepo.findOne.mockResolvedValue(null);
 
-      await expect(strategy.validate('ghost@example.com', 'password')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        strategy.validate('ghost@example.com', 'password'),
+      ).rejects.toThrow(UnauthorizedException);
       expect(bcrypt.hash).toHaveBeenCalled();
     });
 
@@ -116,9 +114,9 @@ describe('PasswordAuthStrategy', () => {
       userRepo.findOne.mockResolvedValue(user);
       accountRepo.findOne.mockResolvedValue(null);
 
-      await expect(strategy.validate('test@example.com', 'password')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        strategy.validate('test@example.com', 'password'),
+      ).rejects.toThrow(UnauthorizedException);
       expect(bcrypt.hash).toHaveBeenCalled();
     });
 
@@ -128,9 +126,9 @@ describe('PasswordAuthStrategy', () => {
       userRepo.findOne.mockResolvedValue(user);
       accountRepo.findOne.mockResolvedValue(account);
 
-      await expect(strategy.validate('test@example.com', 'password')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        strategy.validate('test@example.com', 'password'),
+      ).rejects.toThrow(UnauthorizedException);
       expect(bcrypt.hash).toHaveBeenCalled();
     });
 
@@ -141,9 +139,9 @@ describe('PasswordAuthStrategy', () => {
       accountRepo.findOne.mockResolvedValue(account);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(strategy.validate('test@example.com', 'wrong')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        strategy.validate('test@example.com', 'wrong'),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('throws ForbiddenException when email is not verified', async () => {
@@ -153,9 +151,9 @@ describe('PasswordAuthStrategy', () => {
       accountRepo.findOne.mockResolvedValue(account);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-      await expect(strategy.validate('test@example.com', 'password')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        strategy.validate('test@example.com', 'password'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('returns user on successful validation', async () => {

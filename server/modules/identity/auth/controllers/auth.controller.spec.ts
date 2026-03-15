@@ -19,7 +19,9 @@ interface RefreshUser {
   rawRefreshToken: string;
 }
 
-const makeRefreshUser = (overrides: Partial<RefreshUser> = {}): RefreshUser => ({
+const makeRefreshUser = (
+  overrides: Partial<RefreshUser> = {},
+): RefreshUser => ({
   userId: 'user-uuid',
   role: UserRole.Member,
   sessionId: 'session-uuid',
@@ -100,11 +102,21 @@ describe('AuthController', () => {
           role: UserRole.Member,
           authMethod: 'password' as const,
         },
-      } as ExpressRequest & { user: { userId: string; role: UserRole; authMethod: 'password' | 'google' | 'refresh' } };
+      } as ExpressRequest & {
+        user: {
+          userId: string;
+          role: UserRole;
+          authMethod: 'password' | 'google' | 'refresh';
+        };
+      };
 
       const result = controller.session(req);
 
-      expect(result).toEqual({ userId: 'user-uuid', role: UserRole.Member, authMethod: 'password' });
+      expect(result).toEqual({
+        userId: 'user-uuid',
+        role: UserRole.Member,
+        authMethod: 'password',
+      });
     });
   });
 
@@ -196,7 +208,10 @@ describe('AuthController', () => {
 
       await controller.signOut(req, res);
 
-      expect(authService.signOut).toHaveBeenCalledWith(user.userId, user.sessionId);
+      expect(authService.signOut).toHaveBeenCalledWith(
+        user.userId,
+        user.sessionId,
+      );
     });
 
     it('clears ACCESS_TOKEN_COOKIE and REFRESH_TOKEN_COOKIE', async () => {

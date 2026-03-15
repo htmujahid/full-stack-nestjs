@@ -65,7 +65,9 @@ export function useUsersQuery(params: UsersQueryParams) {
         page: String(params.page),
         limit: String(params.limit),
         ...(params.search ? { search: params.search } : {}),
-        ...(params.sortBy ? { sortBy: params.sortBy, sortOrder: params.sortOrder } : {}),
+        ...(params.sortBy
+          ? { sortBy: params.sortBy, sortOrder: params.sortOrder }
+          : {}),
       });
       params.roles.forEach((r) => qs.append('roles', r));
       const { data } = await fetcher<UsersPage>(`/api/users?${qs}`);
@@ -135,7 +137,11 @@ export function useDeleteUserMutation() {
 // ─── Error helper ─────────────────────────────────────────────────────────────
 
 export function getUserErrorMessage(error: unknown): string {
-  if (error instanceof FetcherError && typeof error.body === 'object' && error.body) {
+  if (
+    error instanceof FetcherError &&
+    typeof error.body === 'object' &&
+    error.body
+  ) {
     const b = error.body as { message?: unknown };
     if (Array.isArray(b.message)) return b.message.join(', ');
     if (typeof b.message === 'string') return b.message;

@@ -8,11 +8,18 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 
-function buildPageItems(current: number, total: number): (number | 'ellipsis')[] {
+function buildPageItems(
+  current: number,
+  total: number,
+): (number | 'ellipsis')[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const items: (number | 'ellipsis')[] = [1];
   if (current > 3) items.push('ellipsis');
-  for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) {
+  for (
+    let p = Math.max(2, current - 1);
+    p <= Math.min(total - 1, current + 1);
+    p++
+  ) {
     items.push(p);
   }
   if (current < total - 2) items.push('ellipsis');
@@ -28,7 +35,13 @@ type Props = {
   onPageChange: (page: number) => void;
 };
 
-export function UsersPagination({ page, totalPages, total, limit, onPageChange }: Props) {
+export function UsersPagination({
+  page,
+  totalPages,
+  total,
+  limit,
+  onPageChange,
+}: Props) {
   if (totalPages <= 1) return null;
 
   const from = (page - 1) * limit + 1;
@@ -70,7 +83,9 @@ export function UsersPagination({ page, totalPages, total, limit, onPageChange }
             <PaginationNext
               onClick={() => onPageChange(Math.min(totalPages, page + 1))}
               aria-disabled={page === totalPages}
-              className={page === totalPages ? 'pointer-events-none opacity-50' : ''}
+              className={
+                page === totalPages ? 'pointer-events-none opacity-50' : ''
+              }
             />
           </PaginationItem>
         </PaginationContent>

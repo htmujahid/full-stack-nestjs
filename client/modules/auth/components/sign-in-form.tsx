@@ -73,89 +73,103 @@ export function SignInForm() {
     <>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <FieldGroup>
-        <OAuthProviders action="sign-in" disabled={signIn.isPending} />
-        <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
-          Or continue with
-        </FieldSeparator>
-        {errors.root?.message && (
-          <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {errors.root.message}
-          </div>
-        )}
-        <Field data-invalid={!!errors.identifier}>
-          <FieldLabel htmlFor="sign-in-identifier">Email, username, or phone</FieldLabel>
-          <Input
-            id="sign-in-identifier"
-            type="text"
-            placeholder="Email, username, or phone"
-            autoComplete="username"
-            aria-invalid={!!errors.identifier}
-            aria-describedby={errors.identifier ? 'sign-in-identifier-error' : undefined}
-            {...register('identifier', { required: 'Email, username, or phone is required' })}
-          />
-          <FieldError id="sign-in-identifier-error">{errors.identifier?.message}</FieldError>
-        </Field>
-        <Field data-invalid={!!errors.password}>
-          <div className="flex items-center">
-            <FieldLabel htmlFor="sign-in-password">
-              Password
+          <OAuthProviders action="sign-in" disabled={signIn.isPending} />
+          <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
+            Or continue with
+          </FieldSeparator>
+          {errors.root?.message && (
+            <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {errors.root.message}
+            </div>
+          )}
+          <Field data-invalid={!!errors.identifier}>
+            <FieldLabel htmlFor="sign-in-identifier">
+              Email, username, or phone
             </FieldLabel>
-            <Link
-              to={paths.auth.forgotPassword}
-              className="ml-auto text-sm underline-offset-4 hover:underline"
-            >
-              Forgot password?
-            </Link>
-          </div>
-          <InputGroup>
-            <InputGroupInput
-              id="sign-in-password"
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="current-password"
-              aria-invalid={!!errors.password}
-              aria-describedby={errors.password ? 'sign-in-password-error' : undefined}
-              {...register('password', { required: 'Password is required' })}
+            <Input
+              id="sign-in-identifier"
+              type="text"
+              placeholder="Email, username, or phone"
+              autoComplete="username"
+              aria-invalid={!!errors.identifier}
+              aria-describedby={
+                errors.identifier ? 'sign-in-identifier-error' : undefined
+              }
+              {...register('identifier', {
+                required: 'Email, username, or phone is required',
+              })}
             />
-            <InputGroupAddon align="inline-end">
-              <InputGroupButton
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => setShowPassword((p) => !p)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+            <FieldError id="sign-in-identifier-error">
+              {errors.identifier?.message}
+            </FieldError>
+          </Field>
+          <Field data-invalid={!!errors.password}>
+            <div className="flex items-center">
+              <FieldLabel htmlFor="sign-in-password">Password</FieldLabel>
+              <Link
+                to={paths.auth.forgotPassword}
+                className="ml-auto text-sm underline-offset-4 hover:underline"
               >
-                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-              </InputGroupButton>
-            </InputGroupAddon>
-          </InputGroup>
-          <FieldError id="sign-in-password-error">{errors.password?.message}</FieldError>
-        </Field>
-        <Field>
-          <Button type="submit" disabled={signIn.isPending}>
-            {signIn.isPending ? (
-              <>
-                <Spinner aria-hidden />
-                Signing in…
-              </>
-            ) : (
-              'Sign in'
-            )}
-          </Button>
-        </Field>
-      </FieldGroup>
-    </form>
-    <div className="mt-4 flex flex-col gap-3">
-      <Link
-        to={paths.auth.magicLink}
-        className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}
-      >
-        Sign in with magic link or OTP
-      </Link>
-      <FieldDescription className="text-center">
-        Don&apos;t have an account?{' '}
-        <Link to={paths.auth.signUp}>Sign up</Link>
-      </FieldDescription>
-    </div>
+                Forgot password?
+              </Link>
+            </div>
+            <InputGroup>
+              <InputGroupInput
+                id="sign-in-password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                aria-invalid={!!errors.password}
+                aria-describedby={
+                  errors.password ? 'sign-in-password-error' : undefined
+                }
+                {...register('password', { required: 'Password is required' })}
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setShowPassword((p) => !p)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="size-4" />
+                  ) : (
+                    <Eye className="size-4" />
+                  )}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+            <FieldError id="sign-in-password-error">
+              {errors.password?.message}
+            </FieldError>
+          </Field>
+          <Field>
+            <Button type="submit" disabled={signIn.isPending}>
+              {signIn.isPending ? (
+                <>
+                  <Spinner aria-hidden />
+                  Signing in…
+                </>
+              ) : (
+                'Sign in'
+              )}
+            </Button>
+          </Field>
+        </FieldGroup>
+      </form>
+      <div className="mt-4 flex flex-col gap-3">
+        <Link
+          to={paths.auth.magicLink}
+          className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}
+        >
+          Sign in with magic link or OTP
+        </Link>
+        <FieldDescription className="text-center">
+          Don&apos;t have an account?{' '}
+          <Link to={paths.auth.signUp}>Sign up</Link>
+        </FieldDescription>
+      </div>
     </>
   );
 }

@@ -8,6 +8,7 @@ import { CalendarEventService } from '../server/modules/desk/calendar/calendar-e
 import { CalendarEvent } from '../server/modules/desk/calendar/calendar-event.entity';
 import { ProjectService } from '../server/modules/desk/project/project.service';
 import { Project } from '../server/modules/desk/project/project.entity';
+import { AuditService } from '../server/modules/core/audit/audit.service';
 import { UserRole } from '../server/modules/identity/user/user-role.enum';
 import { RolesGuard } from '../server/modules/identity/rbac/roles.guard';
 import { PermissionsGuard } from '../server/modules/identity/rbac/permissions.guard';
@@ -84,6 +85,16 @@ describe('Calendar events (e2e)', () => {
         Reflector,
         { provide: getRepositoryToken(CalendarEvent), useValue: eventRepo },
         { provide: getRepositoryToken(Project), useValue: projectRepo },
+        {
+          provide: AuditService,
+          useValue: {
+            log: jest.fn().mockResolvedValue(undefined),
+            logCreate: jest.fn().mockResolvedValue(undefined),
+            logUpdate: jest.fn().mockResolvedValue(undefined),
+            logDelete: jest.fn().mockResolvedValue(undefined),
+            logCustom: jest.fn().mockResolvedValue(undefined),
+          },
+        },
       ],
     }).compile();
 

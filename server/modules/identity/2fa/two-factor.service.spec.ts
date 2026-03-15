@@ -9,7 +9,11 @@ import { TwoFactor } from './two-factor.entity';
 import { User } from '../user/user.entity';
 import { Account } from '../account/account.entity';
 import { Verification } from '../auth/entities/verification.entity';
-import { AuthService, type RequestContext, type TokenPair } from '../auth/services/auth.service';
+import {
+  AuthService,
+  type RequestContext,
+  type TokenPair,
+} from '../auth/services/auth.service';
 import { TwoFactorGateService } from '../auth/services/two-factor-gate.service';
 import { UserRole } from '../user/user-role.enum';
 import { mockDataSource, mockRepository } from '../../../mocks/db.mock';
@@ -38,7 +42,9 @@ jest.mock('../auth/crypto.util', () => ({
   encrypt: jest.fn().mockReturnValue('encrypted-secret'),
   decrypt: jest.fn().mockReturnValue('DECRYPTED-SECRET'),
   // Default: return a valid 64-char hex string based on the first char of input
-  hashToken: jest.fn((v: string) => (v[0] === 'c' ? 'c'.repeat(64) : 'a'.repeat(64))),
+  hashToken: jest.fn((v: string) =>
+    v[0] === 'c' ? 'c'.repeat(64) : 'a'.repeat(64),
+  ),
   verifyToken: jest.fn(),
   signHmac: jest.fn(),
   verifyHmac: jest.fn(),
@@ -98,7 +104,9 @@ const makeTwoFactor = (overrides: Partial<TwoFactor> = {}): TwoFactor =>
     ...overrides,
   }) as TwoFactor;
 
-const makeVerification = (overrides: Partial<Verification> = {}): Verification =>
+const makeVerification = (
+  overrides: Partial<Verification> = {},
+): Verification =>
   ({
     id: 'ver-uuid',
     identifier: `${TFA_OTP_TYPE}:user-uuid`,
@@ -115,7 +123,9 @@ const makeTokenPair = (): TokenPair => ({
 
 const makeCtx = (): RequestContext => ({ ip: '127.0.0.1', userAgent: 'jest' });
 
-const makeEnableDto = (overrides: Partial<EnableTwoFactorDto> = {}): EnableTwoFactorDto => ({
+const makeEnableDto = (
+  overrides: Partial<EnableTwoFactorDto> = {},
+): EnableTwoFactorDto => ({
   ...overrides,
 });
 
@@ -139,8 +149,12 @@ describe('TwoFactorService', () => {
       get: jest.fn().mockReturnValue('crude'),
     };
     mailerService = { sendMail: jest.fn().mockResolvedValue(undefined) };
-    authService = { createAuthSession: jest.fn().mockResolvedValue(makeTokenPair()) };
-    twoFactorGate = { createTrustDeviceCookieValue: jest.fn().mockResolvedValue('trust-cookie') };
+    authService = {
+      createAuthSession: jest.fn().mockResolvedValue(makeTokenPair()),
+    };
+    twoFactorGate = {
+      createTrustDeviceCookieValue: jest.fn().mockResolvedValue('trust-cookie'),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -206,7 +220,10 @@ describe('TwoFactorService', () => {
       await service.enable('user-uuid', makeEnableDto());
 
       expect(tfRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ userId: 'user-uuid', secret: 'encrypted-secret' }),
+        expect.objectContaining({
+          userId: 'user-uuid',
+          secret: 'encrypted-secret',
+        }),
       );
       expect(tfRepo.save).toHaveBeenCalled();
     });
@@ -244,9 +261,14 @@ describe('TwoFactorService', () => {
 
       expect(txTfRepo.update).toHaveBeenCalledWith(
         'tf-uuid',
-        expect.objectContaining({ secret: 'encrypted-secret', lastUsedPeriod: null }),
+        expect.objectContaining({
+          secret: 'encrypted-secret',
+          lastUsedPeriod: null,
+        }),
       );
-      expect(txUserRepo.update).toHaveBeenCalledWith('user-uuid', { twoFactorEnabled: false });
+      expect(txUserRepo.update).toHaveBeenCalledWith('user-uuid', {
+        twoFactorEnabled: false,
+      });
     });
 
     it('uses custom issuer from dto when provided', async () => {
@@ -298,13 +320,19 @@ describe('TwoFactorService', () => {
         return cb(tx);
       });
 
-      const mockTotpInstance = { verify: jest.fn().mockResolvedValue({ valid: true }) };
+      const mockTotpInstance = {
+        verify: jest.fn().mockResolvedValue({ valid: true }),
+      };
       MockTOTP.mockImplementationOnce(() => mockTotpInstance);
 
       await service.verifyEnableTotp('user-uuid', '123456');
 
-      expect(txTfRepo.update).toHaveBeenCalledWith('tf-uuid', { lastUsedPeriod: currentPeriod });
-      expect(txUserRepo.update).toHaveBeenCalledWith('user-uuid', { twoFactorEnabled: true });
+      expect(txTfRepo.update).toHaveBeenCalledWith('tf-uuid', {
+        lastUsedPeriod: currentPeriod,
+      });
+      expect(txUserRepo.update).toHaveBeenCalledWith('user-uuid', {
+        twoFactorEnabled: true,
+      });
     });
 
     it('throws UnauthorizedException when TOTP code is invalid', async () => {
@@ -313,23 +341,27 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      const mockTotpInstance = { verify: jest.fn().mockResolvedValue({ valid: false }) };
+      const mockTotpInstance = {
+        verify: jest.fn().mockResolvedValue({ valid: false }),
+      };
       MockTOTP.mockImplementationOnce(() => mockTotpInstance);
 
-      await expect(service.verifyEnableTotp('user-uuid', '000000')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.verifyEnableTotp('user-uuid', '000000'),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('throws UnauthorizedException when TOTP period has already been used', async () => {
       const tfRepo = mockRepository();
-      tfRepo.findOne.mockResolvedValue(makeTwoFactor({ lastUsedPeriod: currentPeriod }));
+      tfRepo.findOne.mockResolvedValue(
+        makeTwoFactor({ lastUsedPeriod: currentPeriod }),
+      );
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      await expect(service.verifyEnableTotp('user-uuid', '123456')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.verifyEnableTotp('user-uuid', '123456'),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('throws ForbiddenException when no TwoFactor record is found', async () => {
@@ -338,9 +370,9 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      await expect(service.verifyEnableTotp('user-uuid', '123456')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.verifyEnableTotp('user-uuid', '123456'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -357,7 +389,8 @@ describe('TwoFactorService', () => {
       const txVerRepo = mockRepository();
       txVerRepo.find.mockResolvedValue([makeVerification()]);
       const txVerRemove = jest.fn().mockResolvedValue(undefined);
-      (txVerRepo as typeof txVerRepo & { remove: jest.Mock }).remove = txVerRemove;
+      (txVerRepo as typeof txVerRepo & { remove: jest.Mock }).remove =
+        txVerRemove;
 
       dataSource.transaction.mockImplementation(async (cb) => {
         const tx = {
@@ -374,7 +407,9 @@ describe('TwoFactorService', () => {
       await service.disable('user-uuid');
 
       expect(txTfRepo.delete).toHaveBeenCalledWith({ userId: 'user-uuid' });
-      expect(txUserRepo.update).toHaveBeenCalledWith('user-uuid', { twoFactorEnabled: false });
+      expect(txUserRepo.update).toHaveBeenCalledWith('user-uuid', {
+        twoFactorEnabled: false,
+      });
       expect(txVerRemove).toHaveBeenCalled();
     });
 
@@ -382,7 +417,8 @@ describe('TwoFactorService', () => {
       const txVerRepo = mockRepository();
       txVerRepo.find.mockResolvedValue([]);
       const txVerRemove = jest.fn().mockResolvedValue(undefined);
-      (txVerRepo as typeof txVerRepo & { remove: jest.Mock }).remove = txVerRemove;
+      (txVerRepo as typeof txVerRepo & { remove: jest.Mock }).remove =
+        txVerRemove;
 
       dataSource.transaction.mockImplementation(async (cb) => {
         const tx = {
@@ -429,7 +465,9 @@ describe('TwoFactorService', () => {
 
     it('decrypts the secret before generating the URI', async () => {
       const tfRepo = mockRepository();
-      tfRepo.findOne.mockResolvedValue(makeTwoFactor({ secret: 'encrypted-secret' }));
+      tfRepo.findOne.mockResolvedValue(
+        makeTwoFactor({ secret: 'encrypted-secret' }),
+      );
 
       const userRepo = mockRepository();
       userRepo.findOneOrFail.mockResolvedValue(makeUser());
@@ -444,7 +482,10 @@ describe('TwoFactorService', () => {
 
       await service.getTotpUri('user-uuid');
 
-      expect(mockDecrypt).toHaveBeenCalledWith('encrypted-secret', 'enc-secret');
+      expect(mockDecrypt).toHaveBeenCalledWith(
+        'encrypted-secret',
+        'enc-secret',
+      );
     });
 
     it('throws ForbiddenException when no TwoFactor record exists', async () => {
@@ -456,7 +497,9 @@ describe('TwoFactorService', () => {
         return mockRepository();
       });
 
-      await expect(service.getTotpUri('user-uuid')).rejects.toThrow(ForbiddenException);
+      await expect(service.getTotpUri('user-uuid')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -472,10 +515,18 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      const mockTotpInstance = { verify: jest.fn().mockResolvedValue({ valid: true }) };
+      const mockTotpInstance = {
+        verify: jest.fn().mockResolvedValue({ valid: true }),
+      };
       MockTOTP.mockImplementationOnce(() => mockTotpInstance);
 
-      const result = await service.verifyTotp('user-uuid', UserRole.Member, '123456', false, makeCtx());
+      const result = await service.verifyTotp(
+        'user-uuid',
+        UserRole.Member,
+        '123456',
+        false,
+        makeCtx(),
+      );
 
       expect(result.tokens).toEqual(makeTokenPair());
       expect(result.trustCookieValue).toBeNull();
@@ -489,13 +540,23 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      const mockTotpInstance = { verify: jest.fn().mockResolvedValue({ valid: true }) };
+      const mockTotpInstance = {
+        verify: jest.fn().mockResolvedValue({ valid: true }),
+      };
       MockTOTP.mockImplementationOnce(() => mockTotpInstance);
 
-      const result = await service.verifyTotp('user-uuid', UserRole.Member, '123456', true, makeCtx());
+      const result = await service.verifyTotp(
+        'user-uuid',
+        UserRole.Member,
+        '123456',
+        true,
+        makeCtx(),
+      );
 
       expect(result.trustCookieValue).toBe('trust-cookie');
-      expect(twoFactorGate.createTrustDeviceCookieValue).toHaveBeenCalledWith('user-uuid');
+      expect(twoFactorGate.createTrustDeviceCookieValue).toHaveBeenCalledWith(
+        'user-uuid',
+      );
     });
 
     it('throws UnauthorizedException when TOTP code is invalid', async () => {
@@ -504,23 +565,39 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      const mockTotpInstance = { verify: jest.fn().mockResolvedValue({ valid: false }) };
+      const mockTotpInstance = {
+        verify: jest.fn().mockResolvedValue({ valid: false }),
+      };
       MockTOTP.mockImplementationOnce(() => mockTotpInstance);
 
-      await expect(service.verifyTotp('user-uuid', UserRole.Member, '000000', false, makeCtx())).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.verifyTotp(
+          'user-uuid',
+          UserRole.Member,
+          '000000',
+          false,
+          makeCtx(),
+        ),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('throws UnauthorizedException when TOTP period has already been used (replay)', async () => {
       const tfRepo = mockRepository();
-      tfRepo.findOne.mockResolvedValue(makeTwoFactor({ lastUsedPeriod: currentPeriod }));
+      tfRepo.findOne.mockResolvedValue(
+        makeTwoFactor({ lastUsedPeriod: currentPeriod }),
+      );
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      await expect(service.verifyTotp('user-uuid', UserRole.Member, '123456', false, makeCtx())).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.verifyTotp(
+          'user-uuid',
+          UserRole.Member,
+          '123456',
+          false,
+          makeCtx(),
+        ),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('updates lastUsedPeriod after successful verification', async () => {
@@ -530,12 +607,22 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      const mockTotpInstance = { verify: jest.fn().mockResolvedValue({ valid: true }) };
+      const mockTotpInstance = {
+        verify: jest.fn().mockResolvedValue({ valid: true }),
+      };
       MockTOTP.mockImplementationOnce(() => mockTotpInstance);
 
-      await service.verifyTotp('user-uuid', UserRole.Member, '123456', false, makeCtx());
+      await service.verifyTotp(
+        'user-uuid',
+        UserRole.Member,
+        '123456',
+        false,
+        makeCtx(),
+      );
 
-      expect(tfRepo.update).toHaveBeenCalledWith('tf-uuid', { lastUsedPeriod: currentPeriod });
+      expect(tfRepo.update).toHaveBeenCalledWith('tf-uuid', {
+        lastUsedPeriod: currentPeriod,
+      });
     });
 
     it('throws ForbiddenException when no TwoFactor record exists', async () => {
@@ -544,9 +631,15 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      await expect(service.verifyTotp('user-uuid', UserRole.Member, '123456', false, makeCtx())).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.verifyTotp(
+          'user-uuid',
+          UserRole.Member,
+          '123456',
+          false,
+          makeCtx(),
+        ),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -555,7 +648,9 @@ describe('TwoFactorService', () => {
   describe('sendOtp', () => {
     it('deletes any old OTP, saves a new hashed OTP, and sends email', async () => {
       const userRepo = mockRepository();
-      userRepo.findOneOrFail.mockResolvedValue(makeUser({ twoFactorEnabled: true }));
+      userRepo.findOneOrFail.mockResolvedValue(
+        makeUser({ twoFactorEnabled: true }),
+      );
 
       const verRepo = mockRepository();
       verRepo.delete.mockResolvedValue({ affected: 1, raw: [] });
@@ -570,7 +665,9 @@ describe('TwoFactorService', () => {
 
       await service.sendOtp('user-uuid');
 
-      expect(verRepo.delete).toHaveBeenCalledWith({ identifier: `${TFA_OTP_TYPE}:user-uuid` });
+      expect(verRepo.delete).toHaveBeenCalledWith({
+        identifier: `${TFA_OTP_TYPE}:user-uuid`,
+      });
       expect(verRepo.save).toHaveBeenCalled();
       expect(mailerService.sendMail).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -582,16 +679,22 @@ describe('TwoFactorService', () => {
 
     it('throws UnauthorizedException when 2FA is not enabled for the user', async () => {
       const userRepo = mockRepository();
-      userRepo.findOneOrFail.mockResolvedValue(makeUser({ twoFactorEnabled: false }));
+      userRepo.findOneOrFail.mockResolvedValue(
+        makeUser({ twoFactorEnabled: false }),
+      );
 
       dataSource.getRepository.mockReturnValue(userRepo);
 
-      await expect(service.sendOtp('user-uuid')).rejects.toThrow(UnauthorizedException);
+      await expect(service.sendOtp('user-uuid')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('saves OTP with correct expiry timestamp', async () => {
       const userRepo = mockRepository();
-      userRepo.findOneOrFail.mockResolvedValue(makeUser({ twoFactorEnabled: true }));
+      userRepo.findOneOrFail.mockResolvedValue(
+        makeUser({ twoFactorEnabled: true }),
+      );
 
       const verRepo = mockRepository();
       verRepo.delete.mockResolvedValue({ affected: 1, raw: [] });
@@ -615,7 +718,9 @@ describe('TwoFactorService', () => {
 
     it('stores value in hash:0 format', async () => {
       const userRepo = mockRepository();
-      userRepo.findOneOrFail.mockResolvedValue(makeUser({ twoFactorEnabled: true }));
+      userRepo.findOneOrFail.mockResolvedValue(
+        makeUser({ twoFactorEnabled: true }),
+      );
 
       const verRepo = mockRepository();
       verRepo.delete.mockResolvedValue({ affected: 1, raw: [] });
@@ -649,7 +754,13 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      const result = await service.verifyOtp('user-uuid', UserRole.Member, '123456', false, makeCtx());
+      const result = await service.verifyOtp(
+        'user-uuid',
+        UserRole.Member,
+        '123456',
+        false,
+        makeCtx(),
+      );
 
       expect(result.tokens).toEqual(makeTokenPair());
       expect(verRepo.delete).toHaveBeenCalledWith(record.id);
@@ -661,9 +772,15 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      await expect(service.verifyOtp('user-uuid', UserRole.Member, '123456', false, makeCtx())).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.verifyOtp(
+          'user-uuid',
+          UserRole.Member,
+          '123456',
+          false,
+          makeCtx(),
+        ),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('throws UnauthorizedException and deletes record when OTP has expired', async () => {
@@ -674,23 +791,37 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      await expect(service.verifyOtp('user-uuid', UserRole.Member, '123456', false, makeCtx())).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.verifyOtp(
+          'user-uuid',
+          UserRole.Member,
+          '123456',
+          false,
+          makeCtx(),
+        ),
+      ).rejects.toThrow(UnauthorizedException);
       expect(verRepo.delete).toHaveBeenCalledWith(record.id);
     });
 
     it('throws UnauthorizedException and deletes record when max attempts exceeded', async () => {
-      const record = makeVerification({ value: `${HASH_CORRECT}:${OTP_MAX_ATTEMPTS}` });
+      const record = makeVerification({
+        value: `${HASH_CORRECT}:${OTP_MAX_ATTEMPTS}`,
+      });
       const verRepo = mockRepository();
       verRepo.findOne.mockResolvedValue(record);
       verRepo.delete.mockResolvedValue({ affected: 1, raw: [] });
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      await expect(service.verifyOtp('user-uuid', UserRole.Member, 'whatever', false, makeCtx())).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.verifyOtp(
+          'user-uuid',
+          UserRole.Member,
+          'whatever',
+          false,
+          makeCtx(),
+        ),
+      ).rejects.toThrow(UnauthorizedException);
       expect(verRepo.delete).toHaveBeenCalledWith(record.id);
     });
 
@@ -705,9 +836,15 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      await expect(service.verifyOtp('user-uuid', UserRole.Member, 'wrong', false, makeCtx())).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.verifyOtp(
+          'user-uuid',
+          UserRole.Member,
+          'wrong',
+          false,
+          makeCtx(),
+        ),
+      ).rejects.toThrow(UnauthorizedException);
 
       expect(verRepo.update).toHaveBeenCalledWith(
         record.id,
@@ -725,10 +862,18 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      const result = await service.verifyOtp('user-uuid', UserRole.Member, '123456', true, makeCtx());
+      const result = await service.verifyOtp(
+        'user-uuid',
+        UserRole.Member,
+        '123456',
+        true,
+        makeCtx(),
+      );
 
       expect(result.trustCookieValue).toBe('trust-cookie');
-      expect(twoFactorGate.createTrustDeviceCookieValue).toHaveBeenCalledWith('user-uuid');
+      expect(twoFactorGate.createTrustDeviceCookieValue).toHaveBeenCalledWith(
+        'user-uuid',
+      );
     });
   });
 
@@ -765,7 +910,9 @@ describe('TwoFactorService', () => {
 
       await service.generateBackupCodes('user-uuid');
 
-      const updateArg = tfRepo.update.mock.calls[0][1] as { backupCodes: string };
+      const updateArg = tfRepo.update.mock.calls[0][1] as {
+        backupCodes: string;
+      };
       const parsed: unknown = JSON.parse(updateArg.backupCodes);
       expect(Array.isArray(parsed)).toBe(true);
     });
@@ -785,7 +932,13 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      const result = await service.verifyBackupCode('user-uuid', UserRole.Member, 'AAAAA-BBBBB', false, makeCtx());
+      const result = await service.verifyBackupCode(
+        'user-uuid',
+        UserRole.Member,
+        'AAAAA-BBBBB',
+        false,
+        makeCtx(),
+      );
 
       expect(result.tokens).toEqual(makeTokenPair());
     });
@@ -800,9 +953,17 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      await service.verifyBackupCode('user-uuid', UserRole.Member, 'AAAAA-BBBBB', false, makeCtx());
+      await service.verifyBackupCode(
+        'user-uuid',
+        UserRole.Member,
+        'AAAAA-BBBBB',
+        false,
+        makeCtx(),
+      );
 
-      const updateArg = tfRepo.update.mock.calls[0][1] as { backupCodes: string };
+      const updateArg = tfRepo.update.mock.calls[0][1] as {
+        backupCodes: string;
+      };
       const remaining: string[] = JSON.parse(updateArg.backupCodes) as string[];
       expect(remaining).toEqual([HASH_WRONG]);
     });
@@ -814,7 +975,13 @@ describe('TwoFactorService', () => {
       dataSource.getRepository.mockReturnValue(tfRepo);
 
       await expect(
-        service.verifyBackupCode('user-uuid', UserRole.Member, 'AAAAA-BBBBB', false, makeCtx()),
+        service.verifyBackupCode(
+          'user-uuid',
+          UserRole.Member,
+          'AAAAA-BBBBB',
+          false,
+          makeCtx(),
+        ),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -825,7 +992,13 @@ describe('TwoFactorService', () => {
       dataSource.getRepository.mockReturnValue(tfRepo);
 
       await expect(
-        service.verifyBackupCode('user-uuid', UserRole.Member, 'AAAAA-BBBBB', false, makeCtx()),
+        service.verifyBackupCode(
+          'user-uuid',
+          UserRole.Member,
+          'AAAAA-BBBBB',
+          false,
+          makeCtx(),
+        ),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -840,7 +1013,13 @@ describe('TwoFactorService', () => {
       dataSource.getRepository.mockReturnValue(tfRepo);
 
       await expect(
-        service.verifyBackupCode('user-uuid', UserRole.Member, 'WRONG-CODES', false, makeCtx()),
+        service.verifyBackupCode(
+          'user-uuid',
+          UserRole.Member,
+          'WRONG-CODES',
+          false,
+          makeCtx(),
+        ),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -854,10 +1033,18 @@ describe('TwoFactorService', () => {
 
       dataSource.getRepository.mockReturnValue(tfRepo);
 
-      const result = await service.verifyBackupCode('user-uuid', UserRole.Member, 'AAAAA-BBBBB', true, makeCtx());
+      const result = await service.verifyBackupCode(
+        'user-uuid',
+        UserRole.Member,
+        'AAAAA-BBBBB',
+        true,
+        makeCtx(),
+      );
 
       expect(result.trustCookieValue).toBe('trust-cookie');
-      expect(twoFactorGate.createTrustDeviceCookieValue).toHaveBeenCalledWith('user-uuid');
+      expect(twoFactorGate.createTrustDeviceCookieValue).toHaveBeenCalledWith(
+        'user-uuid',
+      );
     });
   });
 });

@@ -18,7 +18,11 @@ import {
   PHONE_OTP_MAX_ATTEMPTS,
   PHONE_VERIFY_IDENTIFIER_PREFIX,
 } from '../auth.constants';
-import { AuthService, type RequestContext, type TokenPair } from './auth.service';
+import {
+  AuthService,
+  type RequestContext,
+  type TokenPair,
+} from './auth.service';
 
 // OTP record stored in Verification.value as JSON
 interface OtpRecord {
@@ -34,7 +38,7 @@ export class PhoneService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly authService: AuthService,
-  ) { }
+  ) {}
 
   /** Step 1: request OTP to sign in via phone */
   async sendSignInOtp(phone: string): Promise<void> {
@@ -45,7 +49,10 @@ export class PhoneService {
 
     if (!user) return; // prevent enumeration
 
-    await this.upsertOtp(PHONE_OTP_IDENTIFIER_PREFIX + normalizedPhone, user.id);
+    await this.upsertOtp(
+      PHONE_OTP_IDENTIFIER_PREFIX + normalizedPhone,
+      user.id,
+    );
   }
 
   /** Step 2: verify OTP and issue tokens */
@@ -107,7 +114,10 @@ export class PhoneService {
     if (user.phoneVerified) return { ok: true };
 
     try {
-      await this.consumeOtp(PHONE_VERIFY_IDENTIFIER_PREFIX + normalizedPhone, code);
+      await this.consumeOtp(
+        PHONE_VERIFY_IDENTIFIER_PREFIX + normalizedPhone,
+        code,
+      );
     } catch {
       return { ok: false, error: 'invalid_code' };
     }
@@ -128,7 +138,10 @@ export class PhoneService {
       .findOne({ where: { phone: normalizedPhone } });
     if (existing) throw new ConflictException('Phone number is already in use');
 
-    await this.upsertOtp(PHONE_CHANGE_IDENTIFIER_PREFIX + normalizedPhone, userId);
+    await this.upsertOtp(
+      PHONE_CHANGE_IDENTIFIER_PREFIX + normalizedPhone,
+      userId,
+    );
   }
 
   /** Verify OTP and apply the phone number change */
@@ -182,7 +195,11 @@ export class PhoneService {
     // Remove any existing OTP for this identifier before issuing a new one
     await verRepo.delete({ identifier });
 
-    const record: OtpRecord = { hash: otp, attempts: 0, ...(userId && { userId }) };
+    const record: OtpRecord = {
+      hash: otp,
+      attempts: 0,
+      ...(userId && { userId }),
+    };
     await verRepo.save(
       verRepo.create({
         identifier,

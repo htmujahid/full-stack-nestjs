@@ -4,19 +4,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { Link } from "react-router"
+} from '@/components/ui/sidebar';
+import { Link } from 'react-router';
 
 export function NavDocuments({
   label,
   items,
 }: {
-  label: string
+  label: string;
   items: {
-    name: string
-    url: string
-    icon: React.ReactNode
-  }[]
+    name: string;
+    url: string;
+    icon: React.ReactNode;
+  }[];
 }) {
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -32,5 +32,5 @@ export function NavDocuments({
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

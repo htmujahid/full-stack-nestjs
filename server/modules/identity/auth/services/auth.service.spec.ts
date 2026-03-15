@@ -90,7 +90,9 @@ describe('AuthService', () => {
       expect(jwtService.signAsync).toHaveBeenCalledTimes(2);
       expect(result.accessToken).toBe('signed-jwt');
       expect(result.refreshToken).toBe('signed-jwt');
-      expect(result.refreshExpiresAt).toEqual(new Date(NOW + REFRESH_EXPIRES_MS));
+      expect(result.refreshExpiresAt).toEqual(
+        new Date(NOW + REFRESH_EXPIRES_MS),
+      );
     });
 
     it('signs access token with sub and auth_method payload', async () => {
@@ -136,7 +138,11 @@ describe('AuthService', () => {
       );
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
-        expect.objectContaining({ sub: 'user-uuid', sid: expect.any(String), fid: expect.any(String) }),
+        expect.objectContaining({
+          sub: 'user-uuid',
+          sid: expect.any(String),
+          fid: expect.any(String),
+        }),
         expect.objectContaining({ secret: 'refresh-secret' }),
       );
     });
@@ -174,7 +180,9 @@ describe('AuthService', () => {
         'password',
       );
 
-      expect(result.refreshExpiresAt).toEqual(new Date(NOW + REFRESH_EXPIRES_MS));
+      expect(result.refreshExpiresAt).toEqual(
+        new Date(NOW + REFRESH_EXPIRES_MS),
+      );
     });
 
     it('saves the refresh session with ip and userAgent from context', async () => {
@@ -343,7 +351,11 @@ describe('AuthService', () => {
 
       expect(sessionRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { id: 'session-uuid', userId: 'user-uuid', familyId: 'family-uuid' },
+          where: {
+            id: 'session-uuid',
+            userId: 'user-uuid',
+            familyId: 'family-uuid',
+          },
         }),
       );
     });
@@ -380,7 +392,9 @@ describe('AuthService', () => {
       sessionRepo.delete.mockResolvedValue({ affected: 0, raw: [] });
       dataSource.getRepository.mockReturnValue(sessionRepo);
 
-      await expect(service.signOut('user-uuid', 'nonexistent')).resolves.toBeUndefined();
+      await expect(
+        service.signOut('user-uuid', 'nonexistent'),
+      ).resolves.toBeUndefined();
     });
   });
 });

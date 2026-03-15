@@ -1,8 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { TeamService } from './team.service';
 import { Team } from './team.entity';
@@ -266,7 +263,11 @@ describe('TeamService', () => {
       memberRepo.save.mockResolvedValue(saved);
       memberRepo.findOneOrFail.mockResolvedValue(withUser);
 
-      const result = await service.addMember(teamId, userId, TeamMemberRole.Admin);
+      const result = await service.addMember(
+        teamId,
+        userId,
+        TeamMemberRole.Admin,
+      );
 
       expect(teamRepo.findOne).toHaveBeenCalledWith({
         where: { id: teamId },

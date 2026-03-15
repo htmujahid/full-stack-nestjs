@@ -8,6 +8,7 @@ import { TaskService } from '../server/modules/desk/task/task.service';
 import { Task } from '../server/modules/desk/task/task.entity';
 import { ProjectService } from '../server/modules/desk/project/project.service';
 import { Project } from '../server/modules/desk/project/project.entity';
+import { AuditService } from '../server/modules/core/audit/audit.service';
 import { TaskStatus } from '../server/modules/desk/task/task-status.enum';
 import { UserRole } from '../server/modules/identity/user/user-role.enum';
 import { RolesGuard } from '../server/modules/identity/rbac/roles.guard';
@@ -83,6 +84,16 @@ describe('Tasks (e2e)', () => {
         Reflector,
         { provide: getRepositoryToken(Task), useValue: taskRepo },
         { provide: getRepositoryToken(Project), useValue: projectRepo },
+        {
+          provide: AuditService,
+          useValue: {
+            log: jest.fn().mockResolvedValue(undefined),
+            logCreate: jest.fn().mockResolvedValue(undefined),
+            logUpdate: jest.fn().mockResolvedValue(undefined),
+            logDelete: jest.fn().mockResolvedValue(undefined),
+            logCustom: jest.fn().mockResolvedValue(undefined),
+          },
+        },
       ],
     }).compile();
 

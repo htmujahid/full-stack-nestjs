@@ -7,11 +7,7 @@ import { RbacModule } from '../../identity/rbac/rbac.module';
 import { ProjectModule } from '../project/project.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Task]),
-    RbacModule,
-    ProjectModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Task]), RbacModule, ProjectModule],
   controllers: [TaskController],
   providers: [TaskService],
 })

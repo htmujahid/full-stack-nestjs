@@ -42,7 +42,11 @@ export class UserService {
         : undefined;
 
     const order = dto.sortBy
-      ? { [dto.sortBy]: (dto.sortOrder ?? 'asc').toUpperCase() as 'ASC' | 'DESC' }
+      ? {
+          [dto.sortBy]: (dto.sortOrder ?? 'asc').toUpperCase() as
+            | 'ASC'
+            | 'DESC',
+        }
       : undefined;
 
     const [data, total] = await this.userRepository.findAndCount({

@@ -56,7 +56,13 @@ export class GoogleController extends BaseOAuthController {
     const ctx = { ip, userAgent: userAgent ?? null };
     const user = await this.findOrCreateUser(req.user);
     return this.handleOAuthSignIn(req, res, user, () =>
-      this.authService.createAuthSession(user.id, user.role, true, ctx, 'google'),
+      this.authService.createAuthSession(
+        user.id,
+        user.role,
+        true,
+        ctx,
+        'google',
+      ),
     );
   }
 }

@@ -39,7 +39,9 @@ const auth = { userId: 'user-1', role: UserRole.Member } as const;
 
 describe('NoteService', () => {
   let service: NoteService;
-  let noteRepo: ReturnType<typeof mockRepository> & { createQueryBuilder: jest.Mock };
+  let noteRepo: ReturnType<typeof mockRepository> & {
+    createQueryBuilder: jest.Mock;
+  };
   let projectService: { findOne: jest.Mock };
   let qb: ReturnType<typeof mockQueryBuilder>;
 
@@ -88,10 +90,9 @@ describe('NoteService', () => {
         '(note.title LIKE :search OR note.content LIKE :search)',
         { search: '%meeting%' },
       );
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'note.projectId = :projectId',
-        { projectId: 'proj-1' },
-      );
+      expect(qb.andWhere).toHaveBeenCalledWith('note.projectId = :projectId', {
+        projectId: 'proj-1',
+      });
     });
 
     it('applies pagination and sortBy', async () => {
@@ -125,7 +126,9 @@ describe('NoteService', () => {
     it('throws NotFoundException when not found', async () => {
       noteRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.findOne('missing')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('missing')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -156,7 +159,9 @@ describe('NoteService', () => {
         makeProject({ userId: 'other-user' }),
       );
 
-      await expect(service.create(dto, auth)).rejects.toThrow(ForbiddenException);
+      await expect(service.create(dto, auth)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('allows Admin to create in any project', async () => {
@@ -211,7 +216,9 @@ describe('NoteService', () => {
     it('removes note when user owns project', async () => {
       const note = makeNote();
       noteRepo.findOne.mockResolvedValue(note);
-      projectService.findOne.mockResolvedValue(makeProject({ userId: 'user-1' }));
+      projectService.findOne.mockResolvedValue(
+        makeProject({ userId: 'user-1' }),
+      );
       noteRepo.remove.mockResolvedValue(undefined);
 
       await service.remove('note-1', auth);

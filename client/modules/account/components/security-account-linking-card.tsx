@@ -20,9 +20,7 @@ export function SecurityAccountLinkingCard() {
     <Card>
       <CardHeader>
         <CardTitle>Sign-in methods</CardTitle>
-        <CardDescription>
-          Accounts linked to your profile
-        </CardDescription>
+        <CardDescription>Accounts linked to your profile</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">

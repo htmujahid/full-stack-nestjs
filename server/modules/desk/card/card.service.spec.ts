@@ -39,7 +39,9 @@ const auth = { userId: 'user-1', role: UserRole.Member } as const;
 
 describe('CardService', () => {
   let service: CardService;
-  let cardRepo: ReturnType<typeof mockRepository> & { createQueryBuilder: jest.Mock };
+  let cardRepo: ReturnType<typeof mockRepository> & {
+    createQueryBuilder: jest.Mock;
+  };
   let projectService: { findOne: jest.Mock };
   let qb: ReturnType<typeof mockQueryBuilder>;
 
@@ -88,10 +90,9 @@ describe('CardService', () => {
         '(card.title LIKE :search OR card.description LIKE :search)',
         { search: '%meeting%' },
       );
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'card.projectId = :projectId',
-        { projectId: 'proj-1' },
-      );
+      expect(qb.andWhere).toHaveBeenCalledWith('card.projectId = :projectId', {
+        projectId: 'proj-1',
+      });
     });
 
     it('applies pagination and sortBy', async () => {
@@ -125,7 +126,9 @@ describe('CardService', () => {
     it('throws NotFoundException when not found', async () => {
       cardRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.findOne('missing')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('missing')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -156,7 +159,9 @@ describe('CardService', () => {
         makeProject({ userId: 'other-user' }),
       );
 
-      await expect(service.create(dto, auth)).rejects.toThrow(ForbiddenException);
+      await expect(service.create(dto, auth)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('allows Admin to create in any project', async () => {
@@ -211,7 +216,9 @@ describe('CardService', () => {
     it('removes card when user owns project', async () => {
       const card = makeCard();
       cardRepo.findOne.mockResolvedValue(card);
-      projectService.findOne.mockResolvedValue(makeProject({ userId: 'user-1' }));
+      projectService.findOne.mockResolvedValue(
+        makeProject({ userId: 'user-1' }),
+      );
       cardRepo.remove.mockResolvedValue(undefined);
 
       await service.remove('card-1', auth);

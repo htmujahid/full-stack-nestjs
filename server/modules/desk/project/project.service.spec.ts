@@ -7,7 +7,16 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { FindProjectsDto } from './dto/find-projects.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { UserRole } from '../../identity/user/user-role.enum';
+import { AuditService } from '../../core/audit/audit.service';
 import { mockRepository } from '../../../mocks/db.mock';
+
+const mockAuditService = {
+  log: jest.fn().mockResolvedValue(undefined),
+  logCreate: jest.fn().mockResolvedValue(undefined),
+  logUpdate: jest.fn().mockResolvedValue(undefined),
+  logDelete: jest.fn().mockResolvedValue(undefined),
+  logCustom: jest.fn().mockResolvedValue(undefined),
+};
 
 const makeProject = (overrides: Partial<Project> = {}): Project =>
   ({
@@ -49,6 +58,7 @@ describe('ProjectService', () => {
       providers: [
         ProjectService,
         { provide: getRepositoryToken(Project), useValue: projectRepo },
+        { provide: AuditService, useValue: mockAuditService },
       ],
     }).compile();
 
@@ -136,21 +146,32 @@ describe('ProjectService', () => {
     it('throws NotFoundException when project is not found', async () => {
       projectRepo.findOneBy.mockResolvedValue(null);
 
-      await expect(service.findOne('missing-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('missing-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('create', () => {
     it('creates and returns a new project', async () => {
-      const dto: CreateProjectDto = { name: 'New Project', description: 'desc' };
-      const createdProject = makeProject({ name: 'New Project', description: 'desc' });
+      const dto: CreateProjectDto = {
+        name: 'New Project',
+        description: 'desc',
+      };
+      const createdProject = makeProject({
+        name: 'New Project',
+        description: 'desc',
+      });
 
       projectRepo.create.mockReturnValue(createdProject);
       projectRepo.save.mockResolvedValue(createdProject);
 
       const result = await service.create(dto, 'user-1');
 
-      expect(projectRepo.create).toHaveBeenCalledWith({ ...dto, userId: 'user-1' });
+      expect(projectRepo.create).toHaveBeenCalledWith({
+        ...dto,
+        userId: 'user-1',
+      });
       expect(projectRepo.save).toHaveBeenCalledWith(createdProject);
       expect(result).toBe(createdProject);
     });
@@ -177,7 +198,10 @@ describe('ProjectService', () => {
     it('updates when Admin (bypasses ownership)', async () => {
       const project = makeProject({ userId: 'other-user' });
       const dto: UpdateProjectDto = { name: 'Updated' };
-      const savedProject = makeProject({ userId: 'other-user', name: 'Updated' });
+      const savedProject = makeProject({
+        userId: 'other-user',
+        name: 'Updated',
+      });
 
       projectRepo.findOneBy.mockResolvedValue(project);
       projectRepo.save.mockResolvedValue(savedProject);
@@ -196,10 +220,14 @@ describe('ProjectService', () => {
       projectRepo.findOneBy.mockResolvedValue(project);
 
       await expect(
-        service.update('project-1', { name: 'Updated' }, {
-          userId: 'user-1',
-          role: UserRole.Member,
-        }),
+        service.update(
+          'project-1',
+          { name: 'Updated' },
+          {
+            userId: 'user-1',
+            role: UserRole.Member,
+          },
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -208,12 +236,18 @@ describe('ProjectService', () => {
       projectRepo.findOneBy.mockResolvedValue(null);
 
       await expect(
-        service.update('missing-id', dto, { userId: 'user-1', role: UserRole.Member }),
+        service.update('missing-id', dto, {
+          userId: 'user-1',
+          role: UserRole.Member,
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('merges dto fields onto the project before saving', async () => {
-      const project = makeProject({ name: 'Old Name', description: 'Old Desc' });
+      const project = makeProject({
+        name: 'Old Name',
+        description: 'Old Desc',
+      });
       const dto: UpdateProjectDto = { name: 'New Name' };
 
       projectRepo.findOneBy.mockResolvedValue(project);
@@ -237,7 +271,10 @@ describe('ProjectService', () => {
       projectRepo.findOneBy.mockResolvedValue(project);
       projectRepo.remove.mockResolvedValue(undefined);
 
-      await service.remove('project-1', { userId: 'user-1', role: UserRole.Member });
+      await service.remove('project-1', {
+        userId: 'user-1',
+        role: UserRole.Member,
+      });
 
       expect(projectRepo.remove).toHaveBeenCalledWith(project);
     });
@@ -248,7 +285,10 @@ describe('ProjectService', () => {
       projectRepo.findOneBy.mockResolvedValue(project);
       projectRepo.remove.mockResolvedValue(undefined);
 
-      await service.remove('project-1', { userId: 'admin-1', role: UserRole.Admin });
+      await service.remove('project-1', {
+        userId: 'admin-1',
+        role: UserRole.Admin,
+      });
 
       expect(projectRepo.remove).toHaveBeenCalledWith(project);
     });
@@ -258,7 +298,10 @@ describe('ProjectService', () => {
       projectRepo.findOneBy.mockResolvedValue(project);
 
       await expect(
-        service.remove('project-1', { userId: 'user-1', role: UserRole.Member }),
+        service.remove('project-1', {
+          userId: 'user-1',
+          role: UserRole.Member,
+        }),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -266,7 +309,10 @@ describe('ProjectService', () => {
       projectRepo.findOneBy.mockResolvedValue(null);
 
       await expect(
-        service.remove('missing-id', { userId: 'user-1', role: UserRole.Member }),
+        service.remove('missing-id', {
+          userId: 'user-1',
+          role: UserRole.Member,
+        }),
       ).rejects.toThrow(NotFoundException);
     });
   });

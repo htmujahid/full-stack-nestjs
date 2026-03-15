@@ -128,7 +128,9 @@ describe('UserService', () => {
       await expect(service.findOne('missing-id')).rejects.toThrow(
         NotFoundException,
       );
-      await expect(service.findOne('missing-id')).rejects.toThrow('User not found');
+      await expect(service.findOne('missing-id')).rejects.toThrow(
+        'User not found',
+      );
     });
   });
 
@@ -166,7 +168,10 @@ describe('UserService', () => {
         email: 'admin@example.com',
         role: UserRole.Admin,
       };
-      const createdUser = makeUser({ name: 'Admin User', role: UserRole.Admin });
+      const createdUser = makeUser({
+        name: 'Admin User',
+        role: UserRole.Admin,
+      });
 
       repo.findOneBy.mockResolvedValue(null);
       repo.create.mockReturnValue(createdUser);
@@ -195,7 +200,9 @@ describe('UserService', () => {
 
       await service.create(dto);
 
-      expect(repo.findOneBy).toHaveBeenCalledWith({ email: 'user@example.com' });
+      expect(repo.findOneBy).toHaveBeenCalledWith({
+        email: 'user@example.com',
+      });
       expect(repo.findOneBy).toHaveBeenCalledWith({ username: 'johndoe' });
     });
 
@@ -241,10 +248,12 @@ describe('UserService', () => {
       };
       const existing = makeUser({ username: 'taken' });
 
-      repo.findOneBy.mockImplementation((cond: { email?: string; username?: string }) => {
-        if (cond.username === 'taken') return Promise.resolve(existing);
-        return Promise.resolve(null);
-      });
+      repo.findOneBy.mockImplementation(
+        (cond: { email?: string; username?: string }) => {
+          if (cond.username === 'taken') return Promise.resolve(existing);
+          return Promise.resolve(null);
+        },
+      );
 
       const err = await service.create(dto).catch((e) => e);
       expect(err).toBeInstanceOf(ConflictException);

@@ -46,8 +46,9 @@ export class PasswordAuthStrategy extends PassportStrategy(
 
     const valid = await bcrypt.compare(password, account.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
-    
-    if (user.phone?.includes('+') && !user.phoneVerified) throw new ForbiddenException('Phone not verified');
+
+    if (user.phone?.includes('+') && !user.phoneVerified)
+      throw new ForbiddenException('Phone not verified');
 
     if (!user.emailVerified) throw new ForbiddenException('Email not verified');
 
@@ -66,11 +67,15 @@ export class PasswordAuthStrategy extends PassportStrategy(
     }
 
     // Username
-    const byUsername = await userRepo.findOne({ where: { username: normalized } });
+    const byUsername = await userRepo.findOne({
+      where: { username: normalized },
+    });
     if (byUsername) return byUsername;
 
     // Phone (keep original formatting for E.164 lookup)
-    const byPhone = await userRepo.findOne({ where: { phone: identifier.trim() } });
+    const byPhone = await userRepo.findOne({
+      where: { phone: identifier.trim() },
+    });
     if (byPhone) return byPhone;
 
     return null;

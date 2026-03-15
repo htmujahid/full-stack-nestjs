@@ -35,10 +35,9 @@ export class NoteService {
     const qb = this.noteRepository.createQueryBuilder('note');
 
     if (dto.search) {
-      qb.andWhere(
-        '(note.title LIKE :search OR note.content LIKE :search)',
-        { search: `%${dto.search}%` },
-      );
+      qb.andWhere('(note.title LIKE :search OR note.content LIKE :search)', {
+        search: `%${dto.search}%`,
+      });
     }
 
     if (dto.projectId) {
@@ -77,7 +76,11 @@ export class NoteService {
     return this.noteRepository.save(note);
   }
 
-  async update(id: string, dto: UpdateNoteDto, auth: AuthContext): Promise<Note> {
+  async update(
+    id: string,
+    dto: UpdateNoteDto,
+    auth: AuthContext,
+  ): Promise<Note> {
     const note = await this.findOne(id);
     const project = await this.projectService.findOne(note.projectId);
     if (auth.role !== UserRole.Admin && project.userId !== auth.userId) {

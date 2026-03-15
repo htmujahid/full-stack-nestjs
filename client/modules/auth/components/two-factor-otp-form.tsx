@@ -155,7 +155,9 @@ export function TwoFactorOtpForm() {
           </button>
         </FieldDescription>
         <FieldDescription className="text-center">
-          <Link to={paths.auth.twoFactor}>Use authenticator or backup code</Link>
+          <Link to={paths.auth.twoFactor}>
+            Use authenticator or backup code
+          </Link>
         </FieldDescription>
         <FieldDescription className="text-center">
           <Link to={paths.auth.signIn}>Back to sign in</Link>

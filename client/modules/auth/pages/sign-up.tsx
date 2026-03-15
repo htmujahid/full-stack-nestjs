@@ -16,9 +16,7 @@ export default function SignUpPage() {
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Create an account</CardTitle>
-          <CardDescription>
-            Sign up with Google or your email
-          </CardDescription>
+          <CardDescription>Sign up with Google or your email</CardDescription>
         </CardHeader>
         <CardContent>
           <SignUpForm />
@@ -27,8 +25,7 @@ export default function SignUpPage() {
       <FieldDescription className="px-6 text-center">
         By clicking continue, you agree to our{' '}
         <Link to={paths.terms}>Terms of Service</Link> and{' '}
-        <Link to={paths.privacy}>Privacy Policy</Link>
-        .
+        <Link to={paths.privacy}>Privacy Policy</Link>.
       </FieldDescription>
     </div>
   );

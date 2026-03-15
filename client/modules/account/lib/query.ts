@@ -164,10 +164,13 @@ export function useAddPasswordMutation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: UpdatePasswordInput) => {
-      const { data } = await fetcher<{ ok: boolean }>('/api/auth/add-password', {
-        method: 'POST',
-        body: JSON.stringify(input),
-      });
+      const { data } = await fetcher<{ ok: boolean }>(
+        '/api/auth/add-password',
+        {
+          method: 'POST',
+          body: JSON.stringify(input),
+        },
+      );
       return data;
     },
     onSuccess: () => {
@@ -180,10 +183,13 @@ export function useAddPasswordMutation() {
 export function useEnable2FAMutation() {
   return useMutation({
     mutationFn: async (input: Enable2FAInput) => {
-      const { data } = await fetcher<Enable2FAResult>('/api/two-factor/enable', {
-        method: 'POST',
-        body: JSON.stringify(input),
-      });
+      const { data } = await fetcher<Enable2FAResult>(
+        '/api/two-factor/enable',
+        {
+          method: 'POST',
+          body: JSON.stringify(input),
+        },
+      );
       return data;
     },
   });
@@ -255,13 +261,7 @@ export function useGenerateBackupCodesMutation() {
 
 export function useUploadMutation() {
   return useMutation({
-    mutationFn: async ({
-      file,
-      prefix,
-    }: {
-      file: File;
-      prefix?: string;
-    }) => {
+    mutationFn: async ({ file, prefix }: { file: File; prefix?: string }) => {
       const form = new FormData();
       form.append('file', file);
       if (prefix) form.append('prefix', prefix);

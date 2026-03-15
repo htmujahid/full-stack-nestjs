@@ -60,10 +60,18 @@ describe('EmailService', () => {
     configService = { getOrThrow: jest.fn().mockReturnValue('test-secret') };
     jwtService = {
       signAsync: jest.fn().mockResolvedValue('signed-jwt'),
-      verifyAsync: jest.fn().mockResolvedValue({ sub: 'user-uuid', email: 'test@example.com', type: MAGIC_LINK_TYPE }),
+      verifyAsync: jest
+        .fn()
+        .mockResolvedValue({
+          sub: 'user-uuid',
+          email: 'test@example.com',
+          type: MAGIC_LINK_TYPE,
+        }),
     };
     mailerService = { sendMail: jest.fn().mockResolvedValue(undefined) };
-    authService = { createAuthSession: jest.fn().mockResolvedValue(makeTokenPair()) };
+    authService = {
+      createAuthSession: jest.fn().mockResolvedValue(makeTokenPair()),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -126,7 +134,9 @@ describe('EmailService', () => {
 
     it('signs JWT with MAGIC_LINK_TYPE and normalized email', async () => {
       const userRepo = mockRepository();
-      userRepo.findOne.mockResolvedValue(makeUser({ email: 'test@example.com' }));
+      userRepo.findOne.mockResolvedValue(
+        makeUser({ email: 'test@example.com' }),
+      );
       dataSource.getRepository.mockReturnValue(userRepo);
 
       configService.getOrThrow
@@ -150,11 +160,20 @@ describe('EmailService', () => {
         .mockReturnValueOnce('my-secret')
         .mockReturnValueOnce('http://localhost:3000');
 
-      await service.sendSignInLink('test@example.com', 'https://app.example.com/dashboard');
+      await service.sendSignInLink(
+        'test@example.com',
+        'https://app.example.com/dashboard',
+      );
 
-      const sentMail = mailerService.sendMail.mock.calls[0][0] as { html: string };
-      expect(sentMail.html).toContain('http://localhost:3000/api/auth/verify-email-link');
-      expect(sentMail.html).toContain(encodeURIComponent('https://app.example.com/dashboard'));
+      const sentMail = mailerService.sendMail.mock.calls[0][0] as {
+        html: string;
+      };
+      expect(sentMail.html).toContain(
+        'http://localhost:3000/api/auth/verify-email-link',
+      );
+      expect(sentMail.html).toContain(
+        encodeURIComponent('https://app.example.com/dashboard'),
+      );
     });
 
     it('defaults callbackURL to "/" when not provided', async () => {
@@ -168,7 +187,9 @@ describe('EmailService', () => {
 
       await service.sendSignInLink('test@example.com');
 
-      const sentMail = mailerService.sendMail.mock.calls[0][0] as { html: string };
+      const sentMail = mailerService.sendMail.mock.calls[0][0] as {
+        html: string;
+      };
       expect(sentMail.html).toContain(`callbackURL=${encodeURIComponent('/')}`);
     });
   });
@@ -255,7 +276,9 @@ describe('EmailService', () => {
 
       await service.verifySignInLink('valid-token', ctx);
 
-      expect(userRepo.update).toHaveBeenCalledWith('user-uuid', { emailVerified: true });
+      expect(userRepo.update).toHaveBeenCalledWith('user-uuid', {
+        emailVerified: true,
+      });
     });
 
     it('skips email verification update when user is already verified', async () => {
@@ -376,7 +399,9 @@ describe('EmailService', () => {
 
       await service.verifyEmail('valid-token', ctx);
 
-      expect(userRepo.update).toHaveBeenCalledWith('user-uuid', { emailVerified: true });
+      expect(userRepo.update).toHaveBeenCalledWith('user-uuid', {
+        emailVerified: true,
+      });
     });
 
     it('skips update when user email is already verified', async () => {
@@ -470,7 +495,9 @@ describe('EmailService', () => {
 
     it('throws ConflictException when new email is already in use', async () => {
       const userRepo = mockRepository();
-      userRepo.findOne.mockResolvedValue(makeUser({ email: 'new@example.com' }));
+      userRepo.findOne.mockResolvedValue(
+        makeUser({ email: 'new@example.com' }),
+      );
       dataSource.getRepository.mockReturnValue(userRepo);
 
       await expect(
@@ -506,7 +533,11 @@ describe('EmailService', () => {
       await service.initiateEmailChange('user-uuid', 'NEW@EXAMPLE.COM');
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
-        { sub: 'user-uuid', newEmail: 'new@example.com', type: EMAIL_CHANGE_VERIFICATION_TYPE },
+        {
+          sub: 'user-uuid',
+          newEmail: 'new@example.com',
+          type: EMAIL_CHANGE_VERIFICATION_TYPE,
+        },
         expect.objectContaining({ secret: 'change-secret' }),
       );
     });
@@ -545,11 +576,13 @@ describe('EmailService', () => {
       const result = await service.verifyEmailChange('valid-token');
 
       expect(result).toEqual({ ok: true });
-      expect(txUserRepo.update).toHaveBeenCalledWith(
-        'user-uuid',
-        { email: 'new@example.com', emailVerified: true },
-      );
-      expect(txSessionRepo.delete).toHaveBeenCalledWith({ userId: 'user-uuid' });
+      expect(txUserRepo.update).toHaveBeenCalledWith('user-uuid', {
+        email: 'new@example.com',
+        emailVerified: true,
+      });
+      expect(txSessionRepo.delete).toHaveBeenCalledWith({
+        userId: 'user-uuid',
+      });
     });
 
     it('returns ok=false with error=invalid_token when JWT throws', async () => {
@@ -585,7 +618,9 @@ describe('EmailService', () => {
 
     it('returns ok=false with error=email_taken when new email is already in use', async () => {
       const userRepo = mockRepository();
-      userRepo.findOne.mockResolvedValue(makeUser({ email: 'new@example.com' }));
+      userRepo.findOne.mockResolvedValue(
+        makeUser({ email: 'new@example.com' }),
+      );
       dataSource.getRepository.mockReturnValue(userRepo);
 
       jwtService.verifyAsync.mockResolvedValue({
@@ -627,7 +662,11 @@ describe('EmailService', () => {
       await service.sendVerificationEmail('user-uuid', 'test@example.com');
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
-        { sub: 'user-uuid', email: 'test@example.com', type: EMAIL_VERIFICATION_TYPE },
+        {
+          sub: 'user-uuid',
+          email: 'test@example.com',
+          type: EMAIL_VERIFICATION_TYPE,
+        },
         expect.objectContaining({ secret: 'my-secret' }),
       );
     });
@@ -643,9 +682,15 @@ describe('EmailService', () => {
         'https://app.example.com/callback',
       );
 
-      const sentMail = mailerService.sendMail.mock.calls[0][0] as { html: string };
-      expect(sentMail.html).toContain('http://localhost:3000/api/auth/verify-email');
-      expect(sentMail.html).toContain(encodeURIComponent('https://app.example.com/callback'));
+      const sentMail = mailerService.sendMail.mock.calls[0][0] as {
+        html: string;
+      };
+      expect(sentMail.html).toContain(
+        'http://localhost:3000/api/auth/verify-email',
+      );
+      expect(sentMail.html).toContain(
+        encodeURIComponent('https://app.example.com/callback'),
+      );
     });
 
     it('defaults callbackURL to "/" when not provided', async () => {
@@ -655,7 +700,9 @@ describe('EmailService', () => {
 
       await service.sendVerificationEmail('user-uuid', 'test@example.com');
 
-      const sentMail = mailerService.sendMail.mock.calls[0][0] as { html: string };
+      const sentMail = mailerService.sendMail.mock.calls[0][0] as {
+        html: string;
+      };
       expect(sentMail.html).toContain(`callbackURL=${encodeURIComponent('/')}`);
     });
   });

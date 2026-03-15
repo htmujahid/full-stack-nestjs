@@ -49,7 +49,10 @@ export function UserRoleFilter({ value, onChange }: Props) {
           <>
             <Separator orientation="vertical" className="mx-0.5 h-4" />
             {value.length > 1 ? (
-              <Badge variant="secondary" className="rounded-sm px-1 font-normal">
+              <Badge
+                variant="secondary"
+                className="rounded-sm px-1 font-normal"
+              >
                 {value.length} selected
               </Badge>
             ) : (

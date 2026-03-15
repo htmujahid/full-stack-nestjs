@@ -3,7 +3,11 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import { paths } from '@/config/paths.config';
-import { useUserQuery, useDeleteUserMutation, getUserErrorMessage } from '../../lib/query';
+import {
+  useUserQuery,
+  useDeleteUserMutation,
+  getUserErrorMessage,
+} from '../../lib/query';
 import { UserDeleteDialog } from '../../components/user-delete-dialog';
 import { UserProfileCard } from '../../components/user-profile-card';
 import { Button, buttonVariants } from '@/components/ui/button';

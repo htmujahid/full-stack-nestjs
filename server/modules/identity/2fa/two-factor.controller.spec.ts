@@ -34,7 +34,9 @@ const makeRequest = (
     user: { userId, role },
     cookies: {},
     headers: {},
-  }) as unknown as ExpressRequest & { user: { userId: string; role: UserRole } };
+  }) as unknown as ExpressRequest & {
+    user: { userId: string; role: UserRole };
+  };
 
 const makeMockResponse = (): jest.Mocked<Response> =>
   ({
@@ -124,7 +126,10 @@ describe('TwoFactorController', () => {
       const req = makeRequest();
       const result = await controller.verifyEnable(req, { code: '123456' });
 
-      expect(twoFactorService.verifyEnableTotp).toHaveBeenCalledWith('user-uuid', '123456');
+      expect(twoFactorService.verifyEnableTotp).toHaveBeenCalledWith(
+        'user-uuid',
+        '123456',
+      );
       expect(result).toEqual({ ok: true });
     });
   });
@@ -164,7 +169,10 @@ describe('TwoFactorController', () => {
   describe('verifyTotp', () => {
     it('clears TFA_PENDING_COOKIE, sets token cookies, and returns { ok, accessToken, refreshToken }', async () => {
       const tokens = makeTokens();
-      twoFactorService.verifyTotp.mockResolvedValue({ tokens, trustCookieValue: null });
+      twoFactorService.verifyTotp.mockResolvedValue({
+        tokens,
+        trustCookieValue: null,
+      });
       const req = makeRequest();
       const res = makeMockResponse();
 
@@ -211,7 +219,10 @@ describe('TwoFactorController', () => {
 
     it('does not set trust device cookie when trustCookieValue is null', async () => {
       const tokens = makeTokens();
-      twoFactorService.verifyTotp.mockResolvedValue({ tokens, trustCookieValue: null });
+      twoFactorService.verifyTotp.mockResolvedValue({
+        tokens,
+        trustCookieValue: null,
+      });
       const req = makeRequest();
       const res = makeMockResponse();
 
@@ -231,7 +242,10 @@ describe('TwoFactorController', () => {
 
     it('delegates with correct ip and userAgent from headers', async () => {
       const tokens = makeTokens();
-      twoFactorService.verifyTotp.mockResolvedValue({ tokens, trustCookieValue: null });
+      twoFactorService.verifyTotp.mockResolvedValue({
+        tokens,
+        trustCookieValue: null,
+      });
       const req = makeRequest();
       const res = makeMockResponse();
 
@@ -272,7 +286,10 @@ describe('TwoFactorController', () => {
   describe('verifyOtp', () => {
     it('clears TFA_PENDING_COOKIE, sets token cookies, and returns { ok, accessToken, refreshToken }', async () => {
       const tokens = makeTokens();
-      twoFactorService.verifyOtp.mockResolvedValue({ tokens, trustCookieValue: null });
+      twoFactorService.verifyOtp.mockResolvedValue({
+        tokens,
+        trustCookieValue: null,
+      });
       const req = makeRequest();
       const res = makeMockResponse();
 
@@ -318,7 +335,10 @@ describe('TwoFactorController', () => {
 
     it('does not set trust device cookie when trustCookieValue is null', async () => {
       const tokens = makeTokens();
-      twoFactorService.verifyOtp.mockResolvedValue({ tokens, trustCookieValue: null });
+      twoFactorService.verifyOtp.mockResolvedValue({
+        tokens,
+        trustCookieValue: null,
+      });
       const req = makeRequest();
       const res = makeMockResponse();
 
@@ -342,7 +362,10 @@ describe('TwoFactorController', () => {
   describe('verifyBackupCode', () => {
     it('clears TFA_PENDING_COOKIE, sets token cookies, and returns { ok, accessToken, refreshToken }', async () => {
       const tokens = makeTokens();
-      twoFactorService.verifyBackupCode.mockResolvedValue({ tokens, trustCookieValue: null });
+      twoFactorService.verifyBackupCode.mockResolvedValue({
+        tokens,
+        trustCookieValue: null,
+      });
       const req = makeRequest();
       const res = makeMockResponse();
 
@@ -388,7 +411,10 @@ describe('TwoFactorController', () => {
 
     it('does not set trust device cookie when trustCookieValue is null', async () => {
       const tokens = makeTokens();
-      twoFactorService.verifyBackupCode.mockResolvedValue({ tokens, trustCookieValue: null });
+      twoFactorService.verifyBackupCode.mockResolvedValue({
+        tokens,
+        trustCookieValue: null,
+      });
       const req = makeRequest();
       const res = makeMockResponse();
 
@@ -417,7 +443,9 @@ describe('TwoFactorController', () => {
 
       const result = await controller.generateBackupCodes(req, {});
 
-      expect(twoFactorService.generateBackupCodes).toHaveBeenCalledWith('user-uuid');
+      expect(twoFactorService.generateBackupCodes).toHaveBeenCalledWith(
+        'user-uuid',
+      );
       expect(result).toEqual({ backupCodes });
     });
   });

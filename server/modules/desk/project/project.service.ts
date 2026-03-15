@@ -10,6 +10,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { FindProjectsDto } from './dto/find-projects.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { UserRole } from '../../identity/user/user-role.enum';
+import { AuditService } from '../../core/audit/audit.service';
 
 export type AuthContext = { userId: string; role: UserRole };
 
@@ -25,6 +26,7 @@ export class ProjectService {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    private readonly auditService: AuditService,
   ) {}
 
   async findAll(dto: FindProjectsDto): Promise<ProjectsPage> {
@@ -61,7 +63,14 @@ export class ProjectService {
 
   async create(dto: CreateProjectDto, userId: string): Promise<Project> {
     const project = this.projectRepository.create({ ...dto, userId });
-    return this.projectRepository.save(project);
+    const saved = await this.projectRepository.save(project);
+    void this.auditService.logCreate(
+      'project',
+      saved.id,
+      { name: saved.name, description: saved.description },
+      { actorId: userId },
+    );
+    return saved;
   }
 
   async update(
@@ -73,8 +82,17 @@ export class ProjectService {
     if (auth.role !== UserRole.Admin && project.userId !== auth.userId) {
       throw new ForbiddenException();
     }
+    const oldValue = { name: project.name, description: project.description };
     Object.assign(project, dto);
-    return this.projectRepository.save(project);
+    const saved = await this.projectRepository.save(project);
+    void this.auditService.logUpdate(
+      'project',
+      id,
+      oldValue,
+      { name: saved.name, description: saved.description },
+      { actorId: auth.userId },
+    );
+    return saved;
   }
 
   async remove(id: string, auth: AuthContext): Promise<void> {
@@ -82,6 +100,12 @@ export class ProjectService {
     if (auth.role !== UserRole.Admin && project.userId !== auth.userId) {
       throw new ForbiddenException();
     }
+    void this.auditService.logDelete(
+      'project',
+      id,
+      { name: project.name },
+      { actorId: auth.userId },
+    );
     await this.projectRepository.remove(project);
   }
 }

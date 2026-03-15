@@ -77,7 +77,11 @@ export class CardService {
     return this.cardRepository.save(card);
   }
 
-  async update(id: string, dto: UpdateCardDto, auth: AuthContext): Promise<Card> {
+  async update(
+    id: string,
+    dto: UpdateCardDto,
+    auth: AuthContext,
+  ): Promise<Card> {
     const card = await this.findOne(id);
     const project = await this.projectService.findOne(card.projectId);
     if (auth.role !== UserRole.Admin && project.userId !== auth.userId) {

@@ -23,7 +23,9 @@ import { hashToken, signHmac, verifyHmac } from '../crypto.util';
 
 const NOW = 2_000_000_000_000;
 
-const makeVerification = (overrides: Partial<Verification> = {}): Verification =>
+const makeVerification = (
+  overrides: Partial<Verification> = {},
+): Verification =>
   ({
     id: 'ver-uuid',
     identifier: `${TRUST_DEVICE_TYPE}:hashed-token`,
@@ -89,7 +91,10 @@ describe('TwoFactorGateService', () => {
     });
 
     it('returns the signed JWT', async () => {
-      const result = await service.createPendingToken('user-uuid', UserRole.Member);
+      const result = await service.createPendingToken(
+        'user-uuid',
+        UserRole.Member,
+      );
 
       expect(result).toBe('pending-jwt');
     });
@@ -99,7 +104,10 @@ describe('TwoFactorGateService', () => {
 
   describe('checkTrustDevice', () => {
     it('returns false when cookie does not have 3 parts', async () => {
-      const result = await service.checkTrustDevice('user-uuid.only-two-parts', 'user-uuid');
+      const result = await service.checkTrustDevice(
+        'user-uuid.only-two-parts',
+        'user-uuid',
+      );
 
       expect(result).toBe(false);
     });
@@ -143,7 +151,9 @@ describe('TwoFactorGateService', () => {
       (verifyHmac as jest.Mock).mockReturnValue(true);
 
       const verRepo = mockRepository();
-      verRepo.findOne.mockResolvedValue(makeVerification({ value: 'different-user' }));
+      verRepo.findOne.mockResolvedValue(
+        makeVerification({ value: 'different-user' }),
+      );
       dataSource.getRepository.mockReturnValue(verRepo);
 
       const result = await service.checkTrustDevice(
@@ -158,7 +168,9 @@ describe('TwoFactorGateService', () => {
       (verifyHmac as jest.Mock).mockReturnValue(true);
 
       const verRepo = mockRepository();
-      verRepo.findOne.mockResolvedValue(makeVerification({ expiresAt: new Date(NOW - 1) }));
+      verRepo.findOne.mockResolvedValue(
+        makeVerification({ expiresAt: new Date(NOW - 1) }),
+      );
       dataSource.getRepository.mockReturnValue(verRepo);
 
       const result = await service.checkTrustDevice(
@@ -174,7 +186,10 @@ describe('TwoFactorGateService', () => {
 
       const verRepo = mockRepository();
       verRepo.findOne.mockResolvedValue(
-        makeVerification({ value: 'user-uuid', expiresAt: new Date(NOW + 1000) }),
+        makeVerification({
+          value: 'user-uuid',
+          expiresAt: new Date(NOW + 1000),
+        }),
       );
       dataSource.getRepository.mockReturnValue(verRepo);
 
@@ -211,7 +226,10 @@ describe('TwoFactorGateService', () => {
       verRepo.findOne.mockResolvedValue(null);
       dataSource.getRepository.mockReturnValue(verRepo);
 
-      await service.checkTrustDevice('user-uuid.my-token.valid-sig', 'user-uuid');
+      await service.checkTrustDevice(
+        'user-uuid.my-token.valid-sig',
+        'user-uuid',
+      );
 
       expect(verRepo.findOne).toHaveBeenCalledWith({
         where: { identifier: `${TRUST_DEVICE_TYPE}:computed-hash` },
@@ -257,7 +275,9 @@ describe('TwoFactorGateService', () => {
 
       // delete is still called for the new cookie save, but NOT for the old hash removal
       expect(verRepo.delete).not.toHaveBeenCalledWith(
-        expect.objectContaining({ identifier: expect.stringContaining(TRUST_DEVICE_TYPE) }),
+        expect.objectContaining({
+          identifier: expect.stringContaining(TRUST_DEVICE_TYPE),
+        }),
       );
     });
 

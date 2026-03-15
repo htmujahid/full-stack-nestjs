@@ -16,9 +16,7 @@ const makeRepo = (): jest.Mocked<
   save: jest.fn(),
 });
 
-const makeRecord = (
-  overrides: Partial<RateLimit> = {},
-): RateLimit =>
+const makeRecord = (overrides: Partial<RateLimit> = {}): RateLimit =>
   ({
     key: 'test-key',
     count: 0,
@@ -70,12 +68,12 @@ describe('ThrottlerDbStorage', () => {
     it('handles ER_DUP_ENTRY race (concurrent inserts) by retrying findOne', async () => {
       const fresh = makeRecord({ count: 0 });
       const existing = makeRecord({ count: 1, lastRequest: NOW });
-      repo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(existing);
+      repo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(existing);
       repo.create.mockReturnValue(fresh);
       repo.save
-        .mockRejectedValueOnce(Object.assign(new Error('dup'), { code: 'ER_DUP_ENTRY' }))
+        .mockRejectedValueOnce(
+          Object.assign(new Error('dup'), { code: 'ER_DUP_ENTRY' }),
+        )
         .mockResolvedValueOnce(existing);
 
       const result = await call(storage);

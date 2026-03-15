@@ -96,7 +96,9 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
               type={showPassword ? 'text' : 'password'}
               autoComplete="new-password"
               aria-invalid={!!errors.password}
-              aria-describedby={errors.password ? 'reset-password-error' : undefined}
+              aria-describedby={
+                errors.password ? 'reset-password-error' : undefined
+              }
               {...register('password', {
                 required: 'Password is required',
                 minLength: {
@@ -113,14 +115,22 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                 onClick={() => setShowPassword((p) => !p)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                {showPassword ? (
+                  <EyeOff className="size-4" />
+                ) : (
+                  <Eye className="size-4" />
+                )}
               </InputGroupButton>
             </InputGroupAddon>
           </InputGroup>
-          <FieldError id="reset-password-error">{errors.password?.message}</FieldError>
+          <FieldError id="reset-password-error">
+            {errors.password?.message}
+          </FieldError>
         </Field>
         <Field data-invalid={!!errors.confirmPassword}>
-          <FieldLabel htmlFor="reset-confirm-password">Confirm password</FieldLabel>
+          <FieldLabel htmlFor="reset-confirm-password">
+            Confirm password
+          </FieldLabel>
           <InputGroup>
             <InputGroupInput
               id="reset-confirm-password"
@@ -128,7 +138,9 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
               autoComplete="new-password"
               aria-invalid={!!errors.confirmPassword}
               aria-describedby={
-                errors.confirmPassword ? 'reset-confirm-password-error' : undefined
+                errors.confirmPassword
+                  ? 'reset-confirm-password-error'
+                  : undefined
               }
               {...register('confirmPassword', {
                 required: 'Please confirm your password',
@@ -144,7 +156,11 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                 onClick={() => setShowConfirm((p) => !p)}
                 aria-label={showConfirm ? 'Hide password' : 'Show password'}
               >
-                {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                {showConfirm ? (
+                  <EyeOff className="size-4" />
+                ) : (
+                  <Eye className="size-4" />
+                )}
               </InputGroupButton>
             </InputGroupAddon>
           </InputGroup>
@@ -164,8 +180,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             )}
           </Button>
           <FieldDescription className="text-center">
-            Remember your password?{' '}
-            <Link to={paths.auth.signIn}>Sign in</Link>
+            Remember your password? <Link to={paths.auth.signIn}>Sign in</Link>
           </FieldDescription>
         </Field>
       </FieldGroup>
