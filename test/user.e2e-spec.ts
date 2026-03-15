@@ -102,8 +102,6 @@ describe('User (e2e)', () => {
     });
 
     it('returns 403 when Member tries user routes', async () => {
-      repo.find.mockResolvedValue([]);
-
       await asMember.get('/api/users').expect(403);
     });
   });
@@ -113,29 +111,31 @@ describe('User (e2e)', () => {
   describe('GET /api/users', () => {
     it('returns 200 with list of users when Admin', async () => {
       const users = [makeUser(), makeUser({ id: 'user-2', email: 'other@example.com' })];
-      repo.find.mockResolvedValue(users);
+      repo.findAndCount.mockResolvedValue([users, users.length]);
 
       const { body } = await asAdmin.get('/api/users').expect(200);
 
-      expect(body).toHaveLength(2);
-      expect(body[0].email).toBe('test@example.com');
-      expect(body[1].email).toBe('other@example.com');
+      expect(body.data).toHaveLength(2);
+      expect(body.data[0].email).toBe('test@example.com');
+      expect(body.data[1].email).toBe('other@example.com');
     });
 
     it('returns 200 with empty array when no users', async () => {
-      repo.find.mockResolvedValue([]);
+      repo.findAndCount.mockResolvedValue([[], 0]);
 
       const { body } = await asAdmin.get('/api/users').expect(200);
 
-      expect(body).toEqual([]);
+      expect(body.data).toEqual([]);
+      expect(body.total).toBe(0);
     });
 
     it('returns 200 when SuperAdmin', async () => {
-      repo.find.mockResolvedValue([makeUser()]);
+      const users = [makeUser()];
+      repo.findAndCount.mockResolvedValue([users, users.length]);
 
       const { body } = await asSuperAdmin.get('/api/users').expect(200);
 
-      expect(body).toHaveLength(1);
+      expect(body.data).toHaveLength(1);
     });
   });
 
