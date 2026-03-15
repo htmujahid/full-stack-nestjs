@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 /** Reusable mock repository returned by mockDataSource.getRepository() */
 export const mockRepository = () => ({
   find: jest.fn(),
+  findAndCount: jest.fn(),
   findOne: jest.fn(),
   findOneBy: jest.fn(),
   findOneOrFail: jest.fn(),

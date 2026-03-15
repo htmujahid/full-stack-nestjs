@@ -4,6 +4,7 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { FindUsersDto } from './dto/find-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { RolesGuard } from '../rbac/roles.guard';
 import { PermissionsGuard } from '../rbac/permissions.guard';
@@ -57,22 +58,27 @@ describe('UserController', () => {
   afterEach(() => jest.clearAllMocks());
 
   describe('findAll', () => {
-    it('delegates to service.findAll() and returns result', async () => {
-      const users = [makeUser()];
-      service.findAll.mockResolvedValue(users);
+    it('delegates to service.findAll(dto) and returns UsersPage', async () => {
+      const dto: FindUsersDto = {};
+      const page = { data: [makeUser()], total: 1, page: 1, limit: 20 };
+      service.findAll.mockResolvedValue(page);
 
-      const result = await controller.findAll();
+      const result = await controller.findAll(dto);
 
+      expect(service.findAll).toHaveBeenCalledWith(dto);
       expect(service.findAll).toHaveBeenCalledTimes(1);
-      expect(result).toBe(users);
+      expect(result).toBe(page);
     });
 
-    it('returns an empty array when service returns none', async () => {
-      service.findAll.mockResolvedValue([]);
+    it('passes dto with search and roles to service', async () => {
+      const dto: FindUsersDto = { search: 'john', roles: [UserRole.Admin] };
+      const page = { data: [], total: 0, page: 1, limit: 20 };
+      service.findAll.mockResolvedValue(page);
 
-      const result = await controller.findAll();
+      const result = await controller.findAll(dto);
 
-      expect(result).toEqual([]);
+      expect(service.findAll).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(page);
     });
   });
 

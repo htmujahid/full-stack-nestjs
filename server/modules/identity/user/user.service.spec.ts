@@ -4,6 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserService } from './user.service';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { FindUsersDto } from './dto/find-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from './user-role.enum';
 import { mockRepository } from '../../../mocks/db.mock';
@@ -27,10 +28,10 @@ const makeUser = (overrides: Partial<User> = {}): User =>
 
 describe('UserService', () => {
   let service: UserService;
-  let repo: ReturnType<typeof mockRepository> & { findOneBy: jest.Mock };
+  let repo: ReturnType<typeof mockRepository>;
 
   beforeEach(async () => {
-    repo = { ...mockRepository(), findOneBy: jest.fn() };
+    repo = mockRepository();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -45,22 +46,68 @@ describe('UserService', () => {
   afterEach(() => jest.clearAllMocks());
 
   describe('findAll', () => {
-    it('returns all users ordered by createdAt desc', async () => {
+    it('returns UsersPage with data, total, page, limit using findAndCount', async () => {
       const users = [makeUser(), makeUser({ id: 'other-id', name: 'Second' })];
-      repo.find.mockResolvedValue(users);
+      repo.findAndCount.mockResolvedValue([users, 2]);
 
-      const result = await service.findAll();
+      const dto: FindUsersDto = {};
+      const result = await service.findAll(dto);
 
-      expect(repo.find).toHaveBeenCalledWith({ order: { createdAt: 'DESC' } });
-      expect(result).toBe(users);
+      expect(repo.findAndCount).toHaveBeenCalledWith({
+        where: undefined,
+        order: undefined,
+        skip: 0,
+        take: 20,
+      });
+      expect(result).toEqual({ data: users, total: 2, page: 1, limit: 20 });
     });
 
-    it('returns an empty array when no users exist', async () => {
-      repo.find.mockResolvedValue([]);
+    it('returns empty UsersPage when no users exist', async () => {
+      repo.findAndCount.mockResolvedValue([[], 0]);
 
-      const result = await service.findAll();
+      const result = await service.findAll({});
 
-      expect(result).toEqual([]);
+      expect(result).toEqual({ data: [], total: 0, page: 1, limit: 20 });
+    });
+
+    it('passes search, roles, sortBy, sortOrder, page, limit to findAndCount', async () => {
+      const users = [makeUser()];
+      repo.findAndCount.mockResolvedValue([users, 1]);
+
+      const dto: FindUsersDto = {
+        search: 'john',
+        roles: [UserRole.Admin],
+        sortBy: 'name',
+        sortOrder: 'desc',
+        page: 2,
+        limit: 10,
+      };
+      await service.findAll(dto);
+
+      expect(repo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.arrayContaining([
+            expect.objectContaining({ name: expect.anything() }),
+            expect.objectContaining({ email: expect.anything() }),
+            expect.objectContaining({ username: expect.anything() }),
+          ]),
+          order: { name: 'DESC' },
+          skip: 10,
+          take: 10,
+        }),
+      );
+    });
+
+    it('uses role filter when roles provided without search', async () => {
+      repo.findAndCount.mockResolvedValue([[], 0]);
+
+      await service.findAll({ roles: [UserRole.Member, UserRole.Admin] });
+
+      expect(repo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ role: expect.anything() }),
+        }),
+      );
     });
   });
 
