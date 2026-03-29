@@ -8,7 +8,7 @@ import {
   useUser,
 } from '@/components/providers/auth-provider';
 import { paths } from '@/config/paths.config';
-import { useSignOutMutation } from '@/modules/auth/lib/query';
+import { useSignOutMutation } from '@/features/auth/lib/query';
 import { Spinner } from '@/components/ui/spinner';
 
 type FreshJwtRouteProps = {

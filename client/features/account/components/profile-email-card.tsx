@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import type { User as AuthUser } from '@/components/providers/auth-provider';
 import { useUpdateEmailMutation } from '../lib/query';
 import { paths } from '@/config/paths.config';
-import { getAuthErrorMessage } from '@/modules/auth/lib/query';
+import { getAuthErrorMessage } from '@/features/auth/lib/query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetcher } from '@/modules/auth/lib/query';
+import { fetcher } from '@/features/auth/lib/query';
 import { ME_QUERY_KEY } from '@/components/providers/auth-provider';
 
 // ─── Types (mirror server DTOs / responses) ───────────────────────────────────

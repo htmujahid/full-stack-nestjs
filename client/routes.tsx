@@ -1,10 +1,10 @@
 import { Suspense } from 'react';
 import { Routes } from 'react-router';
 import { Spinner } from '@/components/ui/spinner';
-import { homeRoutes } from '@/modules/home/routes';
-import { coreRoutes } from '@/modules/core/routes';
-import { authRoutes } from '@/modules/auth/routes';
-import { accountRoutes } from '@/modules/account/routes';
+import { homeRoutes } from '@/features/home/routes';
+import { coreRoutes } from '@/features/core/routes';
+import { authRoutes } from '@/features/auth/routes';
+import { accountRoutes } from '@/features/account/routes';
 
 function FullPageFallback() {
   return (

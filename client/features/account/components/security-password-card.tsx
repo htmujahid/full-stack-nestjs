@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAccountsQuery, useUpdatePasswordMutation } from '../lib/query';
-import { getAuthErrorMessage } from '@/modules/auth/lib/query';
+import { getAuthErrorMessage } from '@/features/auth/lib/query';
 import { Button } from '@/components/ui/button';
 import {
   Card,

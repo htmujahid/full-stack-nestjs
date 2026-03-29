@@ -3,7 +3,7 @@ import { paths } from '@/config/paths.config';
 import { useQueryClient } from '@tanstack/react-query';
 import { BadgeCheck, Home, LogOut, Shield, Users, User } from 'lucide-react';
 import { ME_QUERY_KEY, useUser } from '@/components/providers/auth-provider';
-import { useSignOutMutation } from '@/modules/auth/lib/query';
+import { useSignOutMutation } from '@/features/auth/lib/query';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {

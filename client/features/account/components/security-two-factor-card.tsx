@@ -10,7 +10,7 @@ import {
   useDisable2FAMutation,
   useGenerateBackupCodesMutation,
 } from '../lib/query';
-import { getAuthErrorMessage } from '@/modules/auth/lib/query';
+import { getAuthErrorMessage } from '@/features/auth/lib/query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {

@@ -6,7 +6,7 @@ import {
   useUpdateMeMutation,
   useUploadMutation,
 } from '../lib/query';
-import { getAuthErrorMessage } from '@/modules/auth/lib/query';
+import { getAuthErrorMessage } from '@/features/auth/lib/query';
 import { Button } from '@/components/ui/button';
 import {
   Card,
