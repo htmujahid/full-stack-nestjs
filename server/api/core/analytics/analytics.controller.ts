@@ -9,7 +9,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
 import { AnalyticsEvent } from './analytics-event.entity';
 
-@Controller('api/analytics')
+// Route prefix: /api/analytics (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(JwtAccessGuard, RolesGuard)
 @Roles(UserRole.SuperAdmin, UserRole.Admin)
 export class AnalyticsController {

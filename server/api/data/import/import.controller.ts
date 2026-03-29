@@ -30,7 +30,8 @@ const ALLOWED_TYPES = /^(text\/csv|application\/json|text\/plain)$/;
 
 @ApiTags('Data Import')
 @ApiBearerAuth()
-@Controller('api/data/import')
+// Route prefix: /api/data/import (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(RolesGuard, PermissionsGuard)
 @Roles(UserRole.Admin, UserRole.Member)
 export class ImportController {

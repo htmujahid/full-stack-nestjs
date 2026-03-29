@@ -26,7 +26,8 @@ const ALLOWED_TYPES = /^(image\/(jpeg|png|gif|webp)|application\/pdf)$/;
 
 @ApiTags('Upload')
 @ApiBearerAuth()
-@Controller('api/upload')
+// Route prefix: /api/upload (managed by RouterModule — see server/routes.ts)
+@Controller()
 export class UploadController {
   constructor(private readonly upload: UploadService) {}
 

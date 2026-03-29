@@ -21,7 +21,8 @@ import { BaseOAuthController } from './base-oauth.controller';
 import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Auth')
-@Controller('api/oauth/google')
+// Route prefix: /api/oauth/google (managed by RouterModule — see server/routes.ts)
+@Controller()
 export class GoogleController extends BaseOAuthController {
   constructor(
     twoFactorGate: TwoFactorGateService,

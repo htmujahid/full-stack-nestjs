@@ -35,7 +35,8 @@ import { UserRole } from '../user/user-role.enum';
 const TFA_THROTTLE = { default: { limit: 3, ttl: 10_000 } };
 
 @ApiTags('Two-Factor Auth')
-@Controller('api/two-factor')
+// Route prefix: /api/two-factor (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(ThrottlerGuard)
 export class TwoFactorController extends BaseAuthController {
   constructor(

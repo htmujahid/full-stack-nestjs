@@ -32,7 +32,8 @@ import { UpdatePasswordDto } from '../dto/update-password.dto';
 import type { User } from '../../user/user.entity';
 
 @ApiTags('Auth')
-@Controller('api/auth')
+// Route prefix: /api/auth (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(ThrottlerGuard)
 export class PasswordController extends BaseAuthController {
   constructor(

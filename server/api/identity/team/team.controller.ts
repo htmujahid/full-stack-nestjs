@@ -25,7 +25,8 @@ import { RequirePermissions } from '../rbac/require-permissions.decorator';
 import { UserRole } from '../user/user-role.enum';
 import { TeamMemberRole } from './team-member-role.enum';
 
-@Controller('api/identity/teams')
+// Route prefix: /api/identity/teams (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(RolesGuard, PermissionsGuard)
 @Roles(UserRole.SuperAdmin, UserRole.Admin)
 export class TeamController {

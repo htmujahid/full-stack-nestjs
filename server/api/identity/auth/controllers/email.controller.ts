@@ -27,7 +27,8 @@ import { Public } from '../decorators/public.decorator';
 import { JwtFreshGuard } from '../guards/jwt-fresh.guard';
 
 @ApiTags('Auth')
-@Controller('api/auth')
+// Route prefix: /api/auth (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(ThrottlerGuard)
 export class EmailController extends BaseAuthController {
   constructor(

@@ -35,7 +35,8 @@ interface AccessUser {
 }
 
 @ApiTags('Auth')
-@Controller('api/auth')
+// Route prefix: /api/auth (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(ThrottlerGuard)
 export class AuthController extends BaseAuthController {
   constructor(

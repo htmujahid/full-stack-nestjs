@@ -32,7 +32,8 @@ type AuthUser = { userId: string; role: UserRole };
 
 @ApiTags('Notifications')
 @ApiBearerAuth()
-@Controller('api/notifications')
+// Route prefix: /api/notifications (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(RolesGuard, PermissionsGuard)
 @Roles(UserRole.Admin, UserRole.Member, UserRole.SuperAdmin)
 export class NotificationController {

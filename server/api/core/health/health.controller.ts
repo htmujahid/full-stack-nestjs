@@ -17,7 +17,8 @@ export const PermissionHealth = {
 } as const;
 
 @ApiTags('Health Check')
-@Controller('api/health')
+// Route prefix: /api/health (managed by RouterModule — see server/routes.ts)
+@Controller()
 export class HealthController {
   constructor(
     private http: HttpHealthIndicator,

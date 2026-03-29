@@ -3,7 +3,8 @@ import { SettingService } from './setting.service';
 import { UpdateSettingDto } from './dto/update-setting.dto';
 import { Public } from '../../identity/auth/decorators/public.decorator';
 
-@Controller('api/settings')
+// Route prefix: /api/settings (managed by RouterModule — see server/routes.ts)
+@Controller()
 export class SettingController {
   constructor(private readonly settingService: SettingService) {}
 

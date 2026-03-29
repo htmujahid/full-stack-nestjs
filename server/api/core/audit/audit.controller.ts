@@ -10,7 +10,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
 import { AuditLog } from './audit.entity';
 
-@Controller('api/audit')
+// Route prefix: /api/audit (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(JwtAccessGuard, RolesGuard)
 @Roles(UserRole.SuperAdmin, UserRole.Admin)
 export class AuditController {

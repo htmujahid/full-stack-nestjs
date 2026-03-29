@@ -26,7 +26,8 @@ type AuthUser = { userId: string; role: UserRole };
 
 @ApiTags('Data Export')
 @ApiBearerAuth()
-@Controller('api/data/export')
+// Route prefix: /api/data/export (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(RolesGuard, PermissionsGuard)
 @Roles(UserRole.Admin, UserRole.Member)
 export class ExportController {

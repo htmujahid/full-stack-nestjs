@@ -22,7 +22,8 @@ import { Roles } from '../rbac/roles.decorator';
 import { RequirePermissions } from '../rbac/require-permissions.decorator';
 import { UserRole } from './user-role.enum';
 
-@Controller('api/users')
+// Route prefix: /api/users (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(RolesGuard, PermissionsGuard)
 @Roles(UserRole.SuperAdmin, UserRole.Admin)
 export class UserController {

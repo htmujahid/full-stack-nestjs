@@ -26,7 +26,8 @@ import { UserRole } from '../../identity/user/user-role.enum';
 
 type AuthUser = { userId: string; role: UserRole };
 
-@Controller('api/notes')
+// Route prefix: /api/notes (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(RolesGuard, PermissionsGuard)
 @Roles(UserRole.Admin, UserRole.Member)
 export class NoteController {

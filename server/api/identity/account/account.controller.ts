@@ -10,7 +10,8 @@ import { AccountService } from './account.service';
 
 @ApiTags('Accounts')
 @ApiBearerAuth()
-@Controller('api/account')
+// Route prefix: /api/account (managed by RouterModule — see server/routes.ts)
+@Controller()
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 

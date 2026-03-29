@@ -21,7 +21,8 @@ import { User } from '../user/user.entity';
 
 @ApiTags('Me')
 @ApiBearerAuth()
-@Controller('api/me')
+// Route prefix: /api/me (managed by RouterModule — see server/routes.ts)
+@Controller()
 export class MeController {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,

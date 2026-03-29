@@ -12,7 +12,8 @@ type AuthUser = { userId: string; role: UserRole };
 
 @ApiTags('Data Report')
 @ApiBearerAuth()
-@Controller('api/data/report')
+// Route prefix: /api/data/report (managed by RouterModule — see server/routes.ts)
+@Controller()
 @UseGuards(RolesGuard, PermissionsGuard)
 @Roles(UserRole.Admin, UserRole.Member)
 export class ReportController {
