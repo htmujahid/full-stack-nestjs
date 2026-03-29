@@ -9,12 +9,12 @@ import { AppService } from './app.service';
 import { ViteMiddleware } from './common/middlewares/vite.middleware';
 import { AppConfigModule } from './config.module';
 import { DatabaseModule } from './database/database.module';
-import { CoreModule } from './modules/core/core.module';
-import { IdentityModule } from './modules/identity/identity.module';
-import { DeskModule } from './modules/desk/desk.module';
-import { UploadModule } from './modules/misc/upload/upload.module';
-import { NotificationModule } from './modules/misc/notification/notification.module';
-import { DataModule } from './modules/data/data.module';
+import { CoreModule } from './api/core/core.module';
+import { IdentityModule } from './api/identity/identity.module';
+import { DeskModule } from './api/desk/desk.module';
+import { UploadModule } from './api/misc/upload/upload.module';
+import { NotificationModule } from './api/misc/notification/notification.module';
+import { DataModule } from './api/data/data.module';
 
 @Module({
   imports: [
