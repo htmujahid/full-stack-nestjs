@@ -2,18 +2,19 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   ExecutionContext,
   INestApplication,
+  Module,
   UnauthorizedException,
   ValidationPipe,
 } from '@nestjs/common';
-import { APP_GUARD, Reflector } from '@nestjs/core';
+import { APP_GUARD, Reflector, RouterModule } from '@nestjs/core';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import request from 'supertest';
-import { UserController } from '../server/modules/identity/user/user.controller';
-import { UserService } from '../server/modules/identity/user/user.service';
-import { User } from '../server/modules/identity/user/user.entity';
-import { UserRole } from '../server/modules/identity/user/user-role.enum';
-import { RolesGuard } from '../server/modules/identity/rbac/roles.guard';
-import { PermissionsGuard } from '../server/modules/identity/rbac/permissions.guard';
+import { UserController } from '../server/api/identity/user/user.controller';
+import { UserService } from '../server/api/identity/user/user.service';
+import { User } from '../server/api/identity/user/user.entity';
+import { UserRole } from '../server/api/identity/user/user-role.enum';
+import { RolesGuard } from '../server/api/identity/rbac/roles.guard';
+import { PermissionsGuard } from '../server/api/identity/rbac/permissions.guard';
 import { mockRepository } from '../server/mocks/db.mock';
 
 const USER_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
@@ -53,7 +54,7 @@ describe('User (e2e)', () => {
   beforeAll(async () => {
     repo = mockRepository();
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [UserController],
       providers: [
         UserService,
@@ -63,6 +64,11 @@ describe('User (e2e)', () => {
         { provide: getRepositoryToken(User), useValue: repo },
         { provide: APP_GUARD, useValue: testAuthGuard },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/users', module: TestModule }])],
     }).compile();
 
     app = module.createNestApplication();

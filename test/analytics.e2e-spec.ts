@@ -2,17 +2,19 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   ExecutionContext,
   INestApplication,
+  Module,
   UnauthorizedException,
   ValidationPipe,
 } from '@nestjs/common';
+import { RouterModule } from '@nestjs/core';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import request from 'supertest';
-import { AnalyticsController } from '../server/modules/core/analytics/analytics.controller';
-import { AnalyticsEvent } from '../server/modules/core/analytics/analytics-event.entity';
-import { JwtAccessGuard } from '../server/modules/identity/auth/guards/jwt-access.guard';
-import { RolesGuard } from '../server/modules/identity/rbac/roles.guard';
-import { PermissionsGuard } from '../server/modules/identity/rbac/permissions.guard';
-import { UserRole } from '../server/modules/identity/user/user-role.enum';
+import { AnalyticsController } from '../server/api/core/analytics/analytics.controller';
+import { AnalyticsEvent } from '../server/api/core/analytics/analytics-event.entity';
+import { JwtAccessGuard } from '../server/api/identity/auth/guards/jwt-access.guard';
+import { RolesGuard } from '../server/api/identity/rbac/roles.guard';
+import { PermissionsGuard } from '../server/api/identity/rbac/permissions.guard';
+import { UserRole } from '../server/api/identity/user/user-role.enum';
 import { mockRepository } from '../server/mocks/db.mock';
 import { Reflector } from '@nestjs/core';
 
@@ -69,7 +71,7 @@ describe('Analytics (e2e)', () => {
     qbMock = createQueryBuilderMock();
     eventRepo.createQueryBuilder = jest.fn().mockReturnValue(qbMock);
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [AnalyticsController],
       providers: [
         RolesGuard,
@@ -80,6 +82,11 @@ describe('Analytics (e2e)', () => {
           useValue: eventRepo,
         },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/analytics', module: TestModule }])],
     })
       .overrideGuard(JwtAccessGuard)
       .useValue(testAuthGuard)

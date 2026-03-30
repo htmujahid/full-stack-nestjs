@@ -2,20 +2,21 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   ExecutionContext,
   INestApplication,
+  Module,
   UnauthorizedException,
   ValidationPipe,
 } from '@nestjs/common';
-import { APP_GUARD, Reflector } from '@nestjs/core';
+import { APP_GUARD, Reflector, RouterModule } from '@nestjs/core';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import request from 'supertest';
-import { TeamController } from '../server/modules/identity/team/team.controller';
-import { TeamService } from '../server/modules/identity/team/team.service';
-import { Team } from '../server/modules/identity/team/team.entity';
-import { TeamMember } from '../server/modules/identity/team/team-member.entity';
-import { TeamMemberRole } from '../server/modules/identity/team/team-member-role.enum';
-import { UserRole } from '../server/modules/identity/user/user-role.enum';
-import { RolesGuard } from '../server/modules/identity/rbac/roles.guard';
-import { PermissionsGuard } from '../server/modules/identity/rbac/permissions.guard';
+import { TeamController } from '../server/api/identity/team/team.controller';
+import { TeamService } from '../server/api/identity/team/team.service';
+import { Team } from '../server/api/identity/team/team.entity';
+import { TeamMember } from '../server/api/identity/team/team-member.entity';
+import { TeamMemberRole } from '../server/api/identity/team/team-member-role.enum';
+import { UserRole } from '../server/api/identity/user/user-role.enum';
+import { RolesGuard } from '../server/api/identity/rbac/roles.guard';
+import { PermissionsGuard } from '../server/api/identity/rbac/permissions.guard';
 import { mockRepository } from '../server/mocks/db.mock';
 
 const TEAM_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -79,7 +80,7 @@ describe('Team (e2e)', () => {
 
     memberRepo = mockRepository();
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [TeamController],
       providers: [
         TeamService,
@@ -90,6 +91,11 @@ describe('Team (e2e)', () => {
         { provide: getRepositoryToken(TeamMember), useValue: memberRepo },
         { provide: APP_GUARD, useValue: testAuthGuard },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/identity/teams', module: TestModule }])],
     }).compile();
 
     app = module.createNestApplication();

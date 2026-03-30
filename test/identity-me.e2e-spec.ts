@@ -1,13 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   INestApplication,
+  Module,
   NotFoundException,
   ValidationPipe,
 } from '@nestjs/common';
+import { RouterModule } from '@nestjs/core';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import request from 'supertest';
-import { MeController } from '../server/modules/identity/me/me.controller';
-import { User } from '../server/modules/identity/user/user.entity';
+import { MeController } from '../server/api/identity/me/me.controller';
+import { User } from '../server/api/identity/user/user.entity';
 import { mockRepository } from '../server/mocks/db.mock';
 
 const makeUser = (overrides: Partial<User> = {}): User =>
@@ -33,9 +35,14 @@ describe('Me (e2e)', () => {
   beforeAll(async () => {
     userRepo = mockRepository();
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [MeController],
       providers: [{ provide: getRepositoryToken(User), useValue: userRepo }],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/me', module: TestModule }])],
     }).compile();
 
     app = module.createNestApplication();

@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, Module } from '@nestjs/common';
+import { RouterModule } from '@nestjs/core';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
-import { AccountController } from '../server/modules/identity/account/account.controller';
-import { AccountService } from '../server/modules/identity/account/account.service';
-import { Account } from '../server/modules/identity/account/account.entity';
+import { AccountController } from '../server/api/identity/account/account.controller';
+import { AccountService } from '../server/api/identity/account/account.service';
+import { Account } from '../server/api/identity/account/account.entity';
 import { mockRepository } from '../server/mocks/db.mock';
 
 const makeAccount = (overrides: Partial<Account> = {}): Account =>
@@ -33,12 +34,17 @@ describe('Accounts (e2e)', () => {
   beforeAll(async () => {
     accountRepo = mockRepository();
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [AccountController],
       providers: [
         AccountService,
         { provide: getRepositoryToken(Account), useValue: accountRepo },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/account', module: TestModule }])],
     }).compile();
 
     app = module.createNestApplication();

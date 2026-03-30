@@ -1,19 +1,21 @@
 import {
   ExecutionContext,
   INestApplication,
+  Module,
 } from '@nestjs/common';
+import { RouterModule } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
 import { getDataSourceToken } from '@nestjs/typeorm';
-import { OAUTH_REDIRECT_COOKIE } from '../server/modules/identity/auth/auth.constants';
-import { GoogleController } from '../server/modules/identity/oauth/controllers/google.controller';
-import { AccountService } from '../server/modules/identity/account/account.service';
-import { AuthService } from '../server/modules/identity/auth/services/auth.service';
-import { TwoFactorGateService } from '../server/modules/identity/auth/services/two-factor-gate.service';
-import { GoogleAuthGuard } from '../server/modules/identity/oauth/guards/google-auth.guard';
-import { User } from '../server/modules/identity/user/user.entity';
-import { UserRole } from '../server/modules/identity/user/user-role.enum';
+import { OAUTH_REDIRECT_COOKIE } from '../server/api/identity/auth/auth.constants';
+import { GoogleController } from '../server/api/identity/oauth/controllers/google.controller';
+import { AccountService } from '../server/api/identity/account/account.service';
+import { AuthService } from '../server/api/identity/auth/services/auth.service';
+import { TwoFactorGateService } from '../server/api/identity/auth/services/two-factor-gate.service';
+import { GoogleAuthGuard } from '../server/api/identity/oauth/guards/google-auth.guard';
+import { User } from '../server/api/identity/user/user.entity';
+import { UserRole } from '../server/api/identity/user/user-role.enum';
 import { Test, TestingModule } from '@nestjs/testing';
 
 const mockGoogleProfile = {
@@ -74,7 +76,7 @@ describe('Identity Google (e2e)', () => {
     accountService = mockAccountService();
     jwtService = mockJwtService();
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [GoogleController],
       providers: [
         { provide: getDataSourceToken(), useValue: { transaction: jest.fn() } },
@@ -90,6 +92,11 @@ describe('Identity Google (e2e)', () => {
           },
         },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/oauth/google', module: TestModule }])],
     })
       .overrideGuard(GoogleAuthGuard)
       .useValue(setUserGuard(mockGoogleProfile))

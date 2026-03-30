@@ -1,20 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, Module, ValidationPipe } from '@nestjs/common';
+import { Reflector, RouterModule } from '@nestjs/core';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Reflector } from '@nestjs/core';
 import request from 'supertest';
-import { ImportController } from '../server/modules/data/import/import.controller';
-import { ImportService } from '../server/modules/data/import/import.service';
-import { ExportController } from '../server/modules/data/export/export.controller';
-import { ExportService } from '../server/modules/data/export/export.service';
-import { ReportController } from '../server/modules/data/report/report.controller';
-import { ReportService } from '../server/modules/data/report/report.service';
-import { Task } from '../server/modules/desk/task/task.entity';
-import { Project } from '../server/modules/desk/project/project.entity';
-import { TaskStatus } from '../server/modules/desk/task/task-status.enum';
-import { RolesGuard } from '../server/modules/identity/rbac/roles.guard';
-import { PermissionsGuard } from '../server/modules/identity/rbac/permissions.guard';
-import { UserRole } from '../server/modules/identity/user/user-role.enum';
+import { ImportController } from '../server/api/data/import/import.controller';
+import { ImportService } from '../server/api/data/import/import.service';
+import { ExportController } from '../server/api/data/export/export.controller';
+import { ExportService } from '../server/api/data/export/export.service';
+import { ReportController } from '../server/api/data/report/report.controller';
+import { ReportService } from '../server/api/data/report/report.service';
+import { Task } from '../server/api/desk/task/task.entity';
+import { Project } from '../server/api/desk/project/project.entity';
+import { TaskStatus } from '../server/api/desk/task/task-status.enum';
+import { RolesGuard } from '../server/api/identity/rbac/roles.guard';
+import { PermissionsGuard } from '../server/api/identity/rbac/permissions.guard';
+import { UserRole } from '../server/api/identity/user/user-role.enum';
 import { mockRepository } from '../server/mocks/db.mock';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -60,17 +60,55 @@ describe('Data (e2e)', () => {
     taskRepo = mockRepository();
     projectRepo = mockRepository();
 
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [ImportController, ExportController, ReportController],
+    @Module({
+      controllers: [ImportController],
       providers: [
         ImportService,
+        RolesGuard,
+        PermissionsGuard,
+        Reflector,
+        { provide: getRepositoryToken(Task), useValue: taskRepo },
+        { provide: getRepositoryToken(Project), useValue: projectRepo },
+      ],
+    })
+    class TestImportModule {}
+
+    @Module({
+      controllers: [ExportController],
+      providers: [
         ExportService,
+        RolesGuard,
+        PermissionsGuard,
+        Reflector,
+        { provide: getRepositoryToken(Task), useValue: taskRepo },
+        { provide: getRepositoryToken(Project), useValue: projectRepo },
+      ],
+    })
+    class TestExportModule {}
+
+    @Module({
+      controllers: [ReportController],
+      providers: [
         ReportService,
         RolesGuard,
         PermissionsGuard,
         Reflector,
         { provide: getRepositoryToken(Task), useValue: taskRepo },
         { provide: getRepositoryToken(Project), useValue: projectRepo },
+      ],
+    })
+    class TestReportModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        TestImportModule,
+        TestExportModule,
+        TestReportModule,
+        RouterModule.register([
+          { path: 'api/data/import', module: TestImportModule },
+          { path: 'api/data/export', module: TestExportModule },
+          { path: 'api/data/report', module: TestReportModule },
+        ]),
       ],
     }).compile();
 

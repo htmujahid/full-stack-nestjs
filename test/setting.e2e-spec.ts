@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, Module, ValidationPipe } from '@nestjs/common';
+import { RouterModule } from '@nestjs/core';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import request from 'supertest';
-import { SettingController } from '../server/modules/core/setting/setting.controller';
-import { SettingService } from '../server/modules/core/setting/setting.service';
-import { Setting, SettingType } from '../server/modules/core/setting/setting.entity';
+import { SettingController } from '../server/api/core/setting/setting.controller';
+import { SettingService } from '../server/api/core/setting/setting.service';
+import { Setting, SettingType } from '../server/api/core/setting/setting.entity';
 import { mockRepository } from '../server/mocks/db.mock';
 
 const makeSetting = (overrides: Partial<Setting> = {}): Setting =>
@@ -27,12 +28,17 @@ describe('Settings (e2e)', () => {
   beforeAll(async () => {
     repo = mockRepository();
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [SettingController],
       providers: [
         SettingService,
         { provide: getRepositoryToken(Setting), useValue: repo },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/settings', module: TestModule }])],
     }).compile();
 
     app = module.createNestApplication();

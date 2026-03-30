@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, Module, ValidationPipe } from '@nestjs/common';
+import { Reflector, RouterModule } from '@nestjs/core';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Reflector } from '@nestjs/core';
 import request from 'supertest';
 import { of } from 'rxjs';
-import { NotificationController } from '../server/modules/misc/notification/notification.controller';
-import { NotificationService } from '../server/modules/misc/notification/notification.service';
-import { NotificationStreamService } from '../server/modules/misc/notification/notification-stream.service';
-import { Notification } from '../server/modules/misc/notification/notification.entity';
-import { TeamMember } from '../server/modules/identity/team/team-member.entity';
-import { RolesGuard } from '../server/modules/identity/rbac/roles.guard';
-import { PermissionsGuard } from '../server/modules/identity/rbac/permissions.guard';
-import { UserRole } from '../server/modules/identity/user/user-role.enum';
+import { NotificationController } from '../server/api/misc/notification/notification.controller';
+import { NotificationService } from '../server/api/misc/notification/notification.service';
+import { NotificationStreamService } from '../server/api/misc/notification/notification-stream.service';
+import { Notification } from '../server/api/misc/notification/notification.entity';
+import { TeamMember } from '../server/api/identity/team/team-member.entity';
+import { RolesGuard } from '../server/api/identity/rbac/roles.guard';
+import { PermissionsGuard } from '../server/api/identity/rbac/permissions.guard';
+import { UserRole } from '../server/api/identity/user/user-role.enum';
 import { mockRepository } from '../server/mocks/db.mock';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ describe('Notification (e2e)', () => {
     notificationRepo = mockRepository();
     teamMemberRepo = mockRepository();
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [NotificationController],
       providers: [
         NotificationService,
@@ -82,6 +82,11 @@ describe('Notification (e2e)', () => {
           useValue: teamMemberRepo,
         },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/notifications', module: TestModule }])],
     }).compile();
 
     app = module.createNestApplication();

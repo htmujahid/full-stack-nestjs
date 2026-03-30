@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ServiceUnavailableException } from '@nestjs/common';
+import { INestApplication, Module, ServiceUnavailableException } from '@nestjs/common';
 import {
   DiskHealthIndicator,
   HttpHealthIndicator,
@@ -7,8 +7,9 @@ import {
   TerminusModule,
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
+import { RouterModule } from '@nestjs/core';
 import request from 'supertest';
-import { HealthController } from '../server/modules/core/health/health.controller';
+import { HealthController } from '../server/api/core/health/health.controller';
 
 const up = (key: string) => ({ [key]: { status: 'up' } });
 
@@ -21,7 +22,7 @@ describe('Health (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       imports: [TerminusModule],
       controllers: [HealthController],
       providers: [
@@ -30,6 +31,11 @@ describe('Health (e2e)', () => {
         { provide: MemoryHealthIndicator, useValue: mockMemory },
         { provide: DiskHealthIndicator, useValue: mockDisk },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/health', module: TestModule }])],
     }).compile();
 
     app = module.createNestApplication();

@@ -2,19 +2,21 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   ExecutionContext,
   INestApplication,
+  Module,
   UnauthorizedException,
   ValidationPipe,
 } from '@nestjs/common';
+import { RouterModule } from '@nestjs/core';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import request from 'supertest';
-import { AuditController } from '../server/modules/core/audit/audit.controller';
-import { AuditService } from '../server/modules/core/audit/audit.service';
-import { AuditLog, AuditAction } from '../server/modules/core/audit/audit.entity';
-import { AUDIT_SINKS } from '../server/modules/core/audit/audit.service';
-import { JwtAccessGuard } from '../server/modules/identity/auth/guards/jwt-access.guard';
-import { RolesGuard } from '../server/modules/identity/rbac/roles.guard';
-import { PermissionsGuard } from '../server/modules/identity/rbac/permissions.guard';
-import { UserRole } from '../server/modules/identity/user/user-role.enum';
+import { AuditController } from '../server/api/core/audit/audit.controller';
+import { AuditService } from '../server/api/core/audit/audit.service';
+import { AuditLog, AuditAction } from '../server/api/core/audit/audit.entity';
+import { AUDIT_SINKS } from '../server/api/core/audit/audit.service';
+import { JwtAccessGuard } from '../server/api/identity/auth/guards/jwt-access.guard';
+import { RolesGuard } from '../server/api/identity/rbac/roles.guard';
+import { PermissionsGuard } from '../server/api/identity/rbac/permissions.guard';
+import { UserRole } from '../server/api/identity/user/user-role.enum';
 import { mockRepository } from '../server/mocks/db.mock';
 import { Reflector } from '@nestjs/core';
 
@@ -74,7 +76,7 @@ describe('Audit (e2e)', () => {
     qbMock = createQueryBuilderMock();
     auditRepo.createQueryBuilder = jest.fn().mockReturnValue(qbMock);
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [AuditController],
       providers: [
         AuditService,
@@ -84,6 +86,11 @@ describe('Audit (e2e)', () => {
         { provide: getRepositoryToken(AuditLog), useValue: auditRepo },
         { provide: AUDIT_SINKS, useValue: [] },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/audit', module: TestModule }])],
     })
       .overrideGuard(JwtAccessGuard)
       .useValue(testAuthGuard)

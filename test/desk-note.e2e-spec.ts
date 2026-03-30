@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, Module, ValidationPipe } from '@nestjs/common';
+import { Reflector, RouterModule } from '@nestjs/core';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Reflector } from '@nestjs/core';
 import request from 'supertest';
-import { NoteController } from '../server/modules/desk/note/note.controller';
-import { NoteService } from '../server/modules/desk/note/note.service';
-import { Note } from '../server/modules/desk/note/note.entity';
-import { ProjectService } from '../server/modules/desk/project/project.service';
-import { Project } from '../server/modules/desk/project/project.entity';
-import { AuditService } from '../server/modules/core/audit/audit.service';
-import { UserRole } from '../server/modules/identity/user/user-role.enum';
-import { RolesGuard } from '../server/modules/identity/rbac/roles.guard';
-import { PermissionsGuard } from '../server/modules/identity/rbac/permissions.guard';
+import { NoteController } from '../server/api/desk/note/note.controller';
+import { NoteService } from '../server/api/desk/note/note.service';
+import { Note } from '../server/api/desk/note/note.entity';
+import { ProjectService } from '../server/api/desk/project/project.service';
+import { Project } from '../server/api/desk/project/project.entity';
+import { AuditService } from '../server/api/core/audit/audit.service';
+import { UserRole } from '../server/api/identity/user/user-role.enum';
+import { RolesGuard } from '../server/api/identity/rbac/roles.guard';
+import { PermissionsGuard } from '../server/api/identity/rbac/permissions.guard';
 import { mockRepository } from '../server/mocks/db.mock';
 
 const TEST_USER_ID = '550e8400-e29b-41d4-a716-446655440000';
@@ -72,7 +72,7 @@ describe('Notes (e2e)', () => {
 
     projectRepo = Object.assign(mockRepository(), { findOneBy: jest.fn() });
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [NoteController],
       providers: [
         NoteService,
@@ -93,6 +93,11 @@ describe('Notes (e2e)', () => {
           },
         },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/notes', module: TestModule }])],
     }).compile();
 
     app = module.createNestApplication();

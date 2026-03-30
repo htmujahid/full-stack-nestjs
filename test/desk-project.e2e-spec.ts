@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, Module, ValidationPipe } from '@nestjs/common';
+import { Reflector, RouterModule } from '@nestjs/core';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Reflector } from '@nestjs/core';
 import request from 'supertest';
-import { ProjectController } from '../server/modules/desk/project/project.controller';
-import { ProjectService } from '../server/modules/desk/project/project.service';
-import { Project } from '../server/modules/desk/project/project.entity';
-import { AuditService } from '../server/modules/core/audit/audit.service';
-import { UserRole } from '../server/modules/identity/user/user-role.enum';
-import { RolesGuard } from '../server/modules/identity/rbac/roles.guard';
-import { PermissionsGuard } from '../server/modules/identity/rbac/permissions.guard';
+import { ProjectController } from '../server/api/desk/project/project.controller';
+import { ProjectService } from '../server/api/desk/project/project.service';
+import { Project } from '../server/api/desk/project/project.entity';
+import { AuditService } from '../server/api/core/audit/audit.service';
+import { UserRole } from '../server/api/identity/user/user-role.enum';
+import { RolesGuard } from '../server/api/identity/rbac/roles.guard';
+import { PermissionsGuard } from '../server/api/identity/rbac/permissions.guard';
 import { mockRepository } from '../server/mocks/db.mock';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ describe('Projects (e2e)', () => {
     qbMock = createQueryBuilderMock();
     projectRepo.createQueryBuilder.mockReturnValue(qbMock);
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [ProjectController],
       providers: [
         ProjectService,
@@ -78,6 +78,11 @@ describe('Projects (e2e)', () => {
           },
         },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/projects', module: TestModule }])],
     }).compile();
 
     app = module.createNestApplication();

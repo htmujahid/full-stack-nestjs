@@ -2,24 +2,26 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   ExecutionContext,
   INestApplication,
+  Module,
   ValidationPipe,
 } from '@nestjs/common';
+import { RouterModule } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import request from 'supertest';
-import { AuthController } from '../server/modules/identity/auth/controllers/auth.controller';
-import { PasswordController } from '../server/modules/identity/auth/controllers/password.controller';
-import { EmailController } from '../server/modules/identity/auth/controllers/email.controller';
-import { PhoneController } from '../server/modules/identity/auth/controllers/phone.controller';
-import { AuthService } from '../server/modules/identity/auth/services/auth.service';
-import { PasswordService } from '../server/modules/identity/auth/services/password.service';
-import { EmailService } from '../server/modules/identity/auth/services/email.service';
-import { PhoneService } from '../server/modules/identity/auth/services/phone.service';
-import { TwoFactorGateService } from '../server/modules/identity/auth/services/two-factor-gate.service';
-import { JwtRefreshGuard } from '../server/modules/identity/auth/guards/jwt-refresh.guard';
-import { PasswordAuthGuard } from '../server/modules/identity/auth/guards/password-auth.guard';
-import { JwtFreshGuard } from '../server/modules/identity/auth/guards/jwt-fresh.guard';
-import { User } from '../server/modules/identity/user/user.entity';
-import { UserRole } from '../server/modules/identity/user/user-role.enum';
+import { AuthController } from '../server/api/identity/auth/controllers/auth.controller';
+import { PasswordController } from '../server/api/identity/auth/controllers/password.controller';
+import { EmailController } from '../server/api/identity/auth/controllers/email.controller';
+import { PhoneController } from '../server/api/identity/auth/controllers/phone.controller';
+import { AuthService } from '../server/api/identity/auth/services/auth.service';
+import { PasswordService } from '../server/api/identity/auth/services/password.service';
+import { EmailService } from '../server/api/identity/auth/services/email.service';
+import { PhoneService } from '../server/api/identity/auth/services/phone.service';
+import { TwoFactorGateService } from '../server/api/identity/auth/services/two-factor-gate.service';
+import { JwtRefreshGuard } from '../server/api/identity/auth/guards/jwt-refresh.guard';
+import { PasswordAuthGuard } from '../server/api/identity/auth/guards/password-auth.guard';
+import { JwtFreshGuard } from '../server/api/identity/auth/guards/jwt-fresh.guard';
+import { User } from '../server/api/identity/user/user.entity';
+import { UserRole } from '../server/api/identity/user/user-role.enum';
 
 const throttlerGuard = { canActivate: () => true };
 
@@ -114,7 +116,7 @@ describe('Identity Auth (e2e)', () => {
     phoneService = mockPhoneService();
     twoFactorGate = mockTwoFactorGateService();
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [
         AuthController,
         PasswordController,
@@ -128,6 +130,11 @@ describe('Identity Auth (e2e)', () => {
         { provide: PhoneService, useValue: phoneService },
         { provide: TwoFactorGateService, useValue: twoFactorGate },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/auth', module: TestModule }])],
     })
       .overrideGuard(ThrottlerGuard)
       .useValue(throttlerGuard)

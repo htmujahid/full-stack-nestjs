@@ -1,4 +1,4 @@
-jest.mock('../server/modules/identity/2fa/two-factor.service', () => ({
+jest.mock('../server/api/identity/2fa/two-factor.service', () => ({
   TwoFactorService: class {},
 }));
 
@@ -6,17 +6,19 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   ExecutionContext,
   INestApplication,
+  Module,
   ValidationPipe,
 } from '@nestjs/common';
+import { RouterModule } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import request from 'supertest';
-import { TwoFactorController } from '../server/modules/identity/2fa/two-factor.controller';
-import { TwoFactorService } from '../server/modules/identity/2fa/two-factor.service';
-import { TwoFactorGateService } from '../server/modules/identity/auth/services/two-factor-gate.service';
-import { JwtAccessGuard } from '../server/modules/identity/auth/guards/jwt-access.guard';
-import { JwtFreshGuard } from '../server/modules/identity/auth/guards/jwt-fresh.guard';
-import { TwoFactorPendingGuard } from '../server/modules/identity/2fa/guards/two-factor-pending.guard';
-import { UserRole } from '../server/modules/identity/user/user-role.enum';
+import { TwoFactorController } from '../server/api/identity/2fa/two-factor.controller';
+import { TwoFactorService } from '../server/api/identity/2fa/two-factor.service';
+import { TwoFactorGateService } from '../server/api/identity/auth/services/two-factor-gate.service';
+import { JwtAccessGuard } from '../server/api/identity/auth/guards/jwt-access.guard';
+import { JwtFreshGuard } from '../server/api/identity/auth/guards/jwt-fresh.guard';
+import { TwoFactorPendingGuard } from '../server/api/identity/2fa/guards/two-factor-pending.guard';
+import { UserRole } from '../server/api/identity/user/user-role.enum';
 
 const throttlerGuard = { canActivate: () => true };
 
@@ -61,12 +63,17 @@ describe('Two-Factor (e2e)', () => {
     twoFactorService = mockTwoFactorService();
     twoFactorGate = mockTwoFactorGateService();
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [TwoFactorController],
       providers: [
         { provide: TwoFactorService, useValue: twoFactorService },
         { provide: TwoFactorGateService, useValue: twoFactorGate },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/two-factor', module: TestModule }])],
     })
       .overrideGuard(ThrottlerGuard)
       .useValue(throttlerGuard)

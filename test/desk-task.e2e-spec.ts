@@ -1,18 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, Module, ValidationPipe } from '@nestjs/common';
+import { Reflector, RouterModule } from '@nestjs/core';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Reflector } from '@nestjs/core';
 import request from 'supertest';
-import { TaskController } from '../server/modules/desk/task/task.controller';
-import { TaskService } from '../server/modules/desk/task/task.service';
-import { Task } from '../server/modules/desk/task/task.entity';
-import { ProjectService } from '../server/modules/desk/project/project.service';
-import { Project } from '../server/modules/desk/project/project.entity';
-import { AuditService } from '../server/modules/core/audit/audit.service';
-import { TaskStatus } from '../server/modules/desk/task/task-status.enum';
-import { UserRole } from '../server/modules/identity/user/user-role.enum';
-import { RolesGuard } from '../server/modules/identity/rbac/roles.guard';
-import { PermissionsGuard } from '../server/modules/identity/rbac/permissions.guard';
+import { TaskController } from '../server/api/desk/task/task.controller';
+import { TaskService } from '../server/api/desk/task/task.service';
+import { Task } from '../server/api/desk/task/task.entity';
+import { ProjectService } from '../server/api/desk/project/project.service';
+import { Project } from '../server/api/desk/project/project.entity';
+import { AuditService } from '../server/api/core/audit/audit.service';
+import { TaskStatus } from '../server/api/desk/task/task-status.enum';
+import { UserRole } from '../server/api/identity/user/user-role.enum';
+import { RolesGuard } from '../server/api/identity/rbac/roles.guard';
+import { PermissionsGuard } from '../server/api/identity/rbac/permissions.guard';
 import { mockRepository } from '../server/mocks/db.mock';
 
 const TEST_USER_ID = '550e8400-e29b-41d4-a716-446655440000';
@@ -74,7 +74,7 @@ describe('Tasks (e2e)', () => {
 
     projectRepo = Object.assign(mockRepository(), { findOneBy: jest.fn() });
 
-    const module: TestingModule = await Test.createTestingModule({
+    @Module({
       controllers: [TaskController],
       providers: [
         TaskService,
@@ -95,6 +95,11 @@ describe('Tasks (e2e)', () => {
           },
         },
       ],
+    })
+    class TestModule {}
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TestModule, RouterModule.register([{ path: 'api/tasks', module: TestModule }])],
     }).compile();
 
     app = module.createNestApplication();
