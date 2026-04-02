@@ -8,8 +8,8 @@ import { RouterModule } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ViteMiddleware } from './common/middlewares/vite.middleware';
-import { AppConfigModule } from './config.module';
-import { DatabaseModule } from './database/database.module';
+import { AppConfigModule } from './common/config/config.module';
+import { DatabaseModule } from './common/database/database.module';
 import { routes } from './routes';
 
 @Module({

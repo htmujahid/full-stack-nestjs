@@ -8,7 +8,6 @@ import { RefreshSession } from '../entities/refresh-session.entity';
 import { mockDataSource, mockRepository } from '../../../../mocks/db.mock';
 import { UserRole } from '../../user/user-role.enum';
 import {
-  ACCESS_EXPIRES_MS,
   REFRESH_EXPIRES_MS,
   REFRESH_REMEMBER_ME_EXPIRES_MS,
 } from '../auth.constants';
@@ -113,7 +112,6 @@ describe('AuthService', () => {
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
         { sub: 'user-uuid', role: UserRole.Member, auth_method: 'password' },
-        expect.objectContaining({ expiresIn: ACCESS_EXPIRES_MS / 1000 }),
       );
     });
 
@@ -322,7 +320,6 @@ describe('AuthService', () => {
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
         { sub: 'user-uuid', role: UserRole.Member, auth_method: 'refresh' },
-        expect.objectContaining({ expiresIn: ACCESS_EXPIRES_MS / 1000 }),
       );
     });
 
