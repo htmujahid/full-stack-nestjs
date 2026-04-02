@@ -101,9 +101,7 @@ describe('AuthService', () => {
       sessionRepo.save.mockResolvedValue(makeSession());
       dataSource.getRepository.mockReturnValue(sessionRepo);
 
-      configService.getOrThrow
-        .mockReturnValueOnce('access-secret')
-        .mockReturnValueOnce('refresh-secret');
+      configService.getOrThrow.mockReturnValueOnce('refresh-secret');
 
       await service.createAuthSession(
         'user-uuid',
@@ -115,7 +113,7 @@ describe('AuthService', () => {
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
         { sub: 'user-uuid', role: UserRole.Member, auth_method: 'password' },
-        expect.objectContaining({ secret: 'access-secret' }),
+        expect.objectContaining({ expiresIn: ACCESS_EXPIRES_MS / 1000 }),
       );
     });
 
@@ -125,9 +123,7 @@ describe('AuthService', () => {
       sessionRepo.save.mockResolvedValue(makeSession());
       dataSource.getRepository.mockReturnValue(sessionRepo);
 
-      configService.getOrThrow
-        .mockReturnValueOnce('access-secret')
-        .mockReturnValueOnce('refresh-secret');
+      configService.getOrThrow.mockReturnValueOnce('refresh-secret');
 
       await service.createAuthSession(
         'user-uuid',
@@ -312,9 +308,7 @@ describe('AuthService', () => {
       (verifyToken as jest.Mock).mockReturnValue(true);
 
       configService.getOrThrow
-        .mockReturnValueOnce('access-secret')
         .mockReturnValueOnce('refresh-secret')
-        .mockReturnValueOnce('access-secret')
         .mockReturnValueOnce('refresh-secret');
 
       await service.refreshTokens(
@@ -328,7 +322,7 @@ describe('AuthService', () => {
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
         { sub: 'user-uuid', role: UserRole.Member, auth_method: 'refresh' },
-        expect.objectContaining({ secret: 'access-secret' }),
+        expect.objectContaining({ expiresIn: ACCESS_EXPIRES_MS / 1000 }),
       );
     });
 

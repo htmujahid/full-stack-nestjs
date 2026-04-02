@@ -5,7 +5,6 @@ import { randomUUID } from 'crypto';
 import { DataSource } from 'typeorm';
 import { RefreshSession } from '../entities/refresh-session.entity';
 import {
-  ACCESS_EXPIRES_MS,
   REFRESH_EXPIRES_MS,
   REFRESH_REMEMBER_ME_EXPIRES_MS,
 } from '../auth.constants';
@@ -90,8 +89,6 @@ export class AuthService {
     rememberMe: boolean,
     authMethod: AuthMethod,
   ): Promise<TokenPair> {
-    const accessSecret =
-      this.configService.getOrThrow<string>('auth.accessSecret');
     const refreshSecret =
       this.configService.getOrThrow<string>('auth.refreshSecret');
 
@@ -104,7 +101,6 @@ export class AuthService {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         { sub: userId, role, auth_method: authMethod },
-        { secret: accessSecret, expiresIn: ACCESS_EXPIRES_MS / 1000 },
       ),
       this.jwtService.signAsync(
         { sub: userId, role, sid: sessionId, fid: familyId },

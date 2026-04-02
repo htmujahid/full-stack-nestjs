@@ -4,17 +4,13 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
 import { TFA_PENDING_COOKIE } from '../../auth/auth.constants';
 
 @Injectable()
 export class TwoFactorPendingGuard implements CanActivate {
-  constructor(
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly jwtService: JwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context
@@ -23,10 +19,9 @@ export class TwoFactorPendingGuard implements CanActivate {
     const token = (req.cookies as Record<string, string>)?.[TFA_PENDING_COOKIE];
     if (!token) throw new UnauthorizedException('No pending 2FA session');
 
-    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
     let payload: { sub?: string; role?: string; type?: string };
     try {
-      payload = await this.jwtService.verifyAsync(token, { secret });
+      payload = await this.jwtService.verifyAsync(token);
     } catch {
       throw new UnauthorizedException('Invalid or expired 2FA session');
     }

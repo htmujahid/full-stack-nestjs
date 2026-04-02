@@ -1,5 +1,4 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { TwoFactorPendingGuard } from './two-factor-pending.guard';
 import { TFA_PENDING_COOKIE } from '../../auth/auth.constants';
@@ -17,16 +16,12 @@ const makeContext = (
 describe('TwoFactorPendingGuard', () => {
   let guard: TwoFactorPendingGuard;
   let jwtService: jest.Mocked<JwtService>;
-  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
     jwtService = {
       verifyAsync: jest.fn(),
     } as unknown as jest.Mocked<JwtService>;
-    configService = {
-      getOrThrow: jest.fn().mockReturnValue('test-secret'),
-    } as unknown as jest.Mocked<ConfigService>;
-    guard = new TwoFactorPendingGuard(jwtService, configService);
+    guard = new TwoFactorPendingGuard(jwtService);
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -117,7 +112,7 @@ describe('TwoFactorPendingGuard', () => {
       expect(req.user).toEqual({ userId: 'user-uuid', role: 'member' });
     });
 
-    it('uses auth.accessSecret from configService', async () => {
+    it('calls verifyAsync with only the token', async () => {
       const { ctx } = makeContext({ [TFA_PENDING_COOKIE]: 'valid-token' });
       jwtService.verifyAsync.mockResolvedValue({
         type: '2fa_pending',
@@ -127,12 +122,7 @@ describe('TwoFactorPendingGuard', () => {
 
       await guard.canActivate(ctx);
 
-      expect(configService.getOrThrow).toHaveBeenCalledWith(
-        'auth.accessSecret',
-      );
-      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-token', {
-        secret: 'test-secret',
-      });
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-token');
     });
   });
 });

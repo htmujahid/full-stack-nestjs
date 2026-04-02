@@ -41,10 +41,9 @@ export class EmailService {
 
     if (!user) return; // prevent enumeration
 
-    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
     const token = await this.jwtService.signAsync(
       { sub: user.id, email: normalizedEmail, type: MAGIC_LINK_TYPE },
-      { secret, expiresIn: MAGIC_LINK_EXPIRES_MS / 1000 },
+      { expiresIn: MAGIC_LINK_EXPIRES_MS / 1000 },
     );
 
     const encodedCallback = encodeURIComponent(callbackURL ?? '/');
@@ -67,11 +66,9 @@ export class EmailService {
   ): Promise<
     { ok: true; user: User; tokens: TokenPair } | { ok: false; error: string }
   > {
-    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
-
     let payload: { sub?: string; email?: string; type?: string };
     try {
-      payload = await this.jwtService.verifyAsync(token, { secret });
+      payload = await this.jwtService.verifyAsync(token);
     } catch {
       return { ok: false, error: 'invalid_token' };
     }
@@ -107,11 +104,9 @@ export class EmailService {
   ): Promise<
     { ok: true; user: User; tokens: TokenPair } | { ok: false; error: string }
   > {
-    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
-
     let payload: { sub?: string; email?: string; type?: string };
     try {
-      payload = await this.jwtService.verifyAsync(token, { secret });
+      payload = await this.jwtService.verifyAsync(token);
     } catch {
       return { ok: false, error: 'invalid_token' };
     }
@@ -171,14 +166,13 @@ export class EmailService {
       .findOne({ where: { email: normalizedEmail } });
     if (existing) throw new ConflictException('Email is already in use');
 
-    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
     const token = await this.jwtService.signAsync(
       {
         sub: userId,
         newEmail: normalizedEmail,
         type: EMAIL_CHANGE_VERIFICATION_TYPE,
       },
-      { secret, expiresIn: EMAIL_CHANGE_EXPIRES_MS / 1000 },
+      { expiresIn: EMAIL_CHANGE_EXPIRES_MS / 1000 },
     );
 
     const encodedCallback = encodeURIComponent(callbackURL ?? '/');
@@ -197,11 +191,9 @@ export class EmailService {
   async verifyEmailChange(
     token: string,
   ): Promise<{ ok: true } | { ok: false; error: string }> {
-    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
-
     let payload: { sub?: string; newEmail?: string; type?: string };
     try {
-      payload = await this.jwtService.verifyAsync(token, { secret });
+      payload = await this.jwtService.verifyAsync(token);
     } catch {
       return { ok: false, error: 'invalid_token' };
     }
@@ -238,10 +230,9 @@ export class EmailService {
     callbackURL?: string,
     errorURL?: string,
   ): Promise<void> {
-    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
     const token = await this.jwtService.signAsync(
       { sub: id, email, type: EMAIL_VERIFICATION_TYPE },
-      { secret, expiresIn: VERIFICATION_EXPIRES_MS / 1000 },
+      { expiresIn: VERIFICATION_EXPIRES_MS / 1000 },
     );
 
     const encodedCallback = encodeURIComponent(callbackURL ?? '/');

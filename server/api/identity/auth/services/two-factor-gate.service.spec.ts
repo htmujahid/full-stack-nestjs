@@ -71,13 +71,11 @@ describe('TwoFactorGateService', () => {
 
   describe('createPendingToken', () => {
     it('signs JWT with sub, role and type=2fa_pending payload', async () => {
-      configService.getOrThrow.mockReturnValue('my-access-secret');
-
       await service.createPendingToken('user-uuid', UserRole.Member);
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
         { sub: 'user-uuid', role: UserRole.Member, type: '2fa_pending' },
-        expect.objectContaining({ secret: 'my-access-secret' }),
+        expect.objectContaining({ expiresIn: TFA_PENDING_EXPIRES_MS / 1000 }),
       );
     });
 

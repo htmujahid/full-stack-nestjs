@@ -139,15 +139,13 @@ describe('EmailService', () => {
       );
       dataSource.getRepository.mockReturnValue(userRepo);
 
-      configService.getOrThrow
-        .mockReturnValueOnce('my-access-secret')
-        .mockReturnValueOnce('http://localhost:3000');
+      configService.getOrThrow.mockReturnValueOnce('http://localhost:3000');
 
       await service.sendSignInLink('TEST@EXAMPLE.COM');
 
       expect(jwtService.signAsync).toHaveBeenCalledWith(
         { sub: 'user-uuid', email: 'test@example.com', type: MAGIC_LINK_TYPE },
-        expect.objectContaining({ secret: 'my-access-secret' }),
+        expect.any(Object),
       );
     });
 
@@ -156,9 +154,7 @@ describe('EmailService', () => {
       userRepo.findOne.mockResolvedValue(makeUser());
       dataSource.getRepository.mockReturnValue(userRepo);
 
-      configService.getOrThrow
-        .mockReturnValueOnce('my-secret')
-        .mockReturnValueOnce('http://localhost:3000');
+      configService.getOrThrow.mockReturnValueOnce('http://localhost:3000');
 
       await service.sendSignInLink(
         'test@example.com',
@@ -181,9 +177,7 @@ describe('EmailService', () => {
       userRepo.findOne.mockResolvedValue(makeUser());
       dataSource.getRepository.mockReturnValue(userRepo);
 
-      configService.getOrThrow
-        .mockReturnValueOnce('my-secret')
-        .mockReturnValueOnce('http://localhost:3000');
+      configService.getOrThrow.mockReturnValueOnce('http://localhost:3000');
 
       await service.sendSignInLink('test@example.com');
 
@@ -526,9 +520,7 @@ describe('EmailService', () => {
       userRepo.findOne.mockResolvedValue(null);
       dataSource.getRepository.mockReturnValue(userRepo);
 
-      configService.getOrThrow
-        .mockReturnValueOnce('change-secret')
-        .mockReturnValueOnce('http://localhost:3000');
+      configService.getOrThrow.mockReturnValueOnce('http://localhost:3000');
 
       await service.initiateEmailChange('user-uuid', 'NEW@EXAMPLE.COM');
 
@@ -538,7 +530,7 @@ describe('EmailService', () => {
           newEmail: 'new@example.com',
           type: EMAIL_CHANGE_VERIFICATION_TYPE,
         },
-        expect.objectContaining({ secret: 'change-secret' }),
+        expect.any(Object),
       );
     });
   });
@@ -640,9 +632,7 @@ describe('EmailService', () => {
 
   describe('sendVerificationEmail', () => {
     it('sends a verification email with correct subject', async () => {
-      configService.getOrThrow
-        .mockReturnValueOnce('my-secret')
-        .mockReturnValueOnce('http://localhost:3000');
+      configService.getOrThrow.mockReturnValueOnce('http://localhost:3000');
 
       await service.sendVerificationEmail('user-uuid', 'test@example.com');
 
@@ -655,9 +645,7 @@ describe('EmailService', () => {
     });
 
     it('signs JWT with EMAIL_VERIFICATION_TYPE payload', async () => {
-      configService.getOrThrow
-        .mockReturnValueOnce('my-secret')
-        .mockReturnValueOnce('http://localhost:3000');
+      configService.getOrThrow.mockReturnValueOnce('http://localhost:3000');
 
       await service.sendVerificationEmail('user-uuid', 'test@example.com');
 
@@ -667,14 +655,12 @@ describe('EmailService', () => {
           email: 'test@example.com',
           type: EMAIL_VERIFICATION_TYPE,
         },
-        expect.objectContaining({ secret: 'my-secret' }),
+        expect.any(Object),
       );
     });
 
     it('builds the verify URL with the correct callback', async () => {
-      configService.getOrThrow
-        .mockReturnValueOnce('my-secret')
-        .mockReturnValueOnce('http://localhost:3000');
+      configService.getOrThrow.mockReturnValueOnce('http://localhost:3000');
 
       await service.sendVerificationEmail(
         'user-uuid',
@@ -694,9 +680,7 @@ describe('EmailService', () => {
     });
 
     it('defaults callbackURL to "/" when not provided', async () => {
-      configService.getOrThrow
-        .mockReturnValueOnce('my-secret')
-        .mockReturnValueOnce('http://localhost:3000');
+      configService.getOrThrow.mockReturnValueOnce('http://localhost:3000');
 
       await service.sendVerificationEmail('user-uuid', 'test@example.com');
 

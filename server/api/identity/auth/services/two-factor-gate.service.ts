@@ -22,10 +22,9 @@ export class TwoFactorGateService {
   ) {}
 
   async createPendingToken(userId: string, role: UserRole): Promise<string> {
-    const secret = this.configService.getOrThrow<string>('auth.accessSecret');
     return this.jwtService.signAsync(
       { sub: userId, role, type: '2fa_pending' },
-      { secret, expiresIn: TFA_PENDING_EXPIRES_MS / 1000 },
+      { expiresIn: TFA_PENDING_EXPIRES_MS / 1000 },
     );
   }
 
