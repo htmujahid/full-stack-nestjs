@@ -7,7 +7,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { APP_GUARD, Reflector, RouterModule } from '@nestjs/core';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 import request from 'supertest';
 import { UserController } from '../server/api/identity/user/user.controller';
 import { UserService } from '../server/api/identity/user/user.service';
@@ -15,7 +15,7 @@ import { User } from '../server/api/identity/user/user.entity';
 import { UserRole } from '../server/api/identity/user/user-role.enum';
 import { RolesGuard } from '../server/api/identity/rbac/roles.guard';
 import { PermissionsGuard } from '../server/api/identity/rbac/permissions.guard';
-import { mockRepository } from '../server/mocks/db.mock';
+import { mockDataSource, mockRepository } from '../server/mocks/db.mock';
 
 const USER_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 const OTHER_ID = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
@@ -62,6 +62,7 @@ describe('User (e2e)', () => {
         PermissionsGuard,
         Reflector,
         { provide: getRepositoryToken(User), useValue: repo },
+        { provide: getDataSourceToken(), useValue: mockDataSource() },
         { provide: APP_GUARD, useValue: testAuthGuard },
       ],
     })

@@ -7,12 +7,12 @@ import { RouterModule } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
-import { getDataSourceToken } from '@nestjs/typeorm';
 import { OAUTH_REDIRECT_COOKIE } from '../server/api/identity/auth/auth.constants';
 import { GoogleController } from '../server/api/identity/oauth/controllers/google.controller';
 import { AccountService } from '../server/api/identity/account/account.service';
 import { AuthService } from '../server/api/identity/auth/services/auth.service';
 import { TwoFactorGateService } from '../server/api/identity/auth/services/two-factor-gate.service';
+import { UserService } from '../server/api/identity/user/user.service';
 import { GoogleAuthGuard } from '../server/api/identity/oauth/guards/google-auth.guard';
 import { User } from '../server/api/identity/user/user.entity';
 import { UserRole } from '../server/api/identity/user/user-role.enum';
@@ -55,7 +55,7 @@ const makeUser = (overrides: Partial<User> = {}): User =>
 
 describe('Identity Google (e2e)', () => {
   let app: INestApplication;
-  let controller: GoogleController;
+  let userService: { findOrCreateUser: jest.Mock };
   let authService: { createAuthSession: jest.Mock };
   let accountService: ReturnType<typeof mockAccountService>;
   let jwtService: ReturnType<typeof mockJwtService>;
@@ -72,6 +72,7 @@ describe('Identity Google (e2e)', () => {
   }
 
   beforeAll(async () => {
+    userService = { findOrCreateUser: jest.fn() };
     authService = { createAuthSession: jest.fn() };
     accountService = mockAccountService();
     jwtService = mockJwtService();
@@ -79,7 +80,7 @@ describe('Identity Google (e2e)', () => {
     @Module({
       controllers: [GoogleController],
       providers: [
-        { provide: getDataSourceToken(), useValue: { transaction: jest.fn() } },
+        { provide: UserService, useValue: userService },
         { provide: AuthService, useValue: authService },
         { provide: AccountService, useValue: accountService },
         { provide: JwtService, useValue: jwtService },
@@ -105,7 +106,6 @@ describe('Identity Google (e2e)', () => {
     app = module.createNestApplication();
     app.use(cookieParser());
     await app.init();
-    controller = module.get(GoogleController);
   });
 
   afterAll(() => app.close());
@@ -128,7 +128,7 @@ describe('Identity Google (e2e)', () => {
   describe('GET /api/oauth/google/callback', () => {
     it('redirects to / on successful sign-in', async () => {
       const user = makeUser();
-      jest.spyOn(controller, 'findOrCreateUser').mockResolvedValue(user);
+      userService.findOrCreateUser.mockResolvedValue(user);
       authService.createAuthSession.mockResolvedValue({
         accessToken: 'at',
         refreshToken: 'rt',
@@ -144,7 +144,7 @@ describe('Identity Google (e2e)', () => {
 
     it('redirects to OAUTH_REDIRECT_COOKIE path on successful sign-in', async () => {
       const user = makeUser();
-      jest.spyOn(controller, 'findOrCreateUser').mockResolvedValue(user);
+      userService.findOrCreateUser.mockResolvedValue(user);
       authService.createAuthSession.mockResolvedValue({
         accessToken: 'at',
         refreshToken: 'rt',
@@ -161,7 +161,7 @@ describe('Identity Google (e2e)', () => {
 
     it('clears oauth_redirect cookie after sign-in', async () => {
       const user = makeUser();
-      jest.spyOn(controller, 'findOrCreateUser').mockResolvedValue(user);
+      userService.findOrCreateUser.mockResolvedValue(user);
       authService.createAuthSession.mockResolvedValue({
         accessToken: 'at',
         refreshToken: 'rt',

@@ -3,13 +3,24 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, In, Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, ILike, In, Repository } from 'typeorm';
 import { User } from './user.entity';
+import { Account } from '../account/account.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { FindUsersDto } from './dto/find-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from './user-role.enum';
+
+export type OAuthProfile = {
+  providerId: string;
+  accountId: string;
+  email: string;
+  name: string;
+  image: string | null;
+  accessToken: string;
+  refreshToken: string | null;
+};
 
 export type UsersPage = {
   data: User[];
@@ -23,7 +34,64 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
+
+  async findOrCreateUser(profile: OAuthProfile): Promise<User> {
+    return this.dataSource.transaction(async (tx) => {
+      const userRepo = tx.getRepository(User);
+      const accountRepo = tx.getRepository(Account);
+
+      const existingAccount = await accountRepo.findOne({
+        where: { providerId: profile.providerId, accountId: profile.accountId },
+      });
+
+      let user: User;
+
+      if (existingAccount) {
+        user = await userRepo.findOneOrFail({
+          where: { id: existingAccount.userId },
+        });
+        await accountRepo.update(existingAccount.id, {
+          accessToken: profile.accessToken,
+          refreshToken: profile.refreshToken,
+        });
+      } else {
+        const existingUser = await userRepo.findOne({
+          where: { email: profile.email.toLowerCase() },
+        });
+
+        if (existingUser) {
+          user = existingUser;
+          if (!user.emailVerified) {
+            await userRepo.update(user.id, { emailVerified: true });
+            user.emailVerified = true;
+          }
+        } else {
+          user = await userRepo.save(
+            userRepo.create({
+              name: profile.name,
+              email: profile.email.toLowerCase(),
+              image: profile.image,
+              emailVerified: true,
+            }),
+          );
+        }
+
+        await accountRepo.save(
+          accountRepo.create({
+            userId: user.id,
+            providerId: profile.providerId,
+            accountId: profile.accountId,
+            accessToken: profile.accessToken,
+            refreshToken: profile.refreshToken,
+          }),
+        );
+      }
+
+      return user;
+    });
+  }
 
   async findAll(dto: FindUsersDto): Promise<UsersPage> {
     const page = dto.page ?? 1;
