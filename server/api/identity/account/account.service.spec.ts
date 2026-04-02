@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { AccountService, type LinkAccountData } from './account.service';
+import { AccountService } from './account.service';
+import type { LinkAccountData } from './types';
 import { Account } from './account.entity';
 import { mockRepository } from '../../../mocks/db.mock';
 

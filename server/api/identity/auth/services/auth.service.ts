@@ -11,19 +11,7 @@ import {
 } from '../auth.constants';
 import { hashToken, verifyToken } from '../crypto.util';
 import { UserRole } from '../../user/user-role.enum';
-
-export type AuthMethod = 'password' | 'phone' | 'google' | 'refresh';
-
-export interface TokenPair {
-  accessToken: string;
-  refreshToken: string;
-  refreshExpiresAt: Date;
-}
-
-export interface RequestContext {
-  ip: string | null;
-  userAgent: string | null;
-}
+import type { AuthMethod, RequestContext, TokenPair } from '../types';
 
 @Injectable()
 export class AuthService {

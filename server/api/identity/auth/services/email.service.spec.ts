@@ -15,7 +15,7 @@ import {
   EMAIL_VERIFICATION_TYPE,
   MAGIC_LINK_TYPE,
 } from '../auth.constants';
-import type { TokenPair } from './auth.service';
+import type { TokenPair } from '../types';
 
 const NOW = 2_000_000_000_000;
 
@@ -317,7 +317,7 @@ describe('EmailService', () => {
         UserRole.Member,
         false,
         ctx,
-        'password',
+        'email',
       );
     });
   });

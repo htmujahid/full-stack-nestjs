@@ -1,8 +1,6 @@
 import { ConfigService } from '@nestjs/config';
-import {
-  JwtAccessStrategy,
-  type JwtAccessPayload,
-} from './jwt-access.strategy';
+import { JwtAccessStrategy } from './jwt-access.strategy';
+import type { JwtAccessPayload } from '../types';
 import { UserRole } from '../../user/user-role.enum';
 
 const makeStrategy = (): JwtAccessStrategy => {

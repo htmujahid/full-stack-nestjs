@@ -11,23 +11,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { FindUsersDto } from './dto/find-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from './user-role.enum';
-
-export type OAuthProfile = {
-  providerId: string;
-  accountId: string;
-  email: string;
-  name: string;
-  image: string | null;
-  accessToken: string;
-  refreshToken: string | null;
-};
-
-export type UsersPage = {
-  data: User[];
-  total: number;
-  page: number;
-  limit: number;
-};
+import type { OAuthProfile } from '../auth/types';
+import type { PaginatedResponse } from 'api/types';
 
 @Injectable()
 export class UserService {
@@ -93,7 +78,7 @@ export class UserService {
     });
   }
 
-  async findAll(dto: FindUsersDto): Promise<UsersPage> {
+  async findAll(dto: FindUsersDto): Promise<PaginatedResponse<User>> {
     const page = dto.page ?? 1;
     const limit = dto.limit ?? 20;
     const roleFilter =

@@ -11,13 +11,7 @@ import { CreateTeamDto } from './dto/create-team.dto';
 import { FindTeamsDto } from './dto/find-teams.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { TeamMemberRole } from './team-member-role.enum';
-
-export type TeamsPage = {
-  data: Team[];
-  total: number;
-  page: number;
-  limit: number;
-};
+import type { PaginatedResponse } from 'api/types';
 
 @Injectable()
 export class TeamService {
@@ -28,7 +22,7 @@ export class TeamService {
     private readonly memberRepository: Repository<TeamMember>,
   ) {}
 
-  async findAll(dto: FindTeamsDto): Promise<TeamsPage> {
+  async findAll(dto: FindTeamsDto): Promise<PaginatedResponse<Team>> {
     const page = dto.page ?? 1;
     const limit = dto.limit ?? 20;
     const qb = this.teamRepository.createQueryBuilder('team');

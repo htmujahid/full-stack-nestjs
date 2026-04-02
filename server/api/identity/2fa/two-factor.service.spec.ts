@@ -9,11 +9,8 @@ import { TwoFactor } from './two-factor.entity';
 import { User } from '../user/user.entity';
 import { Account } from '../account/account.entity';
 import { Verification } from '../auth/entities/verification.entity';
-import {
-  AuthService,
-  type RequestContext,
-  type TokenPair,
-} from '../auth/services/auth.service';
+import { AuthService } from '../auth/services/auth.service';
+import type { RequestContext, TokenPair } from '../auth/types';
 import { TwoFactorGateService } from '../auth/services/two-factor-gate.service';
 import { UserRole } from '../user/user-role.enum';
 import { mockDataSource, mockRepository } from '../../../mocks/db.mock';

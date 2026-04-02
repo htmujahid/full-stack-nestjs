@@ -1,6 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import type { Profile, VerifyCallback } from 'passport-google-oauth20';
-import { GoogleStrategy, type GoogleProfile } from './google.strategy';
+import { GoogleStrategy } from './google.strategy';
+import type { OAuthProfile as GoogleProfile } from '../../auth/types';
 
 const makeConfigService = (): ConfigService =>
   ({

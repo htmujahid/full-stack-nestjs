@@ -7,6 +7,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import type { Request as ExpressRequest, Response } from 'express';
@@ -15,9 +16,8 @@ import { AccountService } from '../../account/account.service';
 import { AuthService } from '../../auth/services/auth.service';
 import { TwoFactorGateService } from '../../auth/services/two-factor-gate.service';
 import { UserService } from '../../user/user.service';
-import type { GoogleProfile } from '../strategies/google.strategy';
 import { BaseOAuthController } from './base-oauth.controller';
-import { JwtService } from '@nestjs/jwt';
+import { OAuthProfile } from 'api/identity/auth/types';
 
 @ApiTags('Auth')
 // Route prefix: /api/oauth/google (managed by RouterModule — see server/routes.ts)
@@ -47,7 +47,7 @@ export class GoogleController extends BaseOAuthController {
   @Redirect()
   @ApiOperation({ summary: 'Google OAuth2 callback' })
   async callback(
-    @Request() req: ExpressRequest & { user: GoogleProfile },
+    @Request() req: ExpressRequest & { user: OAuthProfile },
     @Headers('x-forwarded-for') forwardedFor: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
     @Res({ passthrough: true }) res: Response,

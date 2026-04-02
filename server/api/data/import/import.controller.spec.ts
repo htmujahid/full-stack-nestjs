@@ -16,7 +16,7 @@ const makeFile = (
     originalname: 'test.csv',
     encoding: '7bit',
     size: buffer.length,
-    stream: null,
+    stream: null as unknown as import('stream').Readable,
     destination: '',
     filename: '',
     path: '',

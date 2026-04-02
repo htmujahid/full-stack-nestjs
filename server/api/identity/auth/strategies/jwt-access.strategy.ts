@@ -4,14 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { Request } from 'express';
 import { ACCESS_TOKEN_COOKIE } from '../auth.constants';
-import type { AuthMethod } from '../services/auth.service';
-import { UserRole } from '../../user/user-role.enum';
-
-export interface JwtAccessPayload {
-  sub: string;
-  role: UserRole;
-  auth_method: AuthMethod;
-}
+import type { AccessUser, JwtAccessPayload } from '../types';
 
 @Injectable()
 export class JwtAccessStrategy extends PassportStrategy(
@@ -32,7 +25,7 @@ export class JwtAccessStrategy extends PassportStrategy(
     });
   }
 
-  validate(payload: JwtAccessPayload) {
+  validate(payload: JwtAccessPayload): AccessUser {
     return {
       userId: payload.sub,
       role: payload.role,

@@ -7,14 +7,7 @@ import type { Request } from 'express';
 import { DataSource } from 'typeorm';
 import { RefreshSession } from '../entities/refresh-session.entity';
 import { REFRESH_TOKEN_COOKIE } from '../auth.constants';
-import { UserRole } from '../../user/user-role.enum';
-
-export interface JwtRefreshPayload {
-  sub: string;
-  role: UserRole;
-  sid: string; // session ID
-  fid: string; // family ID
-}
+import { JwtRefreshPayload } from '../types';
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(

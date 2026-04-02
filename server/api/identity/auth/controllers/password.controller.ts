@@ -21,8 +21,8 @@ import { PasswordService } from '../services/password.service';
 import { TwoFactorGateService } from '../services/two-factor-gate.service';
 import { AUTH_THROTTLE_LIMIT, AUTH_THROTTLE_TTL_MS } from '../auth.constants';
 import { BaseAuthController } from './base-auth.controller';
-import { SignUpDto } from '../dto/sign-up.dto';
 import { SignInDto } from '../dto/sign-in.dto';
+import { SignUpDto } from '../dto/sign-up.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { Public } from '../decorators/public.decorator';
@@ -74,7 +74,7 @@ export class PasswordController extends BaseAuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const ip = forwardedFor?.split(',')[0]?.trim() ?? null;
-    const rememberMe = dto.rememberMe !== false;
+    const rememberMe = dto?.rememberMe !== false;
     const user = req.user;
 
     const gate = await this.checkTwoFactor(user, req, res);

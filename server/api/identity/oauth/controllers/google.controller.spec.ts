@@ -8,7 +8,7 @@ import { TwoFactorGateService } from '../../auth/services/two-factor-gate.servic
 import { UserService } from '../../user/user.service';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import { OAUTH_REDIRECT_COOKIE } from '../../auth/auth.constants';
-import type { GoogleProfile } from '../strategies/google.strategy';
+import type { OAuthProfile as GoogleProfile } from '../../auth/types';
 import { User } from '../../user/user.entity';
 import { UserRole } from '../../user/user-role.enum';
 import type { Request as ExpressRequest, Response } from 'express';

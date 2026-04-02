@@ -27,7 +27,7 @@ class TestController extends BaseAuthController {
     user: { id: string; role: UserRole; twoFactorEnabled: boolean },
     req: Request,
     res: Response,
-  ) => this.checkTwoFactor(user, req, res);
+  ) => this.checkTwoFactor(user as unknown as import('../../user/user.entity').User, req, res);
 
   testSetTokenCookies = (
     res: Response,

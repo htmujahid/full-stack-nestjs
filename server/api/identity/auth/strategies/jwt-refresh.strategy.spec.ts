@@ -1,10 +1,8 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
-import {
-  JwtRefreshStrategy,
-  type JwtRefreshPayload,
-} from './jwt-refresh.strategy';
+import { JwtRefreshStrategy } from './jwt-refresh.strategy';
+import type { JwtRefreshPayload } from '../types';
 import { RefreshSession } from '../entities/refresh-session.entity';
 import { REFRESH_TOKEN_COOKIE } from '../auth.constants';
 import { mockRepository } from '../../../../mocks/db.mock';

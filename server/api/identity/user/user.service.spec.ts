@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
-import { UserService, type OAuthProfile } from './user.service';
+import { UserService } from './user.service';
+import type { OAuthProfile } from '../auth/types';
 import { User } from './user.entity';
 import { Account } from '../account/account.entity';
 import { CreateUserDto } from './dto/create-user.dto';

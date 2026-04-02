@@ -90,8 +90,8 @@ describe('ExportController', () => {
       service.export.mockResolvedValue('');
 
       await controller.export(
-        undefined as unknown as string,
-        undefined as unknown as string,
+        undefined,
+        undefined,
         req,
         res as Response & { setHeader: jest.Mock },
       );

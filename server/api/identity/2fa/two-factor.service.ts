@@ -10,11 +10,8 @@ import { DataSource, Like } from 'typeorm';
 import { randomBytes, randomInt, timingSafeEqual } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import {
-  TOTP,
   generateSecret,
   generateURI,
-  NobleCryptoPlugin,
-  ScureBase32Plugin,
 } from 'otplib';
 import { decrypt, encrypt, hashToken } from '../auth/crypto.util';
 import { TwoFactor } from './two-factor.entity';
@@ -23,8 +20,6 @@ import { Account } from '../account/account.entity';
 import { Verification } from '../auth/entities/verification.entity';
 import {
   AuthService,
-  type RequestContext,
-  type TokenPair,
 } from '../auth/services/auth.service';
 import { TwoFactorGateService } from '../auth/services/two-factor-gate.service';
 import {
@@ -40,18 +35,8 @@ import {
 } from '../auth/auth.constants';
 import type { EnableTwoFactorDto } from './dto/enable-two-factor.dto';
 import { UserRole } from '../user/user-role.enum';
-
-function makeTOTP(secret: string, issuer?: string, label?: string): TOTP {
-  return new TOTP({
-    digits: TOTP_DIGITS,
-    period: TOTP_PERIOD,
-    secret,
-    crypto: new NobleCryptoPlugin(),
-    base32: new ScureBase32Plugin(),
-    ...(issuer !== undefined ? { issuer } : {}),
-    ...(label !== undefined ? { label } : {}),
-  });
-}
+import { makeTOTP } from './two-factor.utils';
+import { RequestContext, TokenPair } from '../auth/types';
 
 @Injectable()
 export class TwoFactorService {
@@ -61,7 +46,7 @@ export class TwoFactorService {
     private readonly mailerService: MailerService,
     private readonly authService: AuthService,
     private readonly twoFactorGate: TwoFactorGateService,
-  ) {}
+  ) { }
 
   async enable(
     userId: string,

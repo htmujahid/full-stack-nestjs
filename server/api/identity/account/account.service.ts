@@ -6,14 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Account } from './account.entity';
-
-export interface LinkAccountData {
-  providerId: string;
-  accountId: string;
-  accessToken?: string | null;
-  refreshToken?: string | null;
-  scope?: string | null;
-}
+import { LinkAccountData } from './types';
 
 @Injectable()
 export class AccountService {

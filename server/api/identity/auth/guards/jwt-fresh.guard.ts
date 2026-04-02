@@ -5,13 +5,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import type { AuthMethod } from '../services/auth.service';
-
-interface AuthenticatedUser {
-  userId: string;
-  authMethod: AuthMethod;
-}
-
+import { AccessUser } from '../types';
 /**
  * Requires that the access token was issued via a direct login ('password' or
  * 'google'), not a token refresh. Use on sensitive endpoints where
@@ -24,7 +18,7 @@ interface AuthenticatedUser {
 export class JwtFreshGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const user = request.user as AuthenticatedUser | undefined;
+    const user = request.user as AccessUser | undefined;
     if (!user) throw new UnauthorizedException();
     if (user.authMethod === 'refresh') {
       throw new ForbiddenException('Re-authentication required');

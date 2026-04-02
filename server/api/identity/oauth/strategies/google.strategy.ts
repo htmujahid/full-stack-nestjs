@@ -6,16 +6,7 @@ import {
   type Profile,
   type VerifyCallback,
 } from 'passport-google-oauth20';
-
-export interface GoogleProfile {
-  providerId: string;
-  accountId: string;
-  email: string;
-  name: string;
-  image: string | null;
-  accessToken: string;
-  refreshToken: string | null;
-}
+import type { OAuthProfile } from 'api/identity/auth/types';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -40,7 +31,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       return;
     }
 
-    const googleProfile: GoogleProfile = {
+    const googleProfile: OAuthProfile = {
       providerId: 'google',
       accountId: profile.id,
       email,

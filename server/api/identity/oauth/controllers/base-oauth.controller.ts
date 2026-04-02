@@ -3,27 +3,15 @@ import { JwtService } from '@nestjs/jwt';
 import type { Request as ExpressRequest, Response } from 'express';
 import { AccountService } from '../../account/account.service';
 import { TwoFactorGateService } from '../../auth/services/two-factor-gate.service';
-import { AuthService, type TokenPair } from '../../auth/services/auth.service';
-import { UserService, type OAuthProfile } from '../../user/user.service';
-import { UserRole } from '../../user/user-role.enum';
+import { AuthService } from '../../auth/services/auth.service';
+import { UserService } from '../../user/user.service';
 import {
   ACCESS_TOKEN_COOKIE,
   OAUTH_REDIRECT_COOKIE,
 } from '../../auth/auth.constants';
 import { BaseAuthController } from '../../auth/controllers/base-auth.controller';
-
-export type { OAuthProfile };
-
-type OAuthAccount = {
-  providerId: string;
-  accountId: string;
-  accessToken: string;
-  refreshToken: string | null;
-};
-
-type OAuthUser = { id: string; role: UserRole; twoFactorEnabled: boolean };
-
-type RedirectResult = { url: string; statusCode: number };
+import type { OAuthAccount, TokenPair } from 'api/identity/auth/types';
+import type { User } from 'api/identity/user/user.entity';
 
 export abstract class BaseOAuthController extends BaseAuthController {
   constructor(
@@ -40,7 +28,7 @@ export abstract class BaseOAuthController extends BaseAuthController {
     req: ExpressRequest,
     res: Response,
     account: OAuthAccount,
-  ): Promise<RedirectResult> {
+  ) {
     const cookies = req.cookies as Record<string, string>;
     const redirectBase =
       cookies?.[OAUTH_REDIRECT_COOKIE] ?? '/account/security';
@@ -88,9 +76,9 @@ export abstract class BaseOAuthController extends BaseAuthController {
   protected async handleOAuthSignIn(
     req: ExpressRequest,
     res: Response,
-    user: OAuthUser,
+    user: User,
     createTokens: () => Promise<TokenPair>,
-  ): Promise<RedirectResult> {
+  ) {
     const cookies = req.cookies as Record<string, string>;
     const redirectUri = cookies?.[OAUTH_REDIRECT_COOKIE] ?? '/';
     res.clearCookie(OAUTH_REDIRECT_COOKIE, { path: '/' });

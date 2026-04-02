@@ -20,9 +20,8 @@ import {
 } from '../auth.constants';
 import {
   AuthService,
-  type RequestContext,
-  type TokenPair,
 } from './auth.service';
+import type { RequestContext, TokenPair } from '../types';
 
 // OTP record stored in Verification.value as JSON
 interface OtpRecord {

@@ -15,9 +15,8 @@ import {
 } from '../auth.constants';
 import {
   AuthService,
-  type RequestContext,
-  type TokenPair,
 } from './auth.service';
+import type { RequestContext, TokenPair } from '../types';
 
 @Injectable()
 export class EmailService {
@@ -96,7 +95,7 @@ export class EmailService {
       user.role,
       false,
       ctx,
-      'password',
+      'email',
     );
     return { ok: true, user, tokens };
   }

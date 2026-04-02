@@ -18,21 +18,7 @@ import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '../auth.constants';
 import { Public } from '../decorators/public.decorator';
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
 import { BaseAuthController } from './base-auth.controller';
-import { UserRole } from '../../user/user-role.enum';
-
-interface RefreshUser {
-  userId: string;
-  role: UserRole;
-  sessionId: string;
-  familyId: string;
-  rawRefreshToken: string;
-}
-
-interface AccessUser {
-  userId: string;
-  role: UserRole;
-  authMethod: 'password' | 'phone' | 'google' | 'refresh';
-}
+import type { AccessUser, RefreshUser } from '../types';
 
 @ApiTags('Auth')
 // Route prefix: /api/auth (managed by RouterModule — see server/routes.ts)

@@ -19,7 +19,7 @@ import {
   PHONE_OTP_MAX_ATTEMPTS,
   PHONE_VERIFY_IDENTIFIER_PREFIX,
 } from '../auth.constants';
-import type { TokenPair } from './auth.service';
+import type { TokenPair } from '../types';
 
 const NOW = 2_000_000_000_000;
 

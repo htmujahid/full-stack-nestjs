@@ -1,5 +1,4 @@
 import type { Request, Response } from 'express';
-import type { TokenPair } from '../services/auth.service';
 import { TwoFactorGateService } from '../services/two-factor-gate.service';
 import { UserRole } from '../../user/user-role.enum';
 import {
@@ -13,12 +12,14 @@ import {
   TRUST_DEVICE_COOKIE,
   TRUST_DEVICE_EXPIRES_MS,
 } from '../auth.constants';
+import type { TokenPair } from '../types';
+import { User } from 'api/identity/user/user.entity';
 
 export abstract class BaseAuthController {
   constructor(protected readonly twoFactorGate: TwoFactorGateService) {}
 
   protected async checkTwoFactor(
-    user: { id: string; role: UserRole; twoFactorEnabled: boolean },
+    user: User,
     req: Request,
     res: Response,
   ): Promise<'pass' | 'pending'> {

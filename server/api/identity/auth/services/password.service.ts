@@ -21,10 +21,9 @@ import {
 import type { SignUpDto } from '../dto/sign-up.dto';
 import {
   AuthService,
-  type RequestContext,
-  type TokenPair,
 } from './auth.service';
 import { EmailService } from './email.service';
+import type { RequestContext, TokenPair } from '../types';
 
 @Injectable()
 export class PasswordService {
